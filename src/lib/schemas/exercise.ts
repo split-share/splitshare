@@ -1,0 +1,50 @@
+import { z } from 'zod';
+
+// Define as mutable arrays for z.enum
+const MUSCLE_GROUPS = [
+	'Chest',
+	'Back',
+	'Shoulders',
+	'Biceps',
+	'Triceps',
+	'Legs',
+	'Quads',
+	'Hamstrings',
+	'Calves',
+	'Glutes',
+	'Core',
+	'Abs',
+	'Cardio',
+	'Full Body'
+] as const;
+
+const EQUIPMENT_TYPES = [
+	'Barbell',
+	'Dumbbell',
+	'Kettlebell',
+	'Machine',
+	'Cable',
+	'Bodyweight',
+	'Resistance Band',
+	'Medicine Ball',
+	'TRX',
+	'Other'
+] as const;
+
+export const createExerciseSchema = z.object({
+	name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long'),
+	description: z.string().max(500, 'Description is too long').optional(),
+	muscleGroup: z.enum(MUSCLE_GROUPS, {
+		errorMap: () => ({ message: 'Invalid muscle group' })
+	}),
+	equipmentType: z.enum(EQUIPMENT_TYPES, {
+		errorMap: () => ({ message: 'Invalid equipment type' })
+	}),
+	imageUrl: z.string().url('Invalid image URL').optional(),
+	videoUrl: z.string().url('Invalid video URL').optional()
+});
+
+export const updateExerciseSchema = createExerciseSchema.partial();
+
+export type CreateExerciseInput = z.infer<typeof createExerciseSchema>;
+export type UpdateExerciseInput = z.infer<typeof updateExerciseSchema>;
