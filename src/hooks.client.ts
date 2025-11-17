@@ -1,0 +1,17 @@
+import * as Sentry from '@sentry/sveltekit';
+
+Sentry.init({
+	dsn: import.meta.env.VITE_SENTRY_DSN,
+	environment: import.meta.env.MODE,
+	tracesSampleRate: 1.0,
+	replaysSessionSampleRate: 0.1,
+	replaysOnErrorSampleRate: 1.0,
+	integrations: [
+		Sentry.replayIntegration({
+			maskAllText: false,
+			blockAllMedia: false
+		})
+	]
+});
+
+export const handleError = Sentry.handleErrorWithSentry();
