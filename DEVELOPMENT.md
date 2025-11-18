@@ -382,6 +382,39 @@ All environment variables are in `.env`. See `.env.local.example` for local deve
 - `RESEND_API_KEY` - Not needed, using Mailpit
 - `UPSTASH_REDIS_REST_URL` - Using local Redis
 
+### Required for Production/CI Builds
+
+#### Sentry (Optional at Runtime, Required at Build Time)
+
+The application gracefully handles missing Sentry configuration at runtime, but the build process requires these variables to be defined:
+
+- `SENTRY_DSN` - Sentry Data Source Name (can be empty string to disable)
+- `SENTRY_AUTH_TOKEN` - Auth token for source maps (can be empty)
+- `SENTRY_ORG` - Your Sentry organization slug (can be empty)
+- `SENTRY_PROJECT` - Your Sentry project name (can be empty)
+
+#### Setting Up CI/CD Builds
+
+For CI pipelines where you don't want to configure Sentry, you need to ensure environment variables are available during the build. Here's the recommended approach:
+
+```bash
+# In your CI pipeline, before running npm run build:
+cp .env.local.example .env
+
+# Or set empty Sentry variables explicitly:
+echo "SENTRY_DSN=" >> .env
+echo "SENTRY_AUTH_TOKEN=" >> .env
+echo "SENTRY_ORG=" >> .env
+echo "SENTRY_PROJECT=" >> .env
+```
+
+The `.env.local.example` file contains all required variables with sensible defaults for development and placeholder values for optional services like Sentry.
+
+**Important**: The following variables are truly required and must have valid values for the application to work:
+- `DATABASE_URL` - PostgreSQL connection string
+- `BETTER_AUTH_SECRET` - Authentication secret key
+- `UPSTASH_REDIS_REST_URL` - Redis connection for rate limiting
+
 ## Next Steps
 
 1. **Create your first account**
