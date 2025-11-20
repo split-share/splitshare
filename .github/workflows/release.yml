@@ -288,22 +288,10 @@ jobs:
           name: ios-app
           path: artifacts/ios/
 
-      - name: Zip iOS app
-        if: hashFiles('artifacts/ios/*.app') != ''
-        run: |
-          if [ -d artifacts/ios ]; then
-            cd artifacts/ios
-            for app in *.app; do
-              if [ -d "$app" ]; then
-                zip -r "${app%.app}.zip" "$app"
-              fi
-            done
-          fi
-
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             artifacts/android/*.apk
-            artifacts/ios/*.zip
+            artifacts/ios/**
           generate_release_notes: true
