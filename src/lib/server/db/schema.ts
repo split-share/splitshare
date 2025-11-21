@@ -57,12 +57,16 @@ export const verification = pgTable('verification', {
 // Exercises table
 export const exercises = pgTable('exercises', {
 	id: uuid('id').defaultRandom().primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
 	name: text('name').notNull(),
 	description: text('description'),
+	difficulty: text('difficulty').notNull().default('intermediate'), // beginner, intermediate, advanced
 	muscleGroup: text('muscle_group').notNull(),
 	equipmentType: text('equipment_type').notNull(),
 	imageUrl: text('image_url'), // Thumbnail image
-	videoUrl: text('video_url'), // Demonstration video
+	videoUrl: text('video_url'), // YouTube or demonstration video URL
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
@@ -85,20 +89,34 @@ export const splits = pgTable('splits', {
 	updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
 
-// Split exercises junction table
-export const splitExercises = pgTable('split_exercises', {
+// Split days table - represents each day in a workout split
+export const splitDays = pgTable('split_days', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	splitId: uuid('split_id')
 		.notNull()
 		.references(() => splits.id, { onDelete: 'cascade' }),
+	dayNumber: integer('day_number').notNull(), // 1-7 for ordering
+	name: text('name').notNull(), // e.g., "Chest Day", "Rest Day", "Leg Day"
+	isRestDay: boolean('is_rest_day').notNull().default(false),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
+// Day exercises junction table - links exercises to specific days
+export const dayExercises = pgTable('day_exercises', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	dayId: uuid('day_id')
+		.notNull()
+		.references(() => splitDays.id, { onDelete: 'cascade' }),
 	exerciseId: uuid('exercise_id')
 		.notNull()
 		.references(() => exercises.id, { onDelete: 'cascade' }),
 	sets: integer('sets').notNull(),
-	reps: text('reps').notNull(),
-	restTime: integer('rest_time'),
-	order: integer('order').notNull(),
-	notes: text('notes')
+	reps: text('reps').notNull(), // e.g., "10", "8-12", "AMRAP"
+	restTime: integer('rest_time'), // rest time in seconds
+	order: integer('order').notNull(), // order within the day
+	notes: text('notes'),
+	createdAt: timestamp('created_at').notNull().defaultNow()
 });
 
 // Split shares table
@@ -184,7 +202,8 @@ export type Account = typeof account.$inferSelect;
 export type Verification = typeof verification.$inferSelect;
 export type Exercise = typeof exercises.$inferSelect;
 export type Split = typeof splits.$inferSelect;
-export type SplitExercise = typeof splitExercises.$inferSelect;
+export type SplitDay = typeof splitDays.$inferSelect;
+export type DayExercise = typeof dayExercises.$inferSelect;
 export type SplitShare = typeof splitShares.$inferSelect;
 export type Like = typeof likes.$inferSelect;
 export type Comment = typeof comments.$inferSelect;

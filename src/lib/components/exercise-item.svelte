@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { SplitExercise, Exercise } from '$lib/server/db/schema';
+	import type { DayExercise, Exercise } from '$lib/server/db/schema';
 
 	let {
 		exercise
 	}: {
-		exercise: SplitExercise & { exercise: Exercise };
+		exercise: DayExercise & { exercise: Exercise };
 	} = $props();
 </script>
 
