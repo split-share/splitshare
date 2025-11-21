@@ -9,13 +9,17 @@
 		FieldDescription
 	} from '$lib/components/ui/field/index.js';
 	import { signIn } from '$lib/auth-client';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 
 	let email = $state('');
 	let password = $state('');
 	let error = $state('');
 	let loading = $state(false);
 
+	/**
+	 * Handles login form submission
+	 * @param {Event} e - Form submit event
+	 */
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
 		error = '';
@@ -30,6 +34,8 @@
 			if (result.error) {
 				error = result.error.message || 'Invalid email or password';
 			} else {
+				// Invalidate all data to reload user info
+				await invalidateAll();
 				await goto('/splits');
 			}
 		} catch {

@@ -8,6 +8,10 @@
 
 	let { data }: { data: PageData } = $props();
 
+	/**
+	 * Filters splits by difficulty level
+	 * @param {string | null} difficulty - Difficulty level to filter by, or null for all
+	 */
 	function filterByDifficulty(difficulty: string | null) {
 		const url = new URL(window.location.href);
 		if (difficulty) {
@@ -22,24 +26,27 @@
 <div class="container mx-auto px-4 py-8">
 	<!-- Hero Section -->
 	<div class="mb-12 text-center">
-		<h1 class="mb-4 text-4xl font-bold">Welcome to SplitShare</h1>
-		<p class="mb-6 text-lg text-muted-foreground">
+		<h1 class="mb-4 text-3xl font-bold sm:text-4xl md:text-5xl">Welcome to SplitShare</h1>
+		<p class="mb-6 text-base text-muted-foreground sm:text-lg max-w-2xl mx-auto">
 			Discover and share workout splits with the fitness community
 		</p>
-		<div class="flex justify-center gap-4">
+		<div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
 			{#if !data.user}
-				<Button href="/login">Sign In</Button>
-				<Button href="/register" variant="outline">Sign Up</Button>
+				<Button href="/login" class="w-full sm:w-auto">Sign In</Button>
+				<Button href="/register" variant="outline" class="w-full sm:w-auto">Sign Up</Button>
 			{:else}
-				<Button href="/splits">My Splits</Button>
+				<Button href="/splits" class="w-full sm:w-auto">My Splits</Button>
 			{/if}
-			<Button href="/discover" variant="secondary">Explore Popular Splits</Button>
+			<Button href="/discover" variant="secondary" class="w-full sm:w-auto">
+				<span class="hidden sm:inline">Explore Popular Splits</span>
+				<span class="sm:hidden">Explore</span>
+			</Button>
 		</div>
 	</div>
 
 	<!-- Default Splits Section -->
 	<div class="mb-8">
-		<div class="mb-6 flex items-center justify-between">
+		<div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 			<div>
 				<h2 class="text-2xl font-bold">Default Workout Splits</h2>
 				<p class="text-sm text-muted-foreground">Curated workout splits to get you started</p>
