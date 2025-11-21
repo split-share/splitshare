@@ -1,11 +1,12 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
 	import ModeToggle from '$lib/components/mode-toggle.svelte';
 	import type { LayoutData } from './$types';
 
-	let { data, children }: { data: LayoutData; children: any } = $props();
+	let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
 
 <ModeWatcher />

@@ -40,7 +40,7 @@ export const actions: Actions = {
 
 		const validatedData = validation.data;
 
-		await exerciseService.createExercise({
+		const exercise = await exerciseService.createExercise({
 			userId: event.locals.user!.id,
 			name: validatedData.name,
 			description: validatedData.description,
@@ -51,6 +51,15 @@ export const actions: Actions = {
 			videoUrl: validatedData.videoUrl
 		});
 
+		// Check if this is an AJAX request (from modal) or regular form submission
+		const isAjaxRequest = event.request.headers.get('accept')?.includes('application/json');
+
+		if (isAjaxRequest) {
+			// Return the created exercise for AJAX requests (modal)
+			return { success: true, exercise };
+		}
+
+		// Redirect for regular form submissions
 		redirect(303, '/splits/new');
 	}
 };

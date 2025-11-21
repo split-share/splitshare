@@ -1,3 +1,14 @@
+// Days of the week
+export const DAYS_OF_WEEK = [
+	'Monday',
+	'Tuesday',
+	'Wednesday',
+	'Thursday',
+	'Friday',
+	'Saturday',
+	'Sunday'
+] as const;
+
 // Workout difficulty levels
 export const DIFFICULTY_LEVELS = ['beginner', 'intermediate', 'advanced'] as const;
 

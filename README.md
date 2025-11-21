@@ -104,12 +104,14 @@ npm run cap:ios          # Open Xcode
 The project includes comprehensive local development infrastructure:
 
 **Core Services:**
+
 - **PostgreSQL 16** (port 5432) - Database
 - **Redis 7** (port 6379) - Rate limiting
 - **Upstash Proxy** (port 8079) - Redis HTTP interface
 - **Mailpit** (ports 1025, 8025) - Email testing
 
 **Optional Services:**
+
 - **pgAdmin** (port 5050) - Database management UI
 - **Redis Commander** (port 8081) - Redis management UI
 

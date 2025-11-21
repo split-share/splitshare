@@ -32,7 +32,7 @@
 	"devDependencies": {
 		"@eslint/js": "^9.39.1",
 		"@internationalized/date": "^3.10.0",
-		"@lucide/svelte": "^0.554.0",
+		"@lucide/svelte": "^0.544.0",
 		"@playwright/test": "^1.56.1",
 		"@sveltejs/adapter-node": "^5.2.9",
 		"@sveltejs/adapter-static": "^3.0.10",

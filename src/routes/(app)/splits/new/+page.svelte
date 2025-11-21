@@ -17,13 +17,16 @@
 		FieldDescription
 	} from '$lib/components/ui/field';
 	import Badge from '$lib/components/ui/badge.svelte';
-	import { DIFFICULTY_LEVELS, WORKOUT_TAGS } from '$lib/constants';
+	import ExerciseAutocomplete from '$lib/components/forms/exercise-autocomplete.svelte';
+	import CreateExerciseModal from '$lib/components/modals/create-exercise-modal.svelte';
+	import { DIFFICULTY_LEVELS, WORKOUT_TAGS, DAYS_OF_WEEK } from '$lib/constants';
 	import type { PageData } from './$types';
 	import type {
 		CreateCompleteSplitInput,
 		CreateSplitDayInput,
 		AddExerciseToDayInput
 	} from '$lib/schemas/split';
+	import type { Exercise } from '$lib/services/exercises/types';
 
 	let { data }: { data: PageData } = $props();
 
@@ -31,6 +34,7 @@
 	let currentStep = $state(1);
 	let loading = $state(false);
 	let error = $state('');
+	let showExerciseModal = $state(false);
 
 	// Split basic info
 	let title = $state('');
@@ -41,17 +45,27 @@
 	let selectedTags = $state<string[]>([]);
 	let imageUrl = $state('');
 
-	// Days state
+	// Days state - using day names (Monday-Sunday)
 	let days = $state<CreateSplitDayInput[]>([]);
 
-	// Available exercises from server
-	const exercises = data.exercises;
+	// Available exercises from server + newly created ones
+	let availableExercises = $state<Exercise[]>(data.exercises);
+
+	// Get available day names (not yet selected)
+	const availableDayNames = $derived(
+		DAYS_OF_WEEK.filter((day) => !days.some((d) => d.name === day))
+	);
 
 	// Add a new day
 	function addDay() {
+		if (availableDayNames.length === 0) {
+			error = 'All days have been added';
+			return;
+		}
+
 		const newDay: CreateSplitDayInput = {
 			dayNumber: days.length + 1,
-			name: `Day ${days.length + 1}`,
+			name: availableDayNames[0],
 			isRestDay: false,
 			exercises: []
 		};
@@ -65,6 +79,11 @@
 		days = days.map((day, i) => ({ ...day, dayNumber: i + 1 }));
 	}
 
+	// Change day name
+	function changeDayName(index: number, newName: (typeof DAYS_OF_WEEK)[number]) {
+		days[index].name = newName;
+	}
+
 	// Toggle rest day
 	function toggleRestDay(index: number) {
 		days[index].isRestDay = !days[index].isRestDay;
@@ -73,17 +92,17 @@
 		}
 	}
 
-	// Add exercise to a day
-	function addExerciseToDay(dayIndex: number, exerciseId: string) {
-		const exercise: AddExerciseToDayInput = {
-			exerciseId,
+	// Add exercise to a day using autocomplete
+	function addExerciseToDay(dayIndex: number, exercise: Exercise) {
+		const exerciseData: AddExerciseToDayInput = {
+			exerciseId: exercise.id,
 			sets: 3,
 			reps: '10',
 			restTime: 60,
 			order: days[dayIndex].exercises.length,
 			notes: ''
 		};
-		days[dayIndex].exercises = [...days[dayIndex].exercises, exercise];
+		days[dayIndex].exercises = [...days[dayIndex].exercises, exerciseData];
 	}
 
 	// Remove exercise from a day
@@ -91,6 +110,11 @@
 		days[dayIndex].exercises = days[dayIndex].exercises.filter((_, i) => i !== exerciseIndex);
 		// Renumber remaining exercises
 		days[dayIndex].exercises = days[dayIndex].exercises.map((ex, i) => ({ ...ex, order: i }));
+	}
+
+	// Handle new exercise created from modal
+	function handleExerciseCreated(exercise: Exercise) {
+		availableExercises = [...availableExercises, exercise];
 	}
 
 	// Toggle tag selection
@@ -141,7 +165,6 @@
 			});
 
 			if (response.ok) {
-				// Will redirect automatically from server action
 				const result = await response.json();
 				if (result.type === 'redirect') {
 					goto(result.location);
@@ -160,9 +183,11 @@
 
 	// Get exercise name by ID
 	function getExerciseName(exerciseId: string) {
-		return exercises.find((ex) => ex.id === exerciseId)?.name || 'Unknown Exercise';
+		return availableExercises.find((ex) => ex.id === exerciseId)?.name || 'Unknown Exercise';
 	}
 </script>
+
+<CreateExerciseModal bind:open={showExerciseModal} onSuccess={handleExerciseCreated} />
 
 <div class="container mx-auto px-4 py-8 max-w-4xl">
 	<div class="mb-8">
@@ -282,7 +307,7 @@
 		<Card>
 			<CardHeader>
 				<CardTitle>Setup Days</CardTitle>
-				<CardDescription>Add and configure the days in your split</CardDescription>
+				<CardDescription>Select days of the week for your split (Monday - Sunday)</CardDescription>
 			</CardHeader>
 			<CardContent class="space-y-4">
 				{#if days.length === 0}
@@ -294,9 +319,24 @@
 					<div class="space-y-3">
 						{#each days as day, index (day.dayNumber)}
 							<div class="rounded-lg border p-4">
-								<div class="flex items-center justify-between">
-									<div class="flex-1">
-										<Input bind:value={day.name} placeholder="Day name" class="mb-2 font-medium" />
+								<div class="flex items-center justify-between gap-4">
+									<div class="flex-1 space-y-2">
+										<div class="flex items-center gap-2">
+											<Label class="text-sm font-medium">Day</Label>
+											<select
+												bind:value={day.name}
+												onchange={(e) => {
+													const target = e.target as HTMLSelectElement;
+													changeDayName(index, target.value as (typeof DAYS_OF_WEEK)[number]);
+												}}
+												class="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+											>
+												<option value={day.name}>{day.name}</option>
+												{#each availableDayNames as dayName (dayName)}
+													<option value={dayName}>{dayName}</option>
+												{/each}
+											</select>
+										</div>
 										<div class="flex items-center gap-2">
 											<input
 												type="checkbox"
@@ -318,7 +358,11 @@
 						{/each}
 					</div>
 
-					<Button onclick={addDay} variant="outline" class="w-full">Add Another Day</Button>
+					{#if availableDayNames.length > 0}
+						<Button onclick={addDay} variant="outline" class="w-full">Add Another Day</Button>
+					{:else}
+						<p class="text-sm text-muted-foreground text-center">All days have been added</p>
+					{/if}
 				{/if}
 
 				<div class="flex justify-between">
@@ -337,14 +381,20 @@
 				<CardDescription>Add exercises to each workout day</CardDescription>
 			</CardHeader>
 			<CardContent class="space-y-6">
-				{#if exercises.length === 0}
+				<div class="flex justify-end">
+					<Button variant="outline" onclick={() => (showExerciseModal = true)}>
+						Create New Exercise
+					</Button>
+				</div>
+
+				{#if availableExercises.length === 0}
 					<div class="rounded-lg border border-dashed p-8 text-center">
 						<p class="text-muted-foreground">You don't have any exercises yet</p>
 						<p class="mt-2 text-sm text-muted-foreground">
-							Create exercises first to add them to your split
+							Create exercises to add them to your split
 						</p>
-						<Button onclick={() => window.open('/exercises/new', '_blank')} class="mt-4">
-							Create Exercise
+						<Button onclick={() => (showExerciseModal = true)} class="mt-4">
+							Create First Exercise
 						</Button>
 					</div>
 				{:else}
@@ -410,23 +460,11 @@
 
 								<div class="space-y-2">
 									<Label class="text-sm">Add Exercise</Label>
-									<select
-										class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-										onchange={(e) => {
-											const target = e.target as HTMLSelectElement;
-											if (target.value) {
-												addExerciseToDay(dayIndex, target.value);
-												target.value = '';
-											}
-										}}
-									>
-										<option value="">Select an exercise...</option>
-										{#each exercises as exercise (exercise.id)}
-											<option value={exercise.id}>
-												{exercise.name} ({exercise.muscleGroup})
-											</option>
-										{/each}
-									</select>
+									<ExerciseAutocomplete
+										exercises={availableExercises}
+										onSelect={(ex) => addExerciseToDay(dayIndex, ex)}
+										placeholder="Search for an exercise..."
+									/>
 								</div>
 							</div>
 						{/if}
