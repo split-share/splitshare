@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -41,7 +39,24 @@ services:
     networks:
       - splitshare-network
 
-  # Mailpit for email testing (modern alternative to MailHog)
+  # Upstash Redis HTTP Proxy for compatibility with Upstash SDK
+  upstash-proxy:
+    image: hiett/serverless-redis-http:latest
+    container_name: splitshare-upstash-proxy
+    restart: unless-stopped
+    ports:
+      - '8079:80'
+    environment:
+      SRH_MODE: env
+      SRH_TOKEN: example_token
+      SRH_CONNECTION_STRING: redis://:redis_dev_password@redis:6379
+    networks:
+      - splitshare-network
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # Mailpit for email testing
   mailpit:
     image: axllent/mailpit:latest
     container_name: splitshare-mailpit
@@ -61,7 +76,7 @@ services:
     container_name: splitshare-pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@splitshare.local
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: 'False'
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
@@ -74,7 +89,23 @@ services:
     depends_on:
       - postgres
     profiles:
-      - tools # Optional service, start with: docker-compose --profile tools up
+      - tools
+
+  # Redis Commander for Redis management (optional)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: splitshare-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:redis_dev_password
+    ports:
+      - '8081:8081'
+    networks:
+      - splitshare-network
+    depends_on:
+      - redis
+    profiles:
+      - tools
 
 volumes:
   postgres_data:

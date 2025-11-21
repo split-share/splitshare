@@ -1,15 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
+import type { PageServerLoad } from '../../../src/routes/$types';
 
 // Mock dependencies
-vi.mock('$lib/server/db', () => ({
-	db: {
-		select: vi.fn().mockReturnThis(),
-		from: vi.fn().mockReturnThis(),
-		innerJoin: vi.fn().mockReturnThis(),
-		leftJoin: vi.fn().mockReturnThis(),
-		where: vi.fn().mockReturnThis(),
-		groupBy: vi.fn().mockReturnThis(),
-		orderBy: vi.fn().mockResolvedValue([])
+vi.mock('$lib/services/splits', () => ({
+	splitRepository: {
+		findWithFilters: vi.fn().mockResolvedValue([])
 	}
 }));
 
@@ -30,10 +25,21 @@ describe('page.server', () => {
 
 			const mockEvent = {
 				request: new Request('http://localhost'),
-				locals: { user: { id: 'user-123', name: 'Test User' } },
+				locals: {
+					user: {
+						id: 'user-123',
+						name: 'Test User',
+						email: 'test@example.com',
+						emailVerified: false,
+						image: null,
+						createdAt: new Date(),
+						updatedAt: new Date()
+					},
+					session: null
+				},
 				params: {},
 				url: new URL('http://localhost'),
-				route: { id: '/' as const },
+				route: { id: '/' },
 				isDataRequest: false,
 				isSubRequest: false,
 				isRemoteRequest: false,
@@ -44,12 +50,9 @@ describe('page.server', () => {
 				getClientAddress: () => '127.0.0.1',
 				parent: vi.fn().mockResolvedValue({}),
 				depends: vi.fn(),
-				untrack: <T extends string[]>(...deps: T) => deps,
-				tracing: {
-					attributes: new Map()
-				}
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			} as any;
+				untrack: vi.fn(),
+				tracing: {} as never
+			} as Parameters<PageServerLoad>[0];
 
 			const result = await load(mockEvent);
 
@@ -63,10 +66,10 @@ describe('page.server', () => {
 
 			const mockEvent = {
 				request: new Request('http://localhost?difficulty=beginner'),
-				locals: { user: null },
+				locals: { user: null, session: null },
 				params: {},
 				url: new URL('http://localhost?difficulty=beginner'),
-				route: { id: '/' as const },
+				route: { id: '/' },
 				isDataRequest: false,
 				isSubRequest: false,
 				isRemoteRequest: false,
@@ -77,12 +80,9 @@ describe('page.server', () => {
 				getClientAddress: () => '127.0.0.1',
 				parent: vi.fn().mockResolvedValue({}),
 				depends: vi.fn(),
-				untrack: <T extends string[]>(...deps: T) => deps,
-				tracing: {
-					attributes: new Map()
-				}
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			} as any;
+				untrack: vi.fn(),
+				tracing: {} as never
+			} as Parameters<PageServerLoad>[0];
 
 			const result = await load(mockEvent);
 
@@ -96,10 +96,10 @@ describe('page.server', () => {
 
 			const mockEvent = {
 				request: new Request('http://localhost'),
-				locals: { user: null },
+				locals: { user: null, session: null },
 				params: {},
 				url: new URL('http://localhost'),
-				route: { id: '/' as const },
+				route: { id: '/' },
 				isDataRequest: false,
 				isSubRequest: false,
 				isRemoteRequest: false,
@@ -110,12 +110,9 @@ describe('page.server', () => {
 				getClientAddress: () => '127.0.0.1',
 				parent: vi.fn().mockResolvedValue({}),
 				depends: vi.fn(),
-				untrack: <T extends string[]>(...deps: T) => deps,
-				tracing: {
-					attributes: new Map()
-				}
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			} as any;
+				untrack: vi.fn(),
+				tracing: {} as never
+			} as Parameters<PageServerLoad>[0];
 
 			const result = await load(mockEvent);
 

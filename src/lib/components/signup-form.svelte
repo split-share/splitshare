@@ -4,7 +4,7 @@
 	import * as Field from '$lib/components/ui/field/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { signUp } from '$lib/auth-client';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import type { ComponentProps } from 'svelte';
 
 	let { ...restProps }: ComponentProps<typeof Card.Root> = $props();
@@ -16,6 +16,10 @@
 	let error = $state('');
 	let loading = $state(false);
 
+	/**
+	 * Handles signup form submission
+	 * @param {Event} e - Form submit event
+	 */
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
 		error = '';
@@ -42,6 +46,8 @@
 			if (result.error) {
 				error = result.error.message || 'Failed to create account';
 			} else {
+				// Invalidate all data to reload user info
+				await invalidateAll();
 				await goto('/splits');
 			}
 		} catch {

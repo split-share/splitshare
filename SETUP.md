@@ -5,7 +5,7 @@ This guide will help you set up the SplitShare application with all Phase 1 must
 ## Prerequisites
 
 - Node.js 18+ and npm
-- PostgreSQL database (or Supabase account)
+- PostgreSQL database
 - Git
 
 ## 1. Environment Variables
@@ -24,17 +24,7 @@ Then configure each variable:
 DATABASE_URL=postgresql://user:password@localhost:5432/splitshare
 ```
 
-**Supabase users**: Get this from your Supabase project settings > Database > Connection string (Direct connection)
-
-### Supabase
-
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-supabase-anon-key
-SUPABASE_SERVICE_KEY=your-supabase-service-role-key
-```
-
-Get these from: Supabase Dashboard > Project Settings > API
+Use Docker Compose for local development (see [DOCKER.md](./DOCKER.md)) or a hosted PostgreSQL service.
 
 ### Better Auth
 
@@ -127,19 +117,6 @@ View database in Drizzle Studio:
 ```bash
 npm run db:studio
 ```
-
-### Supabase Storage Setup
-
-If using Supabase, create these storage buckets:
-
-1. Go to Storage in your Supabase dashboard
-2. Create the following buckets:
-   - `avatars` (public)
-   - `split-images` (public)
-   - `exercise-images` (public)
-   - `exercise-videos` (public)
-
-Configure CORS and file size limits as needed.
 
 ## 3. Install Dependencies
 
@@ -284,17 +261,6 @@ Email templates are in `src/lib/server/email.ts`:
 
 Customize these templates to match your branding.
 
-### Media Optimization
-
-Images and videos are automatically optimized using Supabase Image Transformation.
-
-Utilities in `src/lib/utils/media.ts`:
-
-- `getOptimizedImageUrl()` - Generate optimized image URLs
-- `getThumbnailUrl()` - Get image thumbnails
-- `getVideoThumbnail()` - Get video thumbnails
-- `getVideoMetadata()` - Extract video metadata
-
 ## Troubleshooting
 
 ### Database Connection Issues
@@ -327,16 +293,14 @@ After completing Phase 1 setup, you can:
 
 1. Implement API endpoints for CRUD operations
 2. Add search and filtering functionality
-3. Implement real-time features with Supabase Realtime
-4. Add analytics with PostHog
-5. Set up background jobs for email processing
-6. Configure CDN for static assets
+3. Add analytics with PostHog
+4. Set up background jobs for email processing
+5. Configure CDN for static assets
 
 ## Resources
 
 - [SvelteKit Documentation](https://kit.svelte.dev)
 - [Better Auth Documentation](https://www.better-auth.com)
-- [Supabase Documentation](https://supabase.com/docs)
 - [Drizzle ORM Documentation](https://orm.drizzle.team)
 - [Capacitor Documentation](https://capacitorjs.com)
 - [Resend Documentation](https://resend.com/docs)

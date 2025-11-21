@@ -25,7 +25,7 @@ export const addExerciseToDaySchema = z.object({
 // Schema for creating a split day
 export const createSplitDaySchema = z.object({
 	dayNumber: z.number().int().min(1, 'Day must be 1-7').max(7, 'Day must be 1-7'),
-	name: z.string().min(1, 'Day name is required').max(50, 'Day name is too long'),
+	name: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
 	isRestDay: z.boolean().default(false),
 	exercises: z.array(addExerciseToDaySchema).default([])
 });

@@ -250,7 +250,7 @@ For local development, use external image URLs:
 imageUrl: 'https://images.unsplash.com/photo-...';
 ```
 
-For production, integrate with Supabase storage (see SETUP.md).
+Use external image/video URLs (e.g., Unsplash, YouTube) for images and videos.
 
 ## Troubleshooting
 

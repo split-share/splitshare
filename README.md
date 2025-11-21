@@ -4,17 +4,37 @@ A social fitness app that lets users create custom gym splits, share them with t
 
 ## Quick Start
 
+### Automated Setup (Recommended)
+
+```bash
+# 1. Clone the repository
+git clone git@github.com:rezk2ll/splitshare.git
+cd splitshare
+
+# 2. Run automated setup
+./docker-setup.sh
+
+# 3. Start development server
+npm run dev
+```
+
+Open http://localhost:5173
+
+### Manual Setup
+
 ```bash
 # 1. Clone and install
 git clone git@github.com:rezk2ll/splitshare.git
 cd splitshare
 npm install
 
-# 2. Start infrastructure (PostgreSQL, Redis, Mailpit)
-docker-compose up -d
+# 2. Start infrastructure
+docker compose up -d
 
 # 3. Configure environment
-cp .env.local.example .env
+cp .env.example .env
+# Generate secret: openssl rand -base64 32
+# Update BETTER_AUTH_SECRET in .env
 
 # 4. Set up database
 npm run db:push
@@ -23,9 +43,7 @@ npm run db:push
 npm run dev
 ```
 
-Open http://localhost:5173
-
-For detailed setup instructions, see [DEVELOPMENT.md](./DEVELOPMENT.md)
+For detailed instructions, see [DOCKER.md](./DOCKER.md) or [DEVELOPMENT.md](./DEVELOPMENT.md)
 
 ## Tech Stack
 
@@ -83,18 +101,36 @@ npm run cap:ios          # Open Xcode
 
 ### Docker Services
 
-The project includes local development services:
+The project includes comprehensive local development infrastructure:
 
-- **PostgreSQL 16** (port 5432)
-- **Redis 7** (port 6379)
-- **Mailpit** (ports 1025, 8025)
+**Core Services:**
+
+- **PostgreSQL 16** (port 5432) - Database
+- **Redis 7** (port 6379) - Rate limiting
+- **Upstash Proxy** (port 8079) - Redis HTTP interface
+- **Mailpit** (ports 1025, 8025) - Email testing
+
+**Optional Services:**
+
+- **pgAdmin** (port 5050) - Database management UI
+- **Redis Commander** (port 8081) - Redis management UI
 
 ```bash
-docker-compose up -d     # Start services
-docker-compose ps        # View status
-docker-compose logs -f   # View logs
-docker-compose down      # Stop services
+# Core services
+docker compose up -d
+
+# With management tools
+docker compose --profile tools up -d
+
+# View status and logs
+docker compose ps
+docker compose logs -f
+
+# Stop services
+docker compose down
 ```
+
+See [DOCKER.md](./DOCKER.md) for complete documentation.
 
 ## License
 

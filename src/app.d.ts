@@ -17,9 +17,6 @@ declare global {
 
 declare module '$env/static/private' {
 	export const DATABASE_URL: string;
-	export const SUPABASE_URL: string;
-	export const SUPABASE_ANON_KEY: string;
-	export const SUPABASE_SERVICE_KEY: string;
 	export const BETTER_AUTH_SECRET: string;
 	export const BETTER_AUTH_URL: string;
 	export const RESEND_API_KEY: string;

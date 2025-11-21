@@ -154,14 +154,96 @@ Focus on maintainable solutions over clever abstractions.
 
 **Keep commits clean and professional:**
 
-- NEVER add "Generated with Claude Code" links or branding
-- NEVER add "Co-Authored-By: Claude" attribution
+- NEVER add "Generated with Claude Code" links or branding in commit messages
+- NEVER add "Co-Authored-By: Claude" attribution in commit messages
+- NEVER include any Claude-related metadata or signatures
 - Write clear, concise commit messages following the project's existing style
 - Focus on what changed and why, not who or what tool made the changes
+- Commits should appear as if written by a human developer
 
-## design patterns
+## Design Patterns
 
-always use design patterns
+Always use design patterns to maintain clean architecture.
+
+## Service-Based Architecture
+
+**NEVER put database operations or business logic in form actions or load functions.**
+
+### Layer Structure
+
+```
+src/lib/services/
+├── [domain]/
+│   ├── [domain].repository.ts   # Data access layer (queries, inserts, updates)
+│   ├── [domain].service.ts      # Business logic layer (validation, orchestration)
+│   └── types.ts                 # Domain-specific types
+└── shared/
+    └── utils.ts                 # Shared service utilities
+```
+
+### Design Patterns to Use
+
+1. **Repository Pattern** - Encapsulate all data access
+   - All database queries in repositories
+   - Repository methods return domain types
+   - Inject database instance via constructor
+
+2. **Service Layer Pattern** - Business logic coordination
+   - Services orchestrate repositories
+   - Handle transactions and complex operations
+   - Validate business rules
+
+3. **Dependency Injection** - Constructor-based DI
+   - Pass dependencies through constructors
+   - Makes testing easier with mocks
+
+4. **Factory Pattern** - Complex object creation
+   - Use for entities with complex initialization
+   - Centralize creation logic
+
+### Rules
+
+1. **Form actions and load functions** - Only handle HTTP concerns
+   - Request/response handling
+   - Validation with schemas
+   - Call service methods
+   - Return results
+
+2. **Services** - Business logic only
+   - No HTTP concerns (no Request/Response objects)
+   - Coordinate repositories
+   - Enforce business rules
+   - Handle transactions
+
+3. **Repositories** - Data access only
+   - All database queries
+   - Simple CRUD operations
+   - No business logic
+   - Return raw data or domain types
+
+4. **Shared utilities** - Pure functions
+   - Extract common logic to `src/lib/utils/`
+   - Must be stateless
+   - No side effects
+
+### Example Structure
+
+```typescript
+// ❌ BAD: Database logic in form action
+export const actions = {
+  create: async (event) => {
+    await db.insert(splits).values({...});
+  }
+};
+
+// ✅ GOOD: Service layer handles logic
+export const actions = {
+  create: async (event) => {
+    const split = await splitService.createSplit(data, userId);
+    return { split };
+  }
+};
+```
 
 ## Documentation Style Guidelines
 
