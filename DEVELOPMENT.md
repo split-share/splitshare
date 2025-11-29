@@ -184,22 +184,56 @@ npm run db:push
 ```
 splitshare/
 ├── src/
+│   ├── core/                # Hexagonal Architecture - Core Domain
+│   │   ├── domain/          # Business entities and value objects
+│   │   │   ├── split/       # Split, Like, Comment entities
+│   │   │   ├── exercise/    # Exercise entities
+│   │   │   ├── workout/     # Workout, PersonalRecord entities
+│   │   │   └── user/        # User entities
+│   │   ├── usecases/        # Application business logic
+│   │   │   ├── split/       # Split-related use cases
+│   │   │   ├── exercise/    # Exercise use cases
+│   │   │   └── workout/     # Workout logging use cases
+│   │   └── ports/           # Interface contracts
+│   │       ├── repositories/# Repository interfaces
+│   │       ├── auth/        # Auth port
+│   │       ├── cache/       # Cache port
+│   │       └── storage/     # Storage port
+│   ├── adapters/            # Infrastructure implementations
+│   │   ├── repositories/
+│   │   │   └── drizzle/     # Drizzle ORM adapters
+│   │   └── auth/
+│   │       └── better-auth/ # Better Auth adapter
+│   ├── infrastructure/      # Cross-cutting infrastructure
+│   │   └── di/              # Dependency injection container
 │   ├── lib/
 │   │   ├── components/      # Svelte components
+│   │   │   └── ui/          # shadcn-svelte components
 │   │   ├── schemas/         # Zod validation schemas
 │   │   ├── server/
 │   │   │   ├── auth/        # Authentication
 │   │   │   ├── db/          # Database & schema
 │   │   │   ├── email.ts     # Email templates
 │   │   │   └── rate-limit.ts # Rate limiting
+│   │   ├── services/        # Legacy services (being migrated)
 │   │   └── utils/           # Utility functions
 │   ├── routes/              # SvelteKit routes
 │   │   ├── (app)/          # Protected routes
+│   │   │   ├── dashboard/   # User dashboard with stats
+│   │   │   ├── splits/      # Split CRUD and details
+│   │   │   ├── log-workout/ # Workout logging
+│   │   │   └── exercises/   # Exercise management
 │   │   ├── (auth)/         # Auth routes
 │   │   └── api/            # API endpoints
 │   ├── app.d.ts            # TypeScript types
 │   ├── app.html            # HTML template
 │   └── app.css             # Global styles
+├── tests/
+│   ├── unit/               # Unit tests
+│   │   ├── domain/         # Entity tests
+│   │   ├── usecases/       # Use case tests
+│   │   └── services/       # Service tests
+│   └── e2e/                # E2E tests
 ├── docker-compose.yml       # Development services
 ├── drizzle.config.ts       # Database configuration
 └── package.json            # Dependencies
@@ -207,10 +241,19 @@ splitshare/
 
 ## Features & Tech Stack
 
+### Architecture
+
+- **Hexagonal Architecture (Ports & Adapters)** - Clean separation of concerns
+- **Domain-Driven Design** - Business logic in pure domain entities
+- **Dependency Injection** - Centralized dependency management
+- **Repository Pattern** - Abstracted data access
+- **Use Case Pattern** - Application business logic
+
 ### Frontend
 
 - **SvelteKit 2** - Full-stack framework
 - **Svelte 5** - UI framework with runes
+- **shadcn-svelte** - UI component library
 - **Tailwind CSS v4** - Styling
 - **TypeScript** - Type safety
 
@@ -228,6 +271,16 @@ splitshare/
 - **Playwright** - E2E testing
 - **ESLint** - Linting
 - **Prettier** - Formatting
+
+### Features Implemented
+
+- **Split Management** - Create, edit, delete workout splits
+- **Exercise Library** - Comprehensive exercise database
+- **Workout Logging** - Track workouts with exercises, sets, reps, weight
+- **Personal Records** - Auto-tracked PRs with 1RM calculations
+- **Progress Dashboard** - Stats, streaks, recent workouts
+- **Social Features** - Like and comment on public splits
+- **Search & Discovery** - Find public splits with filters
 
 ## Videos & Media
 
@@ -317,6 +370,217 @@ npm run check
 # Clean install
 rm -rf node_modules package-lock.json
 npm install
+```
+
+## Hexagonal Architecture Workflow
+
+### Understanding the Layers
+
+The application follows Hexagonal Architecture (Ports & Adapters) to keep business logic independent of infrastructure:
+
+**Domain Layer** (`src/core/domain/`)
+
+- Pure business entities with validation
+- No dependencies on frameworks or databases
+- Example: `Split`, `Exercise`, `WorkoutLog`, `Like`, `Comment`
+
+**Use Cases Layer** (`src/core/usecases/`)
+
+- Application business logic
+- Orchestrates domain entities and repositories
+- Example: `CreateSplitUseCase`, `LogWorkoutUseCase`, `LikeSplitUseCase`
+
+**Ports Layer** (`src/core/ports/`)
+
+- Interface contracts for external dependencies
+- Defines what the application needs (repositories, auth, etc.)
+- Example: `ISplitRepository`, `ILikeRepository`, `IAuthService`
+
+**Adapters Layer** (`src/adapters/`)
+
+- Concrete implementations of port interfaces
+- Can be swapped without changing business logic
+- Example: `DrizzleSplitRepositoryAdapter`, `BetterAuthAdapter`
+
+**Infrastructure Layer** (`src/infrastructure/`)
+
+- Cross-cutting concerns like dependency injection
+- Wires everything together in the DI container
+
+### Adding a New Feature
+
+When adding a new feature, follow this workflow:
+
+**1. Define Domain Entities** (`src/core/domain/`)
+
+```typescript
+// Example: src/core/domain/feature/entity.ts
+export class MyEntity {
+	constructor(
+		public readonly id: string,
+		public name: string,
+		public readonly createdAt: Date
+	) {}
+
+	// Business validation
+	static validateName(name: string): void {
+		if (!name.trim()) throw new Error('Name is required');
+	}
+
+	// Business methods
+	updateName(newName: string): void {
+		MyEntity.validateName(newName);
+		this.name = newName;
+	}
+}
+```
+
+**2. Define DTOs** (`src/core/domain/feature/entity.dto.ts`)
+
+```typescript
+export interface CreateEntityDto {
+	name: string;
+}
+
+export interface EntityWithDetailsDto {
+	id: string;
+	name: string;
+	createdAt: Date;
+	// ... related data
+}
+```
+
+**3. Define Port Interface** (`src/core/ports/repositories/entity.repository.port.ts`)
+
+```typescript
+export interface IEntityRepository {
+	findById(id: string): Promise<MyEntity | undefined>;
+	create(data: CreateEntityDto): Promise<MyEntity>;
+	update(id: string, data: UpdateEntityDto): Promise<MyEntity>;
+	delete(id: string): Promise<void>;
+}
+```
+
+**4. Create Adapter** (`src/adapters/repositories/drizzle/entity.repository.adapter.ts`)
+
+```typescript
+export class DrizzleEntityRepositoryAdapter implements IEntityRepository {
+	constructor(private db: PostgresJsDatabase<typeof schema>) {}
+
+	async findById(id: string): Promise<MyEntity | undefined> {
+		const result = await this.db.select().from(entities).where(eq(entities.id, id)).limit(1);
+
+		if (!result[0]) return undefined;
+		return this.toEntity(result[0]);
+	}
+
+	private toEntity(row: typeof entities.$inferSelect): MyEntity {
+		return new MyEntity(row.id, row.name, row.createdAt);
+	}
+}
+```
+
+**5. Create Use Cases** (`src/core/usecases/feature/create-entity.usecase.ts`)
+
+```typescript
+export class CreateEntityUseCase {
+	constructor(private entityRepository: IEntityRepository) {}
+
+	async execute(input: CreateEntityDto): Promise<MyEntity> {
+		MyEntity.validateName(input.name);
+		return this.entityRepository.create(input);
+	}
+}
+```
+
+**6. Update DI Container** (`src/infrastructure/di/container.ts`)
+
+```typescript
+// Add to Container class:
+private _entityRepository?: DrizzleEntityRepositoryAdapter;
+
+get entityRepository(): DrizzleEntityRepositoryAdapter {
+  if (!this._entityRepository) {
+    this._entityRepository = new DrizzleEntityRepositoryAdapter(db);
+  }
+  return this._entityRepository;
+}
+
+get createEntity(): CreateEntityUseCase {
+  return new CreateEntityUseCase(this.entityRepository);
+}
+```
+
+**7. Use in Routes** (`src/routes/(app)/feature/+page.server.ts`)
+
+```typescript
+import { container } from '$infrastructure/di/container';
+
+export const actions: Actions = {
+	create: async (event) => {
+		const entity = await container.createEntity.execute({
+			name: formData.get('name')
+		});
+		return { entity };
+	}
+};
+```
+
+**8. Write Tests** (`tests/unit/`)
+
+```typescript
+// Entity tests
+describe('MyEntity', () => {
+	it('should validate name', () => {
+		expect(() => MyEntity.validateName('')).toThrow('Name is required');
+	});
+});
+
+// Use case tests
+describe('CreateEntityUseCase', () => {
+	it('should create entity', async () => {
+		const mockRepo = { create: vi.fn() };
+		const useCase = new CreateEntityUseCase(mockRepo);
+		await useCase.execute({ name: 'Test' });
+		expect(mockRepo.create).toHaveBeenCalled();
+	});
+});
+```
+
+### Why Hexagonal Architecture?
+
+**Swappable Infrastructure**
+
+- Replace Drizzle with Prisma by creating new adapters
+- Replace SvelteKit with Next.js without touching business logic
+- Replace PostgreSQL with MongoDB by implementing port interfaces
+
+**Testable**
+
+- Test business logic without database or framework
+- Mock repositories in use case tests
+- Fast unit tests, no infrastructure setup
+
+**Clear Boundaries**
+
+- Business rules in domain layer
+- Application logic in use cases
+- Infrastructure details in adapters
+- Easy to understand and maintain
+
+**Example: Swapping Databases**
+
+```typescript
+// Current: Drizzle adapter
+class DrizzleSplitRepositoryAdapter implements ISplitRepository { }
+
+// New: Prisma adapter
+class PrismaSplitRepositoryAdapter implements ISplitRepository { }
+
+// Update container.ts - that's it!
+get splitRepository(): ISplitRepository {
+  return new PrismaSplitRepositoryAdapter(prisma);
+}
 ```
 
 ## Testing

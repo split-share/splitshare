@@ -179,9 +179,45 @@ export const workoutLogs = pgTable('workout_logs', {
 	splitId: uuid('split_id')
 		.notNull()
 		.references(() => splits.id, { onDelete: 'cascade' }),
+	dayId: uuid('day_id')
+		.notNull()
+		.references(() => splitDays.id, { onDelete: 'cascade' }),
 	duration: integer('duration'), // actual duration in minutes
 	notes: text('notes'),
-	completedAt: timestamp('completed_at').notNull().defaultNow()
+	completedAt: timestamp('completed_at').notNull().defaultNow(),
+	createdAt: timestamp('created_at').notNull().defaultNow()
+});
+
+// Exercise logs table - track individual exercise performance
+export const exerciseLogs = pgTable('exercise_logs', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	workoutLogId: uuid('workout_log_id')
+		.notNull()
+		.references(() => workoutLogs.id, { onDelete: 'cascade' }),
+	exerciseId: uuid('exercise_id')
+		.notNull()
+		.references(() => exercises.id, { onDelete: 'cascade' }),
+	sets: integer('sets').notNull(),
+	reps: text('reps').notNull(),
+	weight: integer('weight'), // weight in kg or lbs
+	notes: text('notes'),
+	createdAt: timestamp('created_at').notNull().defaultNow()
+});
+
+// Personal records table - track best lifts
+export const personalRecords = pgTable('personal_records', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	exerciseId: uuid('exercise_id')
+		.notNull()
+		.references(() => exercises.id, { onDelete: 'cascade' }),
+	weight: integer('weight').notNull(),
+	reps: integer('reps').notNull(),
+	achievedAt: timestamp('achieved_at').notNull(),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
 
 // Bookmarks/Saved splits table
@@ -209,4 +245,6 @@ export type Like = typeof likes.$inferSelect;
 export type Comment = typeof comments.$inferSelect;
 export type Follow = typeof follows.$inferSelect;
 export type WorkoutLog = typeof workoutLogs.$inferSelect;
+export type ExerciseLog = typeof exerciseLogs.$inferSelect;
+export type PersonalRecord = typeof personalRecords.$inferSelect;
 export type Bookmark = typeof bookmarks.$inferSelect;

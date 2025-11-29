@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -9,12 +10,39 @@
 	} from '$lib/components/ui/card';
 	import Badge from '$lib/components/ui/badge.svelte';
 	import { Label } from '$lib/components/ui/label';
+	import { Textarea } from '$lib/components/ui/textarea';
+	import { Heart, MessageSquare, Trash2, Edit2 } from 'lucide-svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
 	const { split } = data;
 	const isOwner = $derived(data.user?.id === split.author.id);
+	const isAuthenticated = $derived(!!data.user);
+
+	let newComment = $state('');
+	let editingCommentId = $state<string | null>(null);
+	let editingCommentContent = $state('');
+
+	function startEditing(commentId: string, currentContent: string) {
+		editingCommentId = commentId;
+		editingCommentContent = currentContent;
+	}
+
+	function cancelEditing() {
+		editingCommentId = null;
+		editingCommentContent = '';
+	}
+
+	function formatDate(date: Date): string {
+		return new Date(date).toLocaleDateString('en-US', {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit'
+		});
+	}
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-6xl">
@@ -67,7 +95,7 @@
 		{/if}
 	</div>
 
-	<!-- Stats -->
+	<!-- Stats and Actions -->
 	<div class="grid grid-cols-3 gap-4 mb-8">
 		<Card>
 			<CardContent class="pt-6">
@@ -80,7 +108,7 @@
 		<Card>
 			<CardContent class="pt-6">
 				<div class="text-center">
-					<div class="text-3xl font-bold">{split.likesCount}</div>
+					<div class="text-3xl font-bold">{data.likes.length}</div>
 					<div class="text-sm text-muted-foreground">Likes</div>
 				</div>
 			</CardContent>
@@ -88,12 +116,24 @@
 		<Card>
 			<CardContent class="pt-6">
 				<div class="text-center">
-					<div class="text-3xl font-bold">{split.commentsCount}</div>
+					<div class="text-3xl font-bold">{data.comments.length}</div>
 					<div class="text-sm text-muted-foreground">Comments</div>
 				</div>
 			</CardContent>
 		</Card>
 	</div>
+
+	<!-- Like Button -->
+	{#if isAuthenticated}
+		<div class="mb-8 flex justify-center">
+			<form method="POST" action={data.hasUserLiked ? '?/unlike' : '?/like'} use:enhance>
+				<Button type="submit" variant={data.hasUserLiked ? 'default' : 'outline'} size="lg">
+					<Heart class={data.hasUserLiked ? 'h-5 w-5 mr-2 fill-current' : 'h-5 w-5 mr-2'} />
+					{data.hasUserLiked ? 'Unlike' : 'Like'} this Split
+				</Button>
+			</form>
+		</div>
+	{/if}
 
 	<!-- Workout Days -->
 	<div class="space-y-6">
@@ -214,6 +254,147 @@
 				{/if}
 			</Card>
 		{/each}
+	</div>
+
+	<!-- Comments Section -->
+	<div class="mt-12 space-y-6">
+		<div class="flex items-center gap-2">
+			<MessageSquare class="h-6 w-6" />
+			<h2 class="text-2xl font-bold">Comments ({data.comments.length})</h2>
+		</div>
+
+		<!-- Add Comment Form -->
+		{#if isAuthenticated}
+			<Card>
+				<CardContent class="pt-6">
+					<form
+						method="POST"
+						action="?/addComment"
+						use:enhance={() => {
+							return async ({ update }) => {
+								await update();
+								newComment = '';
+							};
+						}}
+					>
+						<div class="space-y-4">
+							<Textarea
+								name="content"
+								bind:value={newComment}
+								placeholder="Write a comment..."
+								class="min-h-[100px]"
+								required
+							/>
+							<div class="flex justify-end">
+								<Button type="submit" disabled={!newComment.trim()}>Post Comment</Button>
+							</div>
+						</div>
+					</form>
+				</CardContent>
+			</Card>
+		{:else}
+			<Card>
+				<CardContent class="pt-6">
+					<p class="text-muted-foreground text-center">
+						<a href="/sign-in" class="text-primary hover:underline">Sign in</a> to leave a comment
+					</p>
+				</CardContent>
+			</Card>
+		{/if}
+
+		<!-- Comments List -->
+		{#if data.comments.length === 0}
+			<Card>
+				<CardContent class="pt-6">
+					<p class="text-muted-foreground text-center">No comments yet. Be the first to comment!</p>
+				</CardContent>
+			</Card>
+		{:else}
+			<div class="space-y-4">
+				{#each data.comments as comment (comment.id)}
+					<Card>
+						<CardContent class="pt-6">
+							<div class="flex items-start gap-4">
+								{#if comment.user.image}
+									<img
+										src={comment.user.image}
+										alt={comment.user.name}
+										class="h-10 w-10 rounded-full"
+									/>
+								{:else}
+									<div
+										class="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold"
+									>
+										{comment.user.name.charAt(0).toUpperCase()}
+									</div>
+								{/if}
+
+								<div class="flex-1 space-y-2">
+									<div class="flex items-center justify-between">
+										<div>
+											<p class="font-semibold">{comment.user.name}</p>
+											<p class="text-xs text-muted-foreground">{formatDate(comment.createdAt)}</p>
+											{#if comment.updatedAt.getTime() !== comment.createdAt.getTime()}
+												<p class="text-xs text-muted-foreground">(edited)</p>
+											{/if}
+										</div>
+
+										{#if data.user?.id === comment.userId}
+											<div class="flex gap-2">
+												<Button
+													variant="ghost"
+													size="sm"
+													onclick={() => startEditing(comment.id, comment.content)}
+												>
+													<Edit2 class="h-4 w-4" />
+												</Button>
+												<form method="POST" action="?/deleteComment" use:enhance>
+													<input type="hidden" name="commentId" value={comment.id} />
+													<Button type="submit" variant="ghost" size="sm">
+														<Trash2 class="h-4 w-4" />
+													</Button>
+												</form>
+											</div>
+										{/if}
+									</div>
+
+									{#if editingCommentId === comment.id}
+										<form
+											method="POST"
+											action="?/updateComment"
+											use:enhance={() => {
+												return async ({ update }) => {
+													await update();
+													cancelEditing();
+												};
+											}}
+										>
+											<input type="hidden" name="commentId" value={comment.id} />
+											<div class="space-y-2">
+												<Textarea
+													name="content"
+													bind:value={editingCommentContent}
+													class="min-h-[80px]"
+													required
+												/>
+												<div class="flex gap-2 justify-end">
+													<Button type="button" variant="outline" size="sm" onclick={cancelEditing}>
+														Cancel
+													</Button>
+													<Button type="submit" size="sm">Save</Button>
+												</div>
+											</div>
+										</form>
+									{:else}
+										<p class="text-sm whitespace-pre-wrap">{comment.content}</p>
+									{/if}
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				{/each}
+			</div>
+		{/if}
 	</div>
 
 	<!-- Action Buttons -->
