@@ -7,21 +7,24 @@
 	let { user }: { user: { id: string; name: string } | null } = $props();
 </script>
 
-<div class="mb-12 text-center">
-	<h1 class="mb-4 text-3xl font-bold sm:text-4xl md:text-5xl">Welcome to SplitShare</h1>
-	<p class="mb-6 text-base text-muted-foreground sm:text-lg max-w-2xl mx-auto">
-		Discover and share workout splits with the fitness community
+<div class="mb-16 text-center py-12">
+	<h1 class="mb-4 text-4xl font-bold sm:text-5xl md:text-6xl">
+		Share Your <span class="text-primary">Gym Splits</span> with the World
+	</h1>
+	<p class="mb-8 text-lg text-muted-foreground sm:text-xl max-w-3xl mx-auto">
+		Create custom workout routines, discover what works for others, and build your fitness
+		community. Your next PR starts with the right split.
 	</p>
 	<div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+		<Button href="/discover" size="lg" class="w-full sm:w-auto">Explore Splits</Button>
 		{#if !user}
-			<Button href="/login" class="w-full sm:w-auto">Sign In</Button>
-			<Button href="/register" variant="outline" class="w-full sm:w-auto">Sign Up</Button>
+			<Button href="/register" variant="outline" size="lg" class="w-full sm:w-auto">
+				Create Your Split
+			</Button>
 		{:else}
-			<Button href="/splits" class="w-full sm:w-auto">My Splits</Button>
+			<Button href="/splits/new" variant="outline" size="lg" class="w-full sm:w-auto">
+				Create Your Split
+			</Button>
 		{/if}
-		<Button href="/discover" variant="secondary" class="w-full sm:w-auto">
-			<span class="hidden sm:inline">Explore Popular Splits</span>
-			<span class="sm:hidden">Explore</span>
-		</Button>
 	</div>
 </div>

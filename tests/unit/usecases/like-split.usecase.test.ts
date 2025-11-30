@@ -49,6 +49,7 @@ describe('LikeSplitUseCase', () => {
 			null,
 			null,
 			null,
+			null,
 			new Date(),
 			new Date()
 		);
@@ -92,6 +93,7 @@ describe('LikeSplitUseCase', () => {
 			true,
 			false,
 			'beginner',
+			null,
 			null,
 			null,
 			null,
