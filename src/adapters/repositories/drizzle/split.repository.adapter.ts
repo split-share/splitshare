@@ -76,6 +76,7 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 				difficulty: split.split.difficulty as 'beginner' | 'intermediate' | 'advanced',
 				duration: split.split.duration,
 				imageUrl: split.split.imageUrl,
+				videoUrl: split.split.videoUrl,
 				tags: split.split.tags,
 				createdAt: split.split.createdAt,
 				updatedAt: split.split.updatedAt
@@ -104,7 +105,7 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 				exercise: exercises
 			})
 			.from(dayExercises)
-			.innerJoin(exercises, eq(dayExercises.exerciseId, exercises.id))
+			.leftJoin(exercises, eq(dayExercises.exerciseId, exercises.id))
 			.where(inArray(dayExercises.dayId, dayIds))
 			.orderBy(dayExercises.order);
 
@@ -132,16 +133,27 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 				restTime: item.dayExercise.restTime,
 				order: item.dayExercise.order,
 				notes: item.dayExercise.notes,
-				exercise: {
-					id: item.exercise.id,
-					name: item.exercise.name,
-					description: item.exercise.description,
-					difficulty: item.exercise.difficulty as 'beginner' | 'intermediate' | 'advanced',
-					muscleGroup: item.exercise.muscleGroup,
-					equipmentType: item.exercise.equipmentType,
-					imageUrl: item.exercise.imageUrl,
-					videoUrl: item.exercise.videoUrl
-				},
+				exercise: item.exercise
+					? {
+							id: item.exercise.id,
+							name: item.exercise.name,
+							description: item.exercise.description,
+							difficulty: item.exercise.difficulty as 'beginner' | 'intermediate' | 'advanced',
+							muscleGroup: item.exercise.muscleGroup,
+							equipmentType: item.exercise.equipmentType,
+							imageUrl: item.exercise.imageUrl,
+							videoUrl: item.exercise.videoUrl
+						}
+					: {
+							id: item.dayExercise.exerciseId || '',
+							name: item.dayExercise.exerciseName,
+							description: null,
+							difficulty: 'intermediate' as const,
+							muscleGroup: '',
+							equipmentType: '',
+							imageUrl: null,
+							videoUrl: null
+						},
 				createdAt: item.dayExercise.createdAt
 			})),
 			createdAt: day.createdAt,
@@ -252,7 +264,7 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 							exercise: exercises
 						})
 						.from(dayExercises)
-						.innerJoin(exercises, eq(dayExercises.exerciseId, exercises.id))
+						.leftJoin(exercises, eq(dayExercises.exerciseId, exercises.id))
 						.where(inArray(dayExercises.dayId, dayIds))
 						.orderBy(dayExercises.order)
 				: [];
@@ -283,16 +295,27 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 					restTime: item.dayExercise.restTime,
 					order: item.dayExercise.order,
 					notes: item.dayExercise.notes,
-					exercise: {
-						id: item.exercise.id,
-						name: item.exercise.name,
-						description: item.exercise.description,
-						difficulty: item.exercise.difficulty as 'beginner' | 'intermediate' | 'advanced',
-						muscleGroup: item.exercise.muscleGroup,
-						equipmentType: item.exercise.equipmentType,
-						imageUrl: item.exercise.imageUrl,
-						videoUrl: item.exercise.videoUrl
-					},
+					exercise: item.exercise
+						? {
+								id: item.exercise.id,
+								name: item.exercise.name,
+								description: item.exercise.description,
+								difficulty: item.exercise.difficulty as 'beginner' | 'intermediate' | 'advanced',
+								muscleGroup: item.exercise.muscleGroup,
+								equipmentType: item.exercise.equipmentType,
+								imageUrl: item.exercise.imageUrl,
+								videoUrl: item.exercise.videoUrl
+							}
+						: {
+								id: item.dayExercise.exerciseId || '',
+								name: item.dayExercise.exerciseName,
+								description: null,
+								difficulty: 'intermediate' as const,
+								muscleGroup: '',
+								equipmentType: '',
+								imageUrl: null,
+								videoUrl: null
+							},
 					createdAt: item.dayExercise.createdAt
 				})),
 				createdAt: day.createdAt,
@@ -310,6 +333,7 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 					difficulty: result.split.difficulty as 'beginner' | 'intermediate' | 'advanced',
 					duration: result.split.duration,
 					imageUrl: result.split.imageUrl,
+					videoUrl: result.split.videoUrl,
 					tags: result.split.tags,
 					createdAt: result.split.createdAt,
 					updatedAt: result.split.updatedAt
@@ -336,6 +360,7 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 					difficulty: input.difficulty,
 					duration: input.duration ?? null,
 					imageUrl: input.imageUrl ?? null,
+					videoUrl: input.videoUrl ?? null,
 					tags: input.tags ?? null
 				})
 				.returning();
@@ -354,7 +379,8 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 				if (!dayInput.isRestDay && dayInput.exercises.length > 0) {
 					const exerciseValues = dayInput.exercises.map((ex) => ({
 						dayId: day.id,
-						exerciseId: ex.exerciseId,
+						exerciseId: ex.exerciseId ?? null,
+						exerciseName: ex.exerciseName,
 						sets: ex.sets,
 						reps: ex.reps,
 						restTime: ex.restTime ?? null,
@@ -415,6 +441,7 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 			raw.difficulty as 'beginner' | 'intermediate' | 'advanced',
 			raw.duration,
 			raw.imageUrl,
+			raw.videoUrl,
 			raw.tags,
 			raw.createdAt,
 			raw.updatedAt

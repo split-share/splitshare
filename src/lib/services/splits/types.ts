@@ -23,7 +23,8 @@ export interface CreateSplitDayInput {
 }
 
 export interface CreateDayExerciseInput {
-	exerciseId: string;
+	exerciseId?: string | null;
+	exerciseName: string;
 	sets: number;
 	reps: string;
 	restTime?: number;

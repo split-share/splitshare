@@ -13,7 +13,19 @@ export const load: PageServerLoad = async (event) => {
 	const availableExercises = await container.exerciseRepository.findByUserId(event.locals.user!.id);
 
 	return {
-		exercises: availableExercises
+		exercises: availableExercises.map((exercise) => ({
+			id: exercise.id,
+			userId: exercise.userId,
+			name: exercise.name,
+			description: exercise.description,
+			muscleGroup: exercise.muscleGroup,
+			equipmentType: exercise.equipmentType,
+			difficulty: exercise.difficulty,
+			imageUrl: exercise.imageUrl,
+			videoUrl: exercise.videoUrl,
+			createdAt: exercise.createdAt,
+			updatedAt: exercise.updatedAt
+		}))
 	};
 };
 
@@ -53,6 +65,7 @@ export const actions: Actions = {
 			isPublic: validatedData.isPublic,
 			tags: validatedData.tags,
 			imageUrl: validatedData.imageUrl,
+			videoUrl: validatedData.videoUrl,
 			days: validatedData.days
 		});
 

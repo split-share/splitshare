@@ -13,6 +13,7 @@ export interface CreateSplitDto {
 	difficulty: Difficulty;
 	duration?: number | null;
 	imageUrl?: string | null;
+	videoUrl?: string | null;
 	tags?: string[] | null;
 	days: CreateSplitDayDto[];
 }
@@ -25,7 +26,8 @@ export interface CreateSplitDayDto {
 }
 
 export interface CreateDayExerciseDto {
-	exerciseId: string;
+	exerciseId?: string | null;
+	exerciseName: string;
 	sets: number;
 	reps: string;
 	restTime?: number | null;
@@ -40,6 +42,7 @@ export interface UpdateSplitDto {
 	difficulty?: Difficulty;
 	duration?: number | null;
 	imageUrl?: string | null;
+	videoUrl?: string | null;
 	tags?: string[] | null;
 }
 
@@ -63,6 +66,7 @@ export interface SplitWithDetailsDto {
 		difficulty: Difficulty;
 		duration: number | null;
 		imageUrl: string | null;
+		videoUrl: string | null;
 		tags: string[] | null;
 		createdAt: Date;
 		updatedAt: Date;
@@ -88,7 +92,7 @@ export interface SplitDayWithExercisesDto {
 export interface DayExerciseWithDetailsDto {
 	id: string;
 	dayId: string;
-	exerciseId: string;
+	exerciseId: string | null;
 	sets: number;
 	reps: string;
 	restTime: number | null;

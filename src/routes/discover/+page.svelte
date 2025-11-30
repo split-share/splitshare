@@ -32,50 +32,84 @@
 <div class="container mx-auto px-4 py-8">
 	<!-- Header Section -->
 	<div class="mb-8">
-		<div class="mb-2 flex items-center gap-2">
-			<Button href="/" variant="ghost" size="sm">← Back to Home</Button>
-		</div>
-		<h1 class="text-3xl font-bold">Discover Popular Splits</h1>
-		<p class="mt-2 text-muted-foreground">
-			Browse workout splits created by the community, sorted by popularity
-		</p>
+		<h1 class="text-4xl font-bold">Discover Splits</h1>
+		<p class="mt-2 text-muted-foreground">Explore workout routines shared by the community</p>
 	</div>
 
 	<!-- Filter Section -->
-	<div class="mb-6 flex items-center justify-between">
-		<p class="text-sm text-muted-foreground">
-			{#if data.appliedFilter}
-				Showing {data.appliedFilter} splits
-			{:else}
-				Showing all splits
-			{/if}
-		</p>
+	<div class="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+		<div class="flex items-center gap-4">
+			<div class="flex items-center gap-2">
+				<span class="text-sm font-medium">Sort by:</span>
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						{#snippet child({ props })}
+							<Button {...props} variant="outline" size="sm">
+								Popular
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="16"
+									height="16"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									class="ml-2"
+								>
+									<path d="m6 9 6 6 6-6" />
+								</svg>
+							</Button>
+						{/snippet}
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content>
+						<DropdownMenu.Item>Popular</DropdownMenu.Item>
+						<DropdownMenu.Item>Recent</DropdownMenu.Item>
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+			</div>
+		</div>
 
 		<!-- Difficulty Filter -->
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger>
-				{#snippet child({ props })}
-					<Button {...props} variant="outline">
-						{#if data.appliedFilter}
-							{data.appliedFilter.charAt(0).toUpperCase() + data.appliedFilter.slice(1)}
-						{:else}
-							All Difficulties
-						{/if}
-						<span class="ml-2">▼</span>
-					</Button>
-				{/snippet}
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Content>
-				<DropdownMenu.Item onclick={() => filterByDifficulty(null)}>
-					All Difficulties
-				</DropdownMenu.Item>
-				{#each DIFFICULTY_LEVELS as difficulty (difficulty)}
-					<DropdownMenu.Item onclick={() => filterByDifficulty(difficulty)}>
-						{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
-					</DropdownMenu.Item>
-				{/each}
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
+		<div class="flex items-center gap-2">
+			<span class="text-sm font-medium">Difficulty:</span>
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger>
+					{#snippet child({ props })}
+						<Button {...props} variant="outline" size="sm">
+							{#if data.appliedFilter}
+								{data.appliedFilter.charAt(0).toUpperCase() + data.appliedFilter.slice(1)}
+							{:else}
+								All
+							{/if}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="ml-2"
+							>
+								<path d="m6 9 6 6 6-6" />
+							</svg>
+						</Button>
+					{/snippet}
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content>
+					<DropdownMenu.Item onclick={() => filterByDifficulty(null)}>All</DropdownMenu.Item>
+					{#each DIFFICULTY_LEVELS as difficulty (difficulty)}
+						<DropdownMenu.Item onclick={() => filterByDifficulty(difficulty)}>
+							{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+						</DropdownMenu.Item>
+					{/each}
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
+		</div>
 	</div>
 
 	<!-- Splits Grid -->

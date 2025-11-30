@@ -7,14 +7,19 @@ export const createSplitSchema = z.object({
 	duration: z.number().int().min(1).max(300).optional(),
 	isPublic: z.boolean().default(false),
 	tags: z.array(z.string()).max(10).optional(),
-	imageUrl: z.string().url().optional()
+	imageUrl: z.string().url().optional(),
+	videoUrl: z.string().url().optional()
 });
 
 export const updateSplitSchema = createSplitSchema.partial();
 
 // Schema for adding an exercise to a specific day
 export const addExerciseToDaySchema = z.object({
-	exerciseId: z.string().uuid(),
+	exerciseId: z.string().uuid().optional(), // Optional: reference to structured exercise
+	exerciseName: z
+		.string()
+		.min(1, 'Exercise name is required')
+		.max(100, 'Exercise name is too long'),
 	sets: z.number().int().min(1, 'Sets must be at least 1').max(20, 'Max 20 sets'),
 	reps: z.string().min(1, 'Reps are required'), // Can be "10" or "8-12" or "AMRAP"
 	restTime: z.number().int().min(0).max(600, 'Max rest time is 10 minutes').optional(),
@@ -24,8 +29,8 @@ export const addExerciseToDaySchema = z.object({
 
 // Schema for creating a split day
 export const createSplitDaySchema = z.object({
-	dayNumber: z.number().int().min(1, 'Day must be 1-7').max(7, 'Day must be 1-7'),
-	name: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
+	dayNumber: z.number().int().min(1),
+	name: z.string().min(1, 'Day name is required').max(50, 'Day name is too long'),
 	isRestDay: z.boolean().default(false),
 	exercises: z.array(addExerciseToDaySchema).default([])
 });
@@ -40,11 +45,9 @@ export const createCompleteSplitSchema = z.object({
 	isPublic: z.boolean().default(false),
 	tags: z.array(z.string()).max(10).optional(),
 	imageUrl: z.string().url().optional(),
+	videoUrl: z.string().url().optional(),
 	// Days with exercises
-	days: z
-		.array(createSplitDaySchema)
-		.min(1, 'Split must have at least one day')
-		.max(7, 'Split can have maximum 7 days')
+	days: z.array(createSplitDaySchema).min(1, 'Split must have at least one day')
 });
 
 export const commentSchema = z.object({

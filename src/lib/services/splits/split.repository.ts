@@ -286,7 +286,8 @@ export class SplitRepository extends BaseRepository {
 				if (!dayInput.isRestDay && dayInput.exercises.length > 0) {
 					const exerciseValues = dayInput.exercises.map((ex) => ({
 						dayId: day.id,
-						exerciseId: ex.exerciseId,
+						exerciseId: ex.exerciseId ?? null,
+						exerciseName: ex.exerciseName,
 						sets: ex.sets,
 						reps: ex.reps,
 						restTime: ex.restTime ?? null,

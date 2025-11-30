@@ -17,6 +17,7 @@ describe('SplitService', () => {
 		difficulty: 'intermediate',
 		duration: 60,
 		imageUrl: null,
+		videoUrl: null,
 		tags: ['strength', 'hypertrophy'],
 		createdAt: new Date(),
 		updatedAt: new Date()
@@ -52,6 +53,7 @@ describe('SplitService', () => {
 					exercises: [
 						{
 							exerciseId: 'ex1',
+							exerciseName: 'Bench Press',
 							sets: 3,
 							reps: '10',
 							order: 1

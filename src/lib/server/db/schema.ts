@@ -84,6 +84,7 @@ export const splits = pgTable('splits', {
 	difficulty: text('difficulty').notNull().default('intermediate'), // beginner, intermediate, advanced
 	duration: integer('duration'), // estimated duration in minutes
 	imageUrl: text('image_url'),
+	videoUrl: text('video_url'), // optional YouTube or video URL
 	tags: text('tags').array(), // workout type tags
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow()
@@ -108,9 +109,8 @@ export const dayExercises = pgTable('day_exercises', {
 	dayId: uuid('day_id')
 		.notNull()
 		.references(() => splitDays.id, { onDelete: 'cascade' }),
-	exerciseId: uuid('exercise_id')
-		.notNull()
-		.references(() => exercises.id, { onDelete: 'cascade' }),
+	exerciseId: uuid('exercise_id').references(() => exercises.id, { onDelete: 'cascade' }), // Optional: reference to structured exercise
+	exerciseName: text('exercise_name').notNull(), // The name of the exercise (can be free text or from structured exercise)
 	sets: integer('sets').notNull(),
 	reps: text('reps').notNull(), // e.g., "10", "8-12", "AMRAP"
 	restTime: integer('rest_time'), // rest time in seconds
