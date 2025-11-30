@@ -232,6 +232,51 @@ export const bookmarks = pgTable('bookmarks', {
 	createdAt: timestamp('created_at').notNull().defaultNow()
 });
 
+// Forum tables
+
+// Forum categories table - predefined discussion categories
+export const forumCategories = pgTable('forum_categories', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	name: text('name').notNull(),
+	description: text('description').notNull(),
+	icon: text('icon').notNull(), // Lucide icon name
+	slug: text('slug').notNull().unique(),
+	order: integer('order').notNull(),
+	createdAt: timestamp('created_at').notNull().defaultNow()
+});
+
+// Forum topics table - user-created discussion threads
+export const forumTopics = pgTable('forum_topics', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	categoryId: uuid('category_id')
+		.notNull()
+		.references(() => forumCategories.id, { onDelete: 'cascade' }),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	title: text('title').notNull(),
+	content: text('content').notNull(), // Rich text HTML
+	isPinned: boolean('is_pinned').notNull().default(false),
+	isLocked: boolean('is_locked').notNull().default(false),
+	viewCount: integer('view_count').notNull().default(0),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
+// Forum posts table - replies to topics
+export const forumPosts = pgTable('forum_posts', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	topicId: uuid('topic_id')
+		.notNull()
+		.references(() => forumTopics.id, { onDelete: 'cascade' }),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	content: text('content').notNull(), // Rich text HTML
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type Account = typeof account.$inferSelect;
@@ -248,3 +293,6 @@ export type WorkoutLog = typeof workoutLogs.$inferSelect;
 export type ExerciseLog = typeof exerciseLogs.$inferSelect;
 export type PersonalRecord = typeof personalRecords.$inferSelect;
 export type Bookmark = typeof bookmarks.$inferSelect;
+export type ForumCategory = typeof forumCategories.$inferSelect;
+export type ForumTopic = typeof forumTopics.$inferSelect;
+export type ForumPost = typeof forumPosts.$inferSelect;
