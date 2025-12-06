@@ -11,10 +11,6 @@
 	} = $props();
 </script>
 
-<span
-	data-slot="select-value"
-	class={cn('block truncate', className)}
-	{...restProps}
->
+<span data-slot="select-value" class={cn('block truncate', className)} {...restProps}>
 	{placeholder || ''}
 </span>
