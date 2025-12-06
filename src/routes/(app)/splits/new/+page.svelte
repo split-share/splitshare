@@ -192,12 +192,11 @@
 					<div class="space-y-2">
 						<Label for="difficulty">Difficulty</Label>
 						<Select.Root
-							selected={{
-								value: difficulty,
-								label: difficulty.charAt(0).toUpperCase() + difficulty.slice(1)
+							type="single"
+							value={difficulty}
+							onValueChange={(v: string | undefined) => {
+								if (v) difficulty = v as 'beginner' | 'intermediate' | 'advanced';
 							}}
-							onSelectedChange={(v: { value: string; label: string } | undefined) =>
-								v && (difficulty = v.value as 'beginner' | 'intermediate' | 'advanced')}
 						>
 							<Select.Trigger>
 								<Select.Value placeholder="Select difficulty" />
@@ -230,9 +229,7 @@
 						<p class="font-medium">Public</p>
 						<p class="text-sm text-muted-foreground">Share with community</p>
 					</div>
-					<Switch.Root bind:checked={isPublic}>
-						<Switch.Thumb />
-					</Switch.Root>
+					<Switch.Root bind:checked={isPublic} />
 				</div>
 			</CardContent>
 		</Card>
