@@ -55,6 +55,13 @@ npm run check:watch # Watch mode for type-checking
 - Follow Svelte 5 patterns (no `let:builder` or slot props)
 - Use component snippets when needed with `{#snippet}` and `{@render}`
 
+**CRITICAL RULES:**
+
+- **NEVER revert from shadcn components to vanilla HTML elements** (e.g., never replace `<Select>` with `<select>`, `<Button>` with `<button>`)
+- If a shadcn component has issues, FIX the component - do not replace it with vanilla HTML
+- Always research the proper shadcn/bits-ui API before reverting to vanilla elements
+- When blocked, consult documentation at https://www.bits-ui.com or https://www.shadcn-svelte.com
+
 ## Available MCP Tools:
 
 ### 1. list-sections
@@ -76,6 +83,34 @@ You MUST use this tool whenever writing Svelte code before sending it to the use
 
 Generates a Svelte Playground link with the provided code.
 After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
+
+## TypeScript Standards
+
+**Strict type safety - NO COMPROMISES:**
+
+- **NEVER use `any` type** - Always define proper types or use `unknown` with type guards
+- **NEVER use type hacks** like `as never`, `as any`, or excessive `as` casting to bypass type errors
+- **NEVER suppress TypeScript errors** with `@ts-ignore` or `@ts-expect-error` without explicit approval
+- If types don't match, FIX the underlying issue - don't hack around it
+- Use proper generic constraints and type inference
+- Define interfaces and types for all data structures
+- When stuck on types, research the library's type definitions or ask for guidance
+
+**Examples:**
+
+```typescript
+// ❌ BAD: Type hacking
+bind:value={value as never}
+const data = response as any;
+// @ts-ignore
+someFunction();
+
+// ✅ GOOD: Proper typing
+bind:value={value}  // Fix the component to accept the right type
+const data: ExpectedType = validateResponse(response);
+interface FormData { ... }
+const data: FormData = await request.formData();
+```
 
 ## Core Workflow: Research → Plan → Implement → Validate
 
