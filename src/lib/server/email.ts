@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { RESEND_API_KEY, EMAIL_FROM } from '$env/static/private';
 import { PUBLIC_APP_URL } from '$env/static/public';
+import { logger } from './logger';
 
 const resend = new Resend(RESEND_API_KEY);
 
@@ -23,9 +24,15 @@ async function sendEmail({ to, subject, html }: EmailOptions) {
 			throw new Error(`Failed to send email: ${error.message}`);
 		}
 
+		logger.info('Email sent successfully', { to, subject });
 		return data;
 	} catch (error) {
-		console.error('Email sending failed:', error);
+		logger.error('Email sending failed', {
+			to,
+			subject,
+			errorMessage: error instanceof Error ? error.message : String(error),
+			errorStack: error instanceof Error ? error.stack : undefined
+		});
 		throw error;
 	}
 }

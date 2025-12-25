@@ -1,6 +1,8 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 import type { Session, User } from 'better-auth/types';
+import type { ILoggerService } from '$core/ports/logger/logger.port';
+import type { RequestContext } from '$lib/server/logger';
 
 declare global {
 	namespace App {
@@ -8,6 +10,8 @@ declare global {
 		interface Locals {
 			user: User | null;
 			session: Session | null;
+			logger: ILoggerService;
+			requestContext: RequestContext;
 		}
 		// interface PageData {}
 		// interface PageState {}

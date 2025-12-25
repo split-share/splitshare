@@ -1,5 +1,7 @@
 import { db } from '$lib/server/db';
 import { auth } from '$lib/server/auth';
+import { logger } from '$lib/server/logger';
+import type { ILoggerService } from '$core/ports/logger/logger.port';
 
 // Adapters
 import { DrizzleSplitRepositoryAdapter } from '../../adapters/repositories/drizzle/split.repository.adapter';
@@ -138,6 +140,10 @@ class Container {
 			this._authService = new BetterAuthAdapter(auth);
 		}
 		return this._authService;
+	}
+
+	get logger(): ILoggerService {
+		return logger;
 	}
 
 	// Use cases

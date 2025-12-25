@@ -2,6 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { rateLimit, uploadLimiter, rateLimitError } from '$lib/server/rate-limit';
 import { createCompleteSplitSchema } from '$lib/schemas/split';
 import { container } from '$infrastructure/di/container';
+import { logAction } from '$lib/server/logger';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -56,19 +57,39 @@ export const actions: Actions = {
 
 		const validatedData = validation.data;
 
-		const split = await container.createSplit.execute({
-			userId: event.locals.user!.id,
-			title: validatedData.title,
-			description: validatedData.description,
-			difficulty: validatedData.difficulty,
-			duration: validatedData.duration,
-			isPublic: validatedData.isPublic,
-			tags: validatedData.tags,
-			imageUrl: validatedData.imageUrl,
-			videoUrl: validatedData.videoUrl,
-			days: validatedData.days
-		});
+		try {
+			const split = await container.createSplit.execute({
+				userId: event.locals.user!.id,
+				title: validatedData.title,
+				description: validatedData.description,
+				difficulty: validatedData.difficulty,
+				duration: validatedData.duration,
+				isPublic: validatedData.isPublic,
+				tags: validatedData.tags,
+				imageUrl: validatedData.imageUrl,
+				videoUrl: validatedData.videoUrl,
+				days: validatedData.days
+			});
 
-		redirect(303, `/splits/${split.id}`);
+			logAction(event, 'split.create', {
+				success: true,
+				resourceId: split.id,
+				resourceType: 'split',
+				metadata: {
+					title: validatedData.title,
+					isPublic: validatedData.isPublic,
+					dayCount: validatedData.days?.length ?? 0
+				}
+			});
+
+			redirect(303, `/splits/${split.id}`);
+		} catch (error) {
+			logAction(event, 'split.create', {
+				success: false,
+				resourceType: 'split',
+				error: error instanceof Error ? error : String(error)
+			});
+			throw error;
+		}
 	}
 };

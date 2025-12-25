@@ -78,6 +78,7 @@ npm run check:watch # Watch mode for type-checking
 - Upstash Redis for rate limiting
 - Resend for email (Mailpit for local dev)
 - Sentry for error monitoring (optional)
+- Pino for structured logging
 
 **Mobile:**
 
@@ -456,6 +457,68 @@ SENTRY_PROJECT=...
 PUBLIC_APP_URL=http://localhost:5173
 NODE_ENV=development
 VITE_API_BASE_URL=http://localhost:5173
+
+# Logging
+LOG_LEVEL=debug   # trace, debug, info, warn, error, fatal
+```
+
+## Logging
+
+Uses Pino for structured JSON logging following the "Wide Events" pattern.
+
+### Architecture
+
+```
+src/
+├── core/ports/logger/logger.port.ts     # Logger interface
+├── adapters/logger/pino/                # Pino implementation
+└── lib/server/logger/
+    ├── index.ts                         # Logger singleton & exports
+    ├── request-context.ts               # Wide event builder
+    └── action-logger.ts                 # Action logging helper
+```
+
+### Usage in Routes
+
+```typescript
+import { logAction } from '$lib/server/logger';
+
+// Log user actions with business context
+logAction(event, 'split.create', {
+	success: true,
+	resourceId: split.id,
+	resourceType: 'split',
+	metadata: { title, isPublic }
+});
+
+// Use request-scoped logger
+event.locals.logger.info('Something happened', { splitId });
+```
+
+### Action Types
+
+Use predefined action types for consistency:
+
+- `split.create`, `split.update`, `split.delete`, `split.like`, `split.unlike`, `split.view`
+- `exercise.create`, `exercise.update`, `exercise.delete`
+- `comment.create`, `comment.update`, `comment.delete`
+- `workout.start`, `workout.complete`, `workout.abandon`, `workout.set_complete`, `workout.log`
+- `weight.add`, `weight.delete`
+- `forum.topic_create`, `forum.post_create`, `forum.post_update`, `forum.post_delete`
+
+### Rules
+
+- **NEVER use `console.log/error`** in server code - use `logger` or `logAction`
+- **Log all user actions** that modify data (create, update, delete, like, etc.)
+- **Include business context**: resourceId, resourceType, relevant metadata
+- **Log both success and failure** for actions
+- **Don't log**: static assets, `__data.json` requests, high-frequency sync operations
+- Client-side code may use `console.error` for debugging (no server logger access)
+
+### Environment Variables
+
+```bash
+LOG_LEVEL=debug   # trace, debug, info, warn, error, fatal (default: debug in dev, info in prod)
 ```
 
 ## Local Development Services
