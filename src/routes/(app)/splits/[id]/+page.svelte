@@ -12,7 +12,7 @@
 	import Badge from '$lib/components/ui/badge.svelte';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
-	import { Heart, MessageSquare, Trash2, Edit2, Share2 } from 'lucide-svelte';
+	import { Heart, MessageSquare, Trash2, Edit2, Share2, Play } from 'lucide-svelte';
 	import YouTubeEmbed from '$lib/components/youtube-embed.svelte';
 	import type { PageData } from './$types';
 
@@ -174,11 +174,19 @@
 									<CardTitle>{day.name}</CardTitle>
 									<CardDescription>Day {day.dayNumber}</CardDescription>
 								</div>
-								{#if day.isRestDay}
-									<Badge variant="secondary">Rest Day</Badge>
-								{:else}
-									<Badge variant="outline">{day.exercises.length} exercises</Badge>
-								{/if}
+								<div class="flex items-center gap-2">
+									{#if day.isRestDay}
+										<Badge variant="secondary">Rest Day</Badge>
+									{:else}
+										<Badge variant="outline">{day.exercises.length} exercises</Badge>
+										{#if isAuthenticated}
+											<Button size="sm" href="/workout?splitId={split.split.id}&dayId={day.id}">
+												<Play class="h-4 w-4 mr-1" />
+												Start
+											</Button>
+										{/if}
+									{/if}
+								</div>
 							</div>
 						</CardHeader>
 						{#if !day.isRestDay && day.exercises.length > 0}
