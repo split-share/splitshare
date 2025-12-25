@@ -29,7 +29,12 @@ export const addExerciseToDaySchema = z.object({
 	reps: z.string().min(1, 'Reps are required'), // Can be "10" or "8-12" or "AMRAP"
 	restTime: z.number().int().min(0).max(600, 'Max rest time is 10 minutes').optional(),
 	order: z.number().int().min(0),
-	notes: z.string().max(200, 'Notes are too long').optional()
+	notes: z.string().max(200, 'Notes are too long').optional(),
+	weight: z
+		.number()
+		.positive('Weight must be positive')
+		.max(1000, 'Weight exceeds maximum (1000kg)')
+		.optional()
 });
 
 // Schema for creating a split day

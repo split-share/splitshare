@@ -11,6 +11,7 @@ export class DayExercise {
 		public restTime: number | null,
 		public order: number,
 		public notes: string | null,
+		public weight: number | null,
 		public readonly createdAt: Date
 	) {}
 
@@ -29,6 +30,15 @@ export class DayExercise {
 	static validateReps(reps: string): void {
 		if (!reps.trim()) {
 			throw new Error('Exercise reps are required');
+		}
+	}
+
+	/**
+	 * Validates weight
+	 */
+	static validateWeight(weight: number | null): void {
+		if (weight !== null && weight <= 0) {
+			throw new Error('Weight must be positive');
 		}
 	}
 }

@@ -43,6 +43,7 @@ export class CreateSplitUseCase {
 				for (const exercise of day.exercises) {
 					DayExercise.validateSets(exercise.sets);
 					DayExercise.validateReps(exercise.reps);
+					DayExercise.validateWeight(exercise.weight ?? null);
 
 					if (exerciseOrders.has(exercise.order)) {
 						throw new Error(`Duplicate exercise order in day ${day.dayNumber}`);

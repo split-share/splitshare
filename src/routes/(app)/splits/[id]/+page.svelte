@@ -213,6 +213,12 @@
 																	<span class="text-sm font-medium">Reps:</span>
 																	<Badge variant="secondary">{dayExercise.reps}</Badge>
 																</div>
+																{#if dayExercise.weight}
+																	<div class="flex items-center gap-1.5">
+																		<span class="text-sm font-medium">Weight:</span>
+																		<Badge variant="secondary">{dayExercise.weight} kg</Badge>
+																	</div>
+																{/if}
 																{#if dayExercise.restTime}
 																	<div class="flex items-center gap-1.5">
 																		<span class="text-sm font-medium">Rest:</span>

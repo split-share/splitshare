@@ -88,7 +88,8 @@
 			reps: '8-12',
 			restTime: 60,
 			order: days[dayIndex].exercises.length,
-			notes: ''
+			notes: '',
+			weight: undefined
 		};
 		days[dayIndex].exercises = [...days[dayIndex].exercises, exerciseData];
 
@@ -342,7 +343,7 @@
 															</div>
 															<div class="flex-1 space-y-3">
 																<div class="font-medium">{exercise.exerciseName}</div>
-																<div class="grid grid-cols-3 gap-3">
+																<div class="grid grid-cols-4 gap-3">
 																	<div class="space-y-1">
 																		<Label class="text-xs text-muted-foreground">Sets</Label>
 																		<Input
@@ -358,6 +359,18 @@
 																		<Input
 																			bind:value={exercise.reps}
 																			placeholder="8-12"
+																			class="h-9"
+																		/>
+																	</div>
+																	<div class="space-y-1">
+																		<Label class="text-xs text-muted-foreground">Weight (kg)</Label>
+																		<Input
+																			type="number"
+																			bind:value={exercise.weight}
+																			placeholder="Optional"
+																			min="0"
+																			max="1000"
+																			step="0.5"
 																			class="h-9"
 																		/>
 																	</div>
