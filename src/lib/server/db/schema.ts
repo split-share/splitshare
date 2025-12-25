@@ -116,6 +116,7 @@ export const dayExercises = pgTable('day_exercises', {
 	restTime: integer('rest_time'), // rest time in seconds
 	order: integer('order').notNull(), // order within the day
 	notes: text('notes'),
+	weight: numeric('weight'), // weight in kg (optional, for weighted exercises)
 	createdAt: timestamp('created_at').notNull().defaultNow()
 });
 

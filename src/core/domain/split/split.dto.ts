@@ -33,6 +33,7 @@ export interface CreateDayExerciseDto {
 	restTime?: number | null;
 	order: number;
 	notes?: string | null;
+	weight?: number | null;
 }
 
 export interface UpdateSplitDto {
@@ -98,6 +99,7 @@ export interface DayExerciseWithDetailsDto {
 	restTime: number | null;
 	order: number;
 	notes: string | null;
+	weight: number | null;
 	exercise: {
 		id: string;
 		name: string;
