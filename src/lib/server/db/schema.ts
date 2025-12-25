@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, boolean, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, boolean, integer, numeric } from 'drizzle-orm/pg-core';
 
 // Users table - better-auth compatible
 export const user = pgTable('user', {
@@ -220,6 +220,19 @@ export const personalRecords = pgTable('personal_records', {
 	updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
 
+// Weight entries table - track body weight over time
+export const weightEntries = pgTable('weight_entries', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	weight: numeric('weight', { precision: 5, scale: 2 }).notNull(),
+	recordedAt: timestamp('recorded_at').notNull(),
+	notes: text('notes'),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
 // Bookmarks/Saved splits table
 export const bookmarks = pgTable('bookmarks', {
 	id: uuid('id').defaultRandom().primaryKey(),
@@ -292,6 +305,7 @@ export type Follow = typeof follows.$inferSelect;
 export type WorkoutLog = typeof workoutLogs.$inferSelect;
 export type ExerciseLog = typeof exerciseLogs.$inferSelect;
 export type PersonalRecord = typeof personalRecords.$inferSelect;
+export type WeightEntry = typeof weightEntries.$inferSelect;
 export type Bookmark = typeof bookmarks.$inferSelect;
 export type ForumCategory = typeof forumCategories.$inferSelect;
 export type ForumTopic = typeof forumTopics.$inferSelect;

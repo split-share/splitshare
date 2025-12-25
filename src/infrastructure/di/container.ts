@@ -9,6 +9,7 @@ import { DrizzleWorkoutLogRepositoryAdapter } from '../../adapters/repositories/
 import { DrizzlePersonalRecordRepositoryAdapter } from '../../adapters/repositories/drizzle/personal-record.repository.adapter';
 import { DrizzleLikeRepositoryAdapter } from '../../adapters/repositories/drizzle/like.repository.adapter';
 import { DrizzleCommentRepositoryAdapter } from '../../adapters/repositories/drizzle/comment.repository.adapter';
+import { DrizzleWeightEntryRepositoryAdapter } from '../../adapters/repositories/drizzle/weight-entry.repository.adapter';
 import { BetterAuthAdapter } from '../../adapters/auth/better-auth/auth.adapter';
 
 // Use cases
@@ -33,6 +34,12 @@ import { AddCommentUseCase } from '../../core/usecases/split/add-comment.usecase
 import { UpdateCommentUseCase } from '../../core/usecases/split/update-comment.usecase';
 import { DeleteCommentUseCase } from '../../core/usecases/split/delete-comment.usecase';
 
+import { CreateWeightEntryUseCase } from '../../core/usecases/weight/create-weight-entry.usecase';
+import { GetWeightHistoryUseCase } from '../../core/usecases/weight/get-weight-history.usecase';
+import { GetWeightStatsUseCase } from '../../core/usecases/weight/get-weight-stats.usecase';
+import { GetWeightChartDataUseCase } from '../../core/usecases/weight/get-weight-chart-data.usecase';
+import { DeleteWeightEntryUseCase } from '../../core/usecases/weight/delete-weight-entry.usecase';
+
 /**
  * Dependency Injection Container
  *
@@ -48,6 +55,7 @@ class Container {
 	private _personalRecordRepository?: DrizzlePersonalRecordRepositoryAdapter;
 	private _likeRepository?: DrizzleLikeRepositoryAdapter;
 	private _commentRepository?: DrizzleCommentRepositoryAdapter;
+	private _weightEntryRepository?: DrizzleWeightEntryRepositoryAdapter;
 
 	// Services (adapters)
 	private _authService?: BetterAuthAdapter;
@@ -100,6 +108,13 @@ class Container {
 			this._commentRepository = new DrizzleCommentRepositoryAdapter(db);
 		}
 		return this._commentRepository;
+	}
+
+	get weightEntryRepository(): DrizzleWeightEntryRepositoryAdapter {
+		if (!this._weightEntryRepository) {
+			this._weightEntryRepository = new DrizzleWeightEntryRepositoryAdapter(db);
+		}
+		return this._weightEntryRepository;
 	}
 
 	get authService(): BetterAuthAdapter {
@@ -176,6 +191,26 @@ class Container {
 
 	get deleteComment(): DeleteCommentUseCase {
 		return new DeleteCommentUseCase(this.commentRepository);
+	}
+
+	get createWeightEntry(): CreateWeightEntryUseCase {
+		return new CreateWeightEntryUseCase(this.weightEntryRepository);
+	}
+
+	get getWeightHistory(): GetWeightHistoryUseCase {
+		return new GetWeightHistoryUseCase(this.weightEntryRepository);
+	}
+
+	get getWeightStats(): GetWeightStatsUseCase {
+		return new GetWeightStatsUseCase(this.weightEntryRepository);
+	}
+
+	get getWeightChartData(): GetWeightChartDataUseCase {
+		return new GetWeightChartDataUseCase(this.weightEntryRepository);
+	}
+
+	get deleteWeightEntry(): DeleteWeightEntryUseCase {
+		return new DeleteWeightEntryUseCase(this.weightEntryRepository);
 	}
 }
 
