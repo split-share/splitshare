@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { POPULAR_EXERCISES } from '$lib/constants';
 
 export const createSplitSchema = z.object({
 	title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title is too long'),
@@ -19,7 +20,11 @@ export const addExerciseToDaySchema = z.object({
 	exerciseName: z
 		.string()
 		.min(1, 'Exercise name is required')
-		.max(100, 'Exercise name is too long'),
+		.max(100, 'Exercise name is too long')
+		.refine(
+			(name) => POPULAR_EXERCISES.some((ex) => ex.name === name),
+			'Exercise must be selected from the predefined list'
+		),
 	sets: z.number().int().min(1, 'Sets must be at least 1').max(20, 'Max 20 sets'),
 	reps: z.string().min(1, 'Reps are required'), // Can be "10" or "8-12" or "AMRAP"
 	restTime: z.number().int().min(0).max(600, 'Max rest time is 10 minutes').optional(),
