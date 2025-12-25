@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Input } from '$lib/components/ui/input';
-	import type { Exercise } from '$lib/services/exercises/types';
+	import type { Exercise } from '$core/domain/exercise/exercise.entity';
 
 	let {
 		exercises,

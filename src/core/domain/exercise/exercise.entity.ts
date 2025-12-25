@@ -37,40 +37,4 @@ export class Exercise {
 		if (data.videoUrl !== undefined) this.videoUrl = data.videoUrl;
 		this.updatedAt = new Date();
 	}
-
-	/**
-	 * Validates exercise name
-	 */
-	static validateName(name: string): void {
-		if (!name.trim()) {
-			throw new Error('Exercise name is required');
-		}
-	}
-
-	/**
-	 * Validates muscle group
-	 */
-	static validateMuscleGroup(muscleGroup: string): void {
-		if (!muscleGroup.trim()) {
-			throw new Error('Muscle group is required');
-		}
-	}
-
-	/**
-	 * Validates equipment type
-	 */
-	static validateEquipmentType(equipmentType: string): void {
-		if (!equipmentType.trim()) {
-			throw new Error('Equipment type is required');
-		}
-	}
-
-	/**
-	 * Validates difficulty
-	 */
-	static validateDifficulty(difficulty: string): void {
-		if (!['beginner', 'intermediate', 'advanced'].includes(difficulty)) {
-			throw new Error('Invalid difficulty level');
-		}
-	}
 }

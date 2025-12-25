@@ -8,7 +8,7 @@
 	} from '$lib/components/ui/dialog';
 	import ExerciseForm from '$lib/components/forms/exercise-form.svelte';
 	import type { CreateExerciseInput } from '$lib/schemas/exercise';
-	import type { Exercise } from '$lib/services/exercises/types';
+	import type { Exercise } from '$core/domain/exercise/exercise.entity';
 
 	let {
 		open = $bindable(false),

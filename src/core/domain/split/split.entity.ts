@@ -41,22 +41,4 @@ export class Split {
 		if (data.tags !== undefined) this.tags = data.tags;
 		this.updatedAt = new Date();
 	}
-
-	/**
-	 * Validates split title
-	 */
-	static validateTitle(title: string): void {
-		if (!title.trim()) {
-			throw new Error('Split title is required');
-		}
-	}
-
-	/**
-	 * Validates difficulty level
-	 */
-	static validateDifficulty(difficulty: string): void {
-		if (!['beginner', 'intermediate', 'advanced'].includes(difficulty)) {
-			throw new Error('Invalid difficulty level');
-		}
-	}
 }

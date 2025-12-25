@@ -1,22 +1,24 @@
 import { eq, and, desc, sql, like, or, inArray } from 'drizzle-orm';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { forumCategories, forumTopics, forumPosts, user } from '$lib/server/db/schema';
-import { BaseRepository } from '../shared/utils';
+import type * as schema from '$lib/server/db/schema';
+import type { IForumRepository } from '$core/ports/repositories/forum.repository.port';
 import type {
 	ForumCategory,
-	ForumTopic,
-	ForumPost,
 	ForumCategoryWithStats,
 	ForumTopicWithDetails,
 	ForumPostWithAuthor,
-	CreateTopicInput,
-	UpdateTopicInput,
-	CreatePostInput,
-	UpdatePostInput,
-	TopicFilters,
-	PaginationOptions
-} from './types';
+	CreateTopicDto,
+	UpdateTopicDto,
+	CreatePostDto,
+	UpdatePostDto,
+	TopicFiltersDto,
+	PaginationDto
+} from '$core/domain/forum/forum.dto';
 
-export class ForumRepository extends BaseRepository {
+export class DrizzleForumRepositoryAdapter implements IForumRepository {
+	constructor(private db: PostgresJsDatabase<typeof schema>) {}
+
 	// Categories
 
 	async findAllCategories(): Promise<ForumCategory[]> {
@@ -91,12 +93,7 @@ export class ForumRepository extends BaseRepository {
 
 	// Topics
 
-	async findTopicById(id: string): Promise<ForumTopic | undefined> {
-		const result = await this.db.select().from(forumTopics).where(eq(forumTopics.id, id)).limit(1);
-		return result[0];
-	}
-
-	async findTopicByIdWithDetails(id: string): Promise<ForumTopicWithDetails | undefined> {
+	async findTopicById(id: string): Promise<ForumTopicWithDetails | undefined> {
 		const [topic] = await this.db
 			.select({
 				topic: forumTopics,
@@ -158,8 +155,8 @@ export class ForumRepository extends BaseRepository {
 	}
 
 	async findTopicsWithFilters(
-		filters: TopicFilters,
-		pagination: PaginationOptions
+		filters: TopicFiltersDto,
+		pagination: PaginationDto
 	): Promise<ForumTopicWithDetails[]> {
 		const conditions = [];
 
@@ -264,7 +261,7 @@ export class ForumRepository extends BaseRepository {
 		return lastPostsMap;
 	}
 
-	async createTopic(input: CreateTopicInput): Promise<ForumTopic> {
+	async createTopic(input: CreateTopicDto): Promise<ForumTopicWithDetails> {
 		const [topic] = await this.db
 			.insert(forumTopics)
 			.values({
@@ -274,19 +271,23 @@ export class ForumRepository extends BaseRepository {
 				content: input.content
 			})
 			.returning();
-		return topic;
+
+		// Fetch the full topic with details
+		const fullTopic = await this.findTopicById(topic.id);
+		return fullTopic!;
 	}
 
-	async updateTopic(id: string, input: UpdateTopicInput): Promise<ForumTopic> {
-		const [topic] = await this.db
+	async updateTopic(id: string, input: UpdateTopicDto): Promise<ForumTopicWithDetails> {
+		await this.db
 			.update(forumTopics)
 			.set({
 				...input,
 				updatedAt: new Date()
 			})
-			.where(eq(forumTopics.id, id))
-			.returning();
-		return topic;
+			.where(eq(forumTopics.id, id));
+
+		const fullTopic = await this.findTopicById(id);
+		return fullTopic!;
 	}
 
 	async deleteTopic(id: string): Promise<void> {
@@ -320,11 +321,20 @@ export class ForumRepository extends BaseRepository {
 		return result.length > 0;
 	}
 
+	async isTopicLocked(id: string): Promise<boolean> {
+		const result = await this.db
+			.select({ isLocked: forumTopics.isLocked })
+			.from(forumTopics)
+			.where(eq(forumTopics.id, id))
+			.limit(1);
+		return result[0]?.isLocked ?? false;
+	}
+
 	// Posts
 
 	async findPostsByTopicId(
 		topicId: string,
-		pagination: PaginationOptions
+		pagination: PaginationDto
 	): Promise<ForumPostWithAuthor[]> {
 		return this.db
 			.select({
@@ -349,7 +359,7 @@ export class ForumRepository extends BaseRepository {
 			);
 	}
 
-	async createPost(input: CreatePostInput): Promise<ForumPost> {
+	async createPost(input: CreatePostDto): Promise<ForumPostWithAuthor> {
 		const [post] = await this.db
 			.insert(forumPosts)
 			.values({
@@ -365,10 +375,20 @@ export class ForumRepository extends BaseRepository {
 			.set({ updatedAt: new Date() })
 			.where(eq(forumTopics.id, input.topicId));
 
-		return post;
+		// Fetch author info
+		const [author] = await this.db
+			.select({ id: user.id, name: user.name, image: user.image })
+			.from(user)
+			.where(eq(user.id, input.userId))
+			.limit(1);
+
+		return {
+			...post,
+			author
+		};
 	}
 
-	async updatePost(id: string, input: UpdatePostInput): Promise<ForumPost> {
+	async updatePost(id: string, input: UpdatePostDto): Promise<ForumPostWithAuthor> {
 		const [post] = await this.db
 			.update(forumPosts)
 			.set({
@@ -377,7 +397,18 @@ export class ForumRepository extends BaseRepository {
 			})
 			.where(eq(forumPosts.id, id))
 			.returning();
-		return post;
+
+		// Fetch author info
+		const [author] = await this.db
+			.select({ id: user.id, name: user.name, image: user.image })
+			.from(user)
+			.where(eq(user.id, post.userId))
+			.limit(1);
+
+		return {
+			...post,
+			author
+		};
 	}
 
 	async deletePost(id: string): Promise<void> {

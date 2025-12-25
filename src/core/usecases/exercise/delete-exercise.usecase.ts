@@ -1,15 +1,13 @@
 import type { IExerciseRepository } from '../../ports/repositories/exercise.repository.port';
-import type { UpdateExerciseDto } from '../../domain/exercise/exercise.dto';
-import type { Exercise } from '../../domain/exercise/exercise.entity';
 import { NotFoundError, ForbiddenError } from '../../domain/common/errors';
 
 /**
- * Use case: Update an existing exercise
+ * Use case: Delete an exercise
  */
-export class UpdateExerciseUseCase {
+export class DeleteExerciseUseCase {
 	constructor(private exerciseRepository: IExerciseRepository) {}
 
-	async execute(id: string, userId: string, input: UpdateExerciseDto): Promise<Exercise> {
+	async execute(id: string, userId: string): Promise<void> {
 		const exists = await this.exerciseRepository.exists(id);
 		if (!exists) {
 			throw new NotFoundError('Exercise', id);
@@ -17,9 +15,9 @@ export class UpdateExerciseUseCase {
 
 		const isOwner = await this.exerciseRepository.isOwnedByUser(id, userId);
 		if (!isOwner) {
-			throw new ForbiddenError('update', 'exercise');
+			throw new ForbiddenError('delete', 'exercise');
 		}
 
-		return this.exerciseRepository.update(id, input);
+		await this.exerciseRepository.delete(id);
 	}
 }

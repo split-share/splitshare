@@ -3,7 +3,8 @@ import type {
 	CreateSplitDto,
 	UpdateSplitDto,
 	SplitFiltersDto,
-	SplitWithDetailsDto
+	SplitWithDetailsDto,
+	SplitDto
 } from '../../domain/split/split.dto';
 import type { Pagination } from '../../domain/common/value-objects';
 
@@ -23,9 +24,9 @@ export interface ISplitRepository {
 	findByIdWithDetails(id: string, currentUserId?: string): Promise<SplitWithDetailsDto | undefined>;
 
 	/**
-	 * Finds all splits for a user
+	 * Finds all splits for a user (returns plain objects for serialization)
 	 */
-	findByUserId(userId: string): Promise<Split[]>;
+	findByUserId(userId: string): Promise<SplitDto[]>;
 
 	/**
 	 * Finds splits with filters and pagination

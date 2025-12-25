@@ -114,6 +114,43 @@ export class DrizzleWeightEntryRepositoryAdapter implements IWeightEntryReposito
 		return this.toEntity(entry);
 	}
 
+	async upsertByDate(data: CreateWeightEntryDto): Promise<WeightEntry> {
+		const startOfDay = new Date(data.recordedAt);
+		startOfDay.setHours(0, 0, 0, 0);
+		const endOfDay = new Date(data.recordedAt);
+		endOfDay.setHours(23, 59, 59, 999);
+
+		// Check if entry exists for this date
+		const existing = await this.db
+			.select()
+			.from(weightEntries)
+			.where(
+				and(
+					eq(weightEntries.userId, data.userId),
+					gte(weightEntries.recordedAt, startOfDay),
+					lte(weightEntries.recordedAt, endOfDay)
+				)
+			)
+			.limit(1);
+
+		if (existing.length > 0) {
+			// Update existing entry
+			const [updated] = await this.db
+				.update(weightEntries)
+				.set({
+					weight: data.weight.toString(),
+					notes: data.notes ?? null,
+					updatedAt: new Date()
+				})
+				.where(eq(weightEntries.id, existing[0].id))
+				.returning();
+			return this.toEntity(updated);
+		}
+
+		// Create new entry
+		return this.create(data);
+	}
+
 	async update(id: string, data: UpdateWeightEntryDto): Promise<WeightEntry> {
 		const updateData: Record<string, unknown> = { updatedAt: new Date() };
 		if (data.weight !== undefined) updateData.weight = data.weight.toString();

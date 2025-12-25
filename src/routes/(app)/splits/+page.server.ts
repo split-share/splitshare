@@ -1,4 +1,4 @@
-import { splitService } from '$lib/services/splits';
+import { container } from '$infrastructure/di/container';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -6,7 +6,7 @@ export const load: PageServerLoad = async (event) => {
 		return { splits: [] };
 	}
 
-	const splits = await splitService.getUserSplits(event.locals.user.id);
+	const splits = await container.splitRepository.findByUserId(event.locals.user.id);
 
 	return {
 		splits

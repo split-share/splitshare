@@ -2,6 +2,7 @@
 	import { LineChart } from 'layerchart';
 	import { scaleUtc } from 'd3-scale';
 	import { curveNatural } from 'd3-shape';
+	import { timeDay } from 'd3-time';
 	import * as Chart from '$lib/components/ui/chart';
 	import type { WeightChartDataDto } from '$core/domain/weight/weight-entry.dto';
 
@@ -21,6 +22,14 @@
 			weight: d.weight
 		}))
 	);
+
+	// Generate unique date ticks (max ~7 ticks for readability)
+	const xTicks = $derived(() => {
+		if (chartData.length === 0) return [];
+		const dates = chartData.map((d) => d.date);
+		const step = Math.max(1, Math.ceil(dates.length / 7));
+		return dates.filter((_, i) => i % step === 0);
+	});
 </script>
 
 {#if chartData.length > 0}
@@ -30,7 +39,7 @@
 			labels={{ offset: 12 }}
 			data={chartData}
 			x="date"
-			xScale={scaleUtc()}
+			xScale={scaleUtc().nice(timeDay)}
 			yDomain={[40, null]}
 			axis="x"
 			series={[
@@ -43,6 +52,7 @@
 			props={{
 				spline: { curve: curveNatural, motion: 'tween', strokeWidth: 2 },
 				xAxis: {
+					ticks: xTicks(),
 					format: (v: Date) => v.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 				},
 				yAxis: {

@@ -13,6 +13,7 @@ import { DrizzleLikeRepositoryAdapter } from '../../adapters/repositories/drizzl
 import { DrizzleCommentRepositoryAdapter } from '../../adapters/repositories/drizzle/comment.repository.adapter';
 import { DrizzleWeightEntryRepositoryAdapter } from '../../adapters/repositories/drizzle/weight-entry.repository.adapter';
 import { DrizzleWorkoutSessionRepositoryAdapter } from '../../adapters/repositories/drizzle/workout-session.repository.adapter';
+import { DrizzleForumRepositoryAdapter } from '../../adapters/repositories/drizzle/forum.repository.adapter';
 import { BetterAuthAdapter } from '../../adapters/auth/better-auth/auth.adapter';
 
 // Use cases
@@ -24,6 +25,7 @@ import { SearchSplitsUseCase } from '../../core/usecases/split/search-splits.use
 
 import { CreateExerciseUseCase } from '../../core/usecases/exercise/create-exercise.usecase';
 import { UpdateExerciseUseCase } from '../../core/usecases/exercise/update-exercise.usecase';
+import { DeleteExerciseUseCase } from '../../core/usecases/exercise/delete-exercise.usecase';
 import { SearchExercisesUseCase } from '../../core/usecases/exercise/search-exercises.usecase';
 
 import { LogWorkoutUseCase } from '../../core/usecases/workout/log-workout.usecase';
@@ -50,6 +52,17 @@ import { CompleteSetUseCase } from '../../core/usecases/workout/complete-set.use
 import { CompleteWorkoutSessionUseCase } from '../../core/usecases/workout/complete-workout-session.usecase';
 import { AbandonWorkoutSessionUseCase } from '../../core/usecases/workout/abandon-workout-session.usecase';
 
+import { GetCategoriesUseCase } from '../../core/usecases/forum/get-categories.usecase';
+import { GetTopicsUseCase } from '../../core/usecases/forum/get-topics.usecase';
+import { GetTopicUseCase } from '../../core/usecases/forum/get-topic.usecase';
+import { CreateTopicUseCase } from '../../core/usecases/forum/create-topic.usecase';
+import { UpdateTopicUseCase } from '../../core/usecases/forum/update-topic.usecase';
+import { DeleteTopicUseCase } from '../../core/usecases/forum/delete-topic.usecase';
+import { GetPostsUseCase } from '../../core/usecases/forum/get-posts.usecase';
+import { CreatePostUseCase } from '../../core/usecases/forum/create-post.usecase';
+import { UpdatePostUseCase } from '../../core/usecases/forum/update-post.usecase';
+import { DeletePostUseCase } from '../../core/usecases/forum/delete-post.usecase';
+
 /**
  * Dependency Injection Container
  *
@@ -67,6 +80,7 @@ class Container {
 	private _commentRepository?: DrizzleCommentRepositoryAdapter;
 	private _weightEntryRepository?: DrizzleWeightEntryRepositoryAdapter;
 	private _workoutSessionRepository?: DrizzleWorkoutSessionRepositoryAdapter;
+	private _forumRepository?: DrizzleForumRepositoryAdapter;
 
 	// Services (adapters)
 	private _authService?: BetterAuthAdapter;
@@ -135,6 +149,13 @@ class Container {
 		return this._workoutSessionRepository;
 	}
 
+	get forumRepository(): DrizzleForumRepositoryAdapter {
+		if (!this._forumRepository) {
+			this._forumRepository = new DrizzleForumRepositoryAdapter(db);
+		}
+		return this._forumRepository;
+	}
+
 	get authService(): BetterAuthAdapter {
 		if (!this._authService) {
 			this._authService = new BetterAuthAdapter(auth);
@@ -177,6 +198,10 @@ class Container {
 
 	get searchExercises(): SearchExercisesUseCase {
 		return new SearchExercisesUseCase(this.exerciseRepository);
+	}
+
+	get deleteExercise(): DeleteExerciseUseCase {
+		return new DeleteExerciseUseCase(this.exerciseRepository);
 	}
 
 	get logWorkout(): LogWorkoutUseCase {
@@ -262,6 +287,47 @@ class Container {
 
 	get abandonWorkoutSession(): AbandonWorkoutSessionUseCase {
 		return new AbandonWorkoutSessionUseCase(this.workoutSessionRepository);
+	}
+
+	// Forum use cases
+	get getCategories(): GetCategoriesUseCase {
+		return new GetCategoriesUseCase(this.forumRepository);
+	}
+
+	get getTopics(): GetTopicsUseCase {
+		return new GetTopicsUseCase(this.forumRepository);
+	}
+
+	get getTopic(): GetTopicUseCase {
+		return new GetTopicUseCase(this.forumRepository);
+	}
+
+	get createTopic(): CreateTopicUseCase {
+		return new CreateTopicUseCase(this.forumRepository);
+	}
+
+	get updateTopic(): UpdateTopicUseCase {
+		return new UpdateTopicUseCase(this.forumRepository);
+	}
+
+	get deleteTopic(): DeleteTopicUseCase {
+		return new DeleteTopicUseCase(this.forumRepository);
+	}
+
+	get getPosts(): GetPostsUseCase {
+		return new GetPostsUseCase(this.forumRepository);
+	}
+
+	get createPost(): CreatePostUseCase {
+		return new CreatePostUseCase(this.forumRepository);
+	}
+
+	get updatePost(): UpdatePostUseCase {
+		return new UpdatePostUseCase(this.forumRepository);
+	}
+
+	get deletePost(): DeletePostUseCase {
+		return new DeletePostUseCase(this.forumRepository);
 	}
 }
 

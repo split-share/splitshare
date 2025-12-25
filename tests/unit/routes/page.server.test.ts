@@ -16,9 +16,11 @@ const mockLogger: ILoggerService = {
 };
 
 // Mock dependencies
-vi.mock('$lib/services/splits', () => ({
-	splitRepository: {
-		findWithFilters: vi.fn().mockResolvedValue([])
+vi.mock('$infrastructure/di/container', () => ({
+	container: {
+		splitRepository: {
+			findWithFilters: vi.fn().mockResolvedValue([])
+		}
 	}
 }));
 

@@ -4,6 +4,22 @@ import type { Difficulty, Author } from '../common/value-objects';
  * DTOs for Split domain
  */
 
+export interface SplitDto {
+	id: string;
+	userId: string;
+	title: string;
+	description: string | null;
+	isPublic: boolean;
+	isDefault: boolean;
+	difficulty: Difficulty;
+	duration: number | null;
+	imageUrl: string | null;
+	videoUrl: string | null;
+	tags: string[] | null;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
 export interface CreateSplitDto {
 	userId: string;
 	title: string;
