@@ -7,7 +7,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import * as Select from '$lib/components/ui/select';
-	import { DIFFICULTY_LEVELS } from '$lib/constants';
+	import { DIFFICULTY_LEVELS, POPULAR_EXERCISES } from '$lib/constants';
 	import { Plus, Trash2 } from 'lucide-svelte';
 	import * as Switch from '$lib/components/ui/switch';
 	import type {
@@ -34,6 +34,22 @@
 
 	// Exercise name inputs for each day
 	let newExerciseNames = new SvelteMap<number, string>();
+
+	// Group exercises by muscle group for the Select component
+	const groupedExercises = $derived(
+		Object.entries(
+			POPULAR_EXERCISES.reduce(
+				(acc, exercise) => {
+					if (!acc[exercise.muscleGroup]) {
+						acc[exercise.muscleGroup] = [];
+					}
+					acc[exercise.muscleGroup].push(exercise);
+					return acc;
+				},
+				{} as Record<string, (typeof POPULAR_EXERCISES)[number][]>
+			)
+		).map(([muscleGroup, exercises]) => ({ muscleGroup, exercises }))
+	);
 
 	function addDay() {
 		const dayNumber = days.length + 1;
@@ -369,30 +385,34 @@
 											{/if}
 
 											<div class="flex gap-2">
-												<Input
-													value={newExerciseNames.get(dayIndex) || ''}
-													oninput={(e) => {
-														newExerciseNames.set(dayIndex, e.currentTarget.value);
-													}}
-													placeholder="Exercise name (e.g., Bench Press, Squats)..."
-													onkeydown={(e) => {
-														if (e.key === 'Enter') {
-															e.preventDefault();
-															addExerciseToDay(dayIndex);
-														}
-													}}
-													class="flex-1"
-												/>
-												<Button
-													type="button"
-													onclick={() => addExerciseToDay(dayIndex)}
-													size="sm"
-													disabled={!newExerciseNames.get(dayIndex)?.trim()}
-													class="bg-emerald-600 hover:bg-emerald-700"
-												>
-													<Plus class="h-4 w-4 mr-2" />
-													Add Exercise
-												</Button>
+												<div class="flex-1">
+													<Select.Root
+														type="single"
+														value={newExerciseNames.get(dayIndex)}
+														onValueChange={(v: string | undefined) => {
+															if (v) {
+																newExerciseNames.set(dayIndex, v);
+																addExerciseToDay(dayIndex);
+															}
+														}}
+													>
+														<Select.Trigger>
+															<Select.Value placeholder="Select exercise to add..." />
+														</Select.Trigger>
+														<Select.Content>
+															{#each groupedExercises as group (group.muscleGroup)}
+																<Select.Group>
+																	<Select.GroupHeading>{group.muscleGroup}</Select.GroupHeading>
+																	{#each group.exercises as exercise (exercise.name)}
+																		<Select.Item value={exercise.name}>
+																			{exercise.name}
+																		</Select.Item>
+																	{/each}
+																</Select.Group>
+															{/each}
+														</Select.Content>
+													</Select.Root>
+												</div>
 											</div>
 										</div>
 									{/if}

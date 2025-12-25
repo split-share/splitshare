@@ -78,3 +78,50 @@ export const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'
 
 // Session duration
 export const SESSION_DURATION_DAYS = 7;
+
+// Popular exercises organized by muscle group
+export const POPULAR_EXERCISES = [
+	// Chest (5)
+	{ name: 'Bench Press', muscleGroup: 'Chest' },
+	{ name: 'Incline Dumbbell Press', muscleGroup: 'Chest' },
+	{ name: 'Cable Flyes', muscleGroup: 'Chest' },
+	{ name: 'Push-Ups', muscleGroup: 'Chest' },
+	{ name: 'Dumbbell Chest Press', muscleGroup: 'Chest' },
+
+	// Back (5)
+	{ name: 'Pull-Ups', muscleGroup: 'Back' },
+	{ name: 'Barbell Rows', muscleGroup: 'Back' },
+	{ name: 'Lat Pulldown', muscleGroup: 'Back' },
+	{ name: 'Dumbbell Rows', muscleGroup: 'Back' },
+	{ name: 'Deadlift', muscleGroup: 'Back' },
+
+	// Shoulders (4)
+	{ name: 'Overhead Press', muscleGroup: 'Shoulders' },
+	{ name: 'Dumbbell Lateral Raises', muscleGroup: 'Shoulders' },
+	{ name: 'Face Pulls', muscleGroup: 'Shoulders' },
+	{ name: 'Arnold Press', muscleGroup: 'Shoulders' },
+
+	// Biceps (2)
+	{ name: 'Barbell Curls', muscleGroup: 'Biceps' },
+	{ name: 'Hammer Curls', muscleGroup: 'Biceps' },
+
+	// Triceps (2)
+	{ name: 'Tricep Dips', muscleGroup: 'Triceps' },
+	{ name: 'Overhead Tricep Extension', muscleGroup: 'Triceps' },
+
+	// Legs (7)
+	{ name: 'Barbell Squats', muscleGroup: 'Legs' },
+	{ name: 'Romanian Deadlift', muscleGroup: 'Legs' },
+	{ name: 'Leg Press', muscleGroup: 'Legs' },
+	{ name: 'Lunges', muscleGroup: 'Legs' },
+	{ name: 'Leg Curls', muscleGroup: 'Legs' },
+	{ name: 'Leg Extensions', muscleGroup: 'Legs' },
+	{ name: 'Calf Raises', muscleGroup: 'Legs' },
+
+	// Core (5)
+	{ name: 'Planks', muscleGroup: 'Core' },
+	{ name: 'Hanging Leg Raises', muscleGroup: 'Core' },
+	{ name: 'Cable Crunches', muscleGroup: 'Core' },
+	{ name: 'Russian Twists', muscleGroup: 'Core' },
+	{ name: 'Ab Wheel Rollouts', muscleGroup: 'Core' }
+] as const;
