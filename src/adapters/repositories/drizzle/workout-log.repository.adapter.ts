@@ -1,4 +1,4 @@
-import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
+import { eq, and, desc, gte, lte, inArray, sql } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { workoutLogs, exerciseLogs, exercises, splits, splitDays } from '$lib/server/db/schema';
 import type * as schema from '$lib/server/db/schema';
@@ -114,7 +114,7 @@ export class DrizzleWorkoutLogRepositoryAdapter implements IWorkoutLogRepository
 			})
 			.from(exerciseLogs)
 			.innerJoin(exercises, eq(exerciseLogs.exerciseId, exercises.id))
-			.where(sql`${exerciseLogs.workoutLogId} = ANY(${logIds})`);
+			.where(inArray(exerciseLogs.workoutLogId, logIds));
 
 		const exercisesByLogId = new Map<string, typeof allExercises>();
 		for (const e of allExercises) {
@@ -193,7 +193,7 @@ export class DrizzleWorkoutLogRepositoryAdapter implements IWorkoutLogRepository
 			})
 			.from(exerciseLogs)
 			.innerJoin(exercises, eq(exerciseLogs.exerciseId, exercises.id))
-			.where(sql`${exerciseLogs.workoutLogId} = ANY(${logIds})`);
+			.where(inArray(exerciseLogs.workoutLogId, logIds));
 
 		const exercisesByLogId = new Map<string, typeof allExercises>();
 		for (const e of allExercises) {

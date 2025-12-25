@@ -10,11 +10,18 @@
 	import Badge from '$lib/components/ui/badge.svelte';
 	import SeoHead from '$lib/components/seo-head.svelte';
 	import PageTransition from '$lib/components/page-transition.svelte';
+	import { Play } from 'lucide-svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
 	const { splits } = data;
+
+	function handlePlayClick(e: MouseEvent, splitId: string) {
+		e.preventDefault();
+		e.stopPropagation();
+		window.location.href = `/workout?splitId=${splitId}`;
+	}
 </script>
 
 <SeoHead
@@ -41,15 +48,34 @@
 		{:else}
 			<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 				{#each splits as split (split.id)}
-					<a href="/splits/{split.id}" class="block transition-transform hover:scale-105">
+					<a href="/splits/{split.id}" class="block transition-transform hover:scale-105 group">
 						<Card
 							class="h-full hover:shadow-lg transition-shadow cursor-pointer border-none shadow-none bg-card/50"
 						>
-							{#if split.imageUrl}
-								<div class="aspect-video overflow-hidden rounded-t-lg">
-									<img src={split.imageUrl} alt={split.title} class="w-full h-full object-cover" />
-								</div>
-							{/if}
+							<div class="relative">
+								{#if split.imageUrl}
+									<div class="aspect-video overflow-hidden rounded-t-lg">
+										<img
+											src={split.imageUrl}
+											alt={split.title}
+											class="w-full h-full object-cover"
+										/>
+									</div>
+								{:else}
+									<div
+										class="aspect-video overflow-hidden rounded-t-lg bg-muted flex items-center justify-center"
+									>
+										<span class="text-4xl">💪</span>
+									</div>
+								{/if}
+								<Button
+									size="icon"
+									class="absolute bottom-3 right-3 h-12 w-12 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+									onclick={(e) => handlePlayClick(e, split.id)}
+								>
+									<Play class="h-6 w-6" />
+								</Button>
+							</div>
 							<CardHeader>
 								<div class="flex items-start justify-between gap-2">
 									<CardTitle class="text-xl">{split.title}</CardTitle>

@@ -10,6 +10,7 @@ import { DrizzlePersonalRecordRepositoryAdapter } from '../../adapters/repositor
 import { DrizzleLikeRepositoryAdapter } from '../../adapters/repositories/drizzle/like.repository.adapter';
 import { DrizzleCommentRepositoryAdapter } from '../../adapters/repositories/drizzle/comment.repository.adapter';
 import { DrizzleWeightEntryRepositoryAdapter } from '../../adapters/repositories/drizzle/weight-entry.repository.adapter';
+import { DrizzleWorkoutSessionRepositoryAdapter } from '../../adapters/repositories/drizzle/workout-session.repository.adapter';
 import { BetterAuthAdapter } from '../../adapters/auth/better-auth/auth.adapter';
 
 // Use cases
@@ -40,6 +41,13 @@ import { GetWeightStatsUseCase } from '../../core/usecases/weight/get-weight-sta
 import { GetWeightChartDataUseCase } from '../../core/usecases/weight/get-weight-chart-data.usecase';
 import { DeleteWeightEntryUseCase } from '../../core/usecases/weight/delete-weight-entry.usecase';
 
+import { StartWorkoutSessionUseCase } from '../../core/usecases/workout/start-workout-session.usecase';
+import { GetActiveWorkoutSessionUseCase } from '../../core/usecases/workout/get-active-workout-session.usecase';
+import { UpdateWorkoutSessionUseCase } from '../../core/usecases/workout/update-workout-session.usecase';
+import { CompleteSetUseCase } from '../../core/usecases/workout/complete-set.usecase';
+import { CompleteWorkoutSessionUseCase } from '../../core/usecases/workout/complete-workout-session.usecase';
+import { AbandonWorkoutSessionUseCase } from '../../core/usecases/workout/abandon-workout-session.usecase';
+
 /**
  * Dependency Injection Container
  *
@@ -56,6 +64,7 @@ class Container {
 	private _likeRepository?: DrizzleLikeRepositoryAdapter;
 	private _commentRepository?: DrizzleCommentRepositoryAdapter;
 	private _weightEntryRepository?: DrizzleWeightEntryRepositoryAdapter;
+	private _workoutSessionRepository?: DrizzleWorkoutSessionRepositoryAdapter;
 
 	// Services (adapters)
 	private _authService?: BetterAuthAdapter;
@@ -115,6 +124,13 @@ class Container {
 			this._weightEntryRepository = new DrizzleWeightEntryRepositoryAdapter(db);
 		}
 		return this._weightEntryRepository;
+	}
+
+	get workoutSessionRepository(): DrizzleWorkoutSessionRepositoryAdapter {
+		if (!this._workoutSessionRepository) {
+			this._workoutSessionRepository = new DrizzleWorkoutSessionRepositoryAdapter(db);
+		}
+		return this._workoutSessionRepository;
 	}
 
 	get authService(): BetterAuthAdapter {
@@ -211,6 +227,35 @@ class Container {
 
 	get deleteWeightEntry(): DeleteWeightEntryUseCase {
 		return new DeleteWeightEntryUseCase(this.weightEntryRepository);
+	}
+
+	// Workout session use cases
+	get startWorkoutSession(): StartWorkoutSessionUseCase {
+		return new StartWorkoutSessionUseCase(this.workoutSessionRepository, this.splitRepository);
+	}
+
+	get getActiveWorkoutSession(): GetActiveWorkoutSessionUseCase {
+		return new GetActiveWorkoutSessionUseCase(this.workoutSessionRepository);
+	}
+
+	get updateWorkoutSession(): UpdateWorkoutSessionUseCase {
+		return new UpdateWorkoutSessionUseCase(this.workoutSessionRepository);
+	}
+
+	get completeSet(): CompleteSetUseCase {
+		return new CompleteSetUseCase(this.workoutSessionRepository);
+	}
+
+	get completeWorkoutSession(): CompleteWorkoutSessionUseCase {
+		return new CompleteWorkoutSessionUseCase(
+			this.workoutSessionRepository,
+			this.workoutLogRepository,
+			this.personalRecordRepository
+		);
+	}
+
+	get abandonWorkoutSession(): AbandonWorkoutSessionUseCase {
+		return new AbandonWorkoutSessionUseCase(this.workoutSessionRepository);
 	}
 }
 

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import * as Card from './ui/card';
 	import Badge from './ui/badge.svelte';
+	import { Button } from './ui/button';
+	import { Play } from 'lucide-svelte';
 	import type { Split, User } from '$lib/server/db/schema';
 
 	let {
@@ -8,14 +10,22 @@
 		author,
 		likesCount = 0,
 		commentsCount = 0,
-		isLiked = false
+		isLiked = false,
+		showPlayButton = false
 	}: {
 		split: Split & { userId: string };
 		author: Pick<User, 'name' | 'image'>;
 		likesCount?: number;
 		commentsCount?: number;
 		isLiked?: boolean;
+		showPlayButton?: boolean;
 	} = $props();
+
+	function handlePlayClick(e: MouseEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		window.location.href = `/workout?splitId=${split.id}`;
+	}
 
 	const difficultyColors = {
 		beginner: 'bg-green-500',
@@ -24,17 +34,28 @@
 	};
 </script>
 
-<a href="/splits/{split.id}" class="block">
+<a href="/splits/{split.id}" class="block group">
 	<Card.Root
 		class="overflow-hidden transition-all hover:shadow-lg border-none shadow-none bg-card/50"
 	>
-		{#if split.imageUrl}
-			<img src={split.imageUrl} alt={split.title} class="h-48 w-full object-cover" />
-		{:else}
-			<div class="flex h-48 w-full items-center justify-center bg-muted">
-				<span class="text-4xl">💪</span>
-			</div>
-		{/if}
+		<div class="relative">
+			{#if split.imageUrl}
+				<img src={split.imageUrl} alt={split.title} class="h-48 w-full object-cover" />
+			{:else}
+				<div class="flex h-48 w-full items-center justify-center bg-muted">
+					<span class="text-4xl">💪</span>
+				</div>
+			{/if}
+			{#if showPlayButton}
+				<Button
+					size="icon"
+					class="absolute bottom-3 right-3 h-12 w-12 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+					onclick={handlePlayClick}
+				>
+					<Play class="h-6 w-6" />
+				</Button>
+			{/if}
+		</div>
 
 		<Card.Content class="p-4">
 			<div class="mb-2 flex items-start justify-between">

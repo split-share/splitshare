@@ -100,6 +100,7 @@
 					likesCount={item.likesCount}
 					commentsCount={item.commentsCount}
 					isLiked={item.isLiked}
+					showPlayButton={!!data.user}
 				/>
 			{/each}
 		</div>

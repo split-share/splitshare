@@ -311,3 +311,29 @@ export type Bookmark = typeof bookmarks.$inferSelect;
 export type ForumCategory = typeof forumCategories.$inferSelect;
 export type ForumTopic = typeof forumTopics.$inferSelect;
 export type ForumPost = typeof forumPosts.$inferSelect;
+
+// Active workout sessions table - tracks in-progress workouts for resumability
+export const activeWorkoutSessions = pgTable('active_workout_sessions', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	splitId: uuid('split_id')
+		.notNull()
+		.references(() => splits.id, { onDelete: 'cascade' }),
+	dayId: uuid('day_id')
+		.notNull()
+		.references(() => splitDays.id, { onDelete: 'cascade' }),
+	currentExerciseIndex: integer('current_exercise_index').notNull().default(0),
+	currentSetIndex: integer('current_set_index').notNull().default(0),
+	phase: text('phase').notNull().default('exercise'), // 'exercise' | 'rest' | 'completed'
+	exerciseElapsedSeconds: integer('exercise_elapsed_seconds').notNull().default(0),
+	restRemainingSeconds: integer('rest_remaining_seconds'),
+	startedAt: timestamp('started_at').notNull().defaultNow(),
+	pausedAt: timestamp('paused_at'),
+	lastUpdatedAt: timestamp('last_updated_at').notNull().defaultNow(),
+	completedSets: text('completed_sets').notNull().default('[]'), // JSON array of CompletedSetData
+	createdAt: timestamp('created_at').notNull().defaultNow()
+});
+
+export type ActiveWorkoutSession = typeof activeWorkoutSessions.$inferSelect;

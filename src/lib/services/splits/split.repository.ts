@@ -215,7 +215,7 @@ export class SplitRepository extends BaseRepository {
 							exercise: exercises
 						})
 						.from(dayExercises)
-						.innerJoin(exercises, eq(dayExercises.exerciseId, exercises.id))
+						.leftJoin(exercises, eq(dayExercises.exerciseId, exercises.id))
 						.where(inArray(dayExercises.dayId, dayIds))
 						.orderBy(dayExercises.order)
 				: [];
@@ -237,7 +237,16 @@ export class SplitRepository extends BaseRepository {
 				...day,
 				exercises: (exercisesByDayId.get(day.id) || []).map((item) => ({
 					...item.dayExercise,
-					exercise: item.exercise
+					exercise: item.exercise ?? {
+						id: item.dayExercise.exerciseId || '',
+						name: item.dayExercise.exerciseName,
+						description: null,
+						difficulty: 'intermediate',
+						muscleGroup: '',
+						equipmentType: '',
+						imageUrl: null,
+						videoUrl: null
+					}
 				}))
 			}));
 
