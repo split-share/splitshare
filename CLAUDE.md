@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Overview
+
+**SplitShare** - A fitness workout splits sharing platform with web and mobile support (Capacitor).
+
 ## Svelte Version
 
 **ALWAYS use Svelte 5 with runes mode:**
@@ -28,8 +32,8 @@ npm run preview  # Preview production build
 ### Testing
 
 ```bash
-npm test                # Run unit tests
-npm run test:unit       # Run unit tests (alias)
+npm test                 # Run unit tests (Vitest with happy-dom)
+npm run test:unit        # Run unit tests (alias)
 npm run test:integration # Run Playwright integration tests
 ```
 
@@ -41,6 +45,50 @@ npm run format  # Format code with prettier
 npm run check   # Type-check with svelte-check
 npm run check:watch # Watch mode for type-checking
 ```
+
+## Tech Stack
+
+**Core:**
+
+- SvelteKit 2 with Svelte 5 (runes mode)
+- TypeScript (strict mode)
+- Vite 7
+
+**Database:**
+
+- PostgreSQL with Drizzle ORM
+- Schema: `src/lib/server/db/schema.ts`
+- Migrations: `drizzle/migrations/`
+
+**Authentication:**
+
+- Better Auth (email/password, session-based)
+- 7-day session expiration
+- Drizzle adapter integration
+
+**UI:**
+
+- shadcn-svelte (built on bits-ui)
+- Tailwind CSS 4
+- Lucide icons
+- layerchart for data visualization
+
+**Services:**
+
+- Upstash Redis for rate limiting
+- Resend for email (Mailpit for local dev)
+- Sentry for error monitoring (optional)
+
+**Mobile:**
+
+- Capacitor for iOS/Android
+- Shared codebase with web
+
+**Testing:**
+
+- Vitest with happy-dom for unit tests
+- Playwright for E2E tests
+- Testing Library for component tests
 
 ## UI Components
 
@@ -62,7 +110,7 @@ npm run check:watch # Watch mode for type-checking
 - Always research the proper shadcn/bits-ui API before reverting to vanilla elements
 - When blocked, consult documentation at https://www.bits-ui.com or https://www.shadcn-svelte.com
 
-## Available MCP Tools:
+## Available MCP Tools
 
 ### 1. list-sections
 
@@ -99,20 +147,20 @@ After completing the code, ask the user if they want a playground link. Only cal
 **Examples:**
 
 ```typescript
-// ❌ BAD: Type hacking
+// BAD: Type hacking
 bind:value={value as never}
 const data = response as any;
 // @ts-ignore
 someFunction();
 
-// ✅ GOOD: Proper typing
+// GOOD: Proper typing
 bind:value={value}  // Fix the component to accept the right type
 const data: ExpectedType = validateResponse(response);
 interface FormData { ... }
 const data: FormData = await request.formData();
 ```
 
-## Core Workflow: Research → Plan → Implement → Validate
+## Core Workflow: Research, Plan, Implement, Validate
 
 **Start every feature with:** "Let me research the codebase and create a plan before implementing."
 
@@ -196,27 +244,77 @@ Focus on maintainable solutions over clever abstractions.
 - Focus on what changed and why, not who or what tool made the changes
 - Commits should appear as if written by a human developer
 
-## Design Patterns
+## Clean Architecture
 
-Always use design patterns to maintain clean architecture.
+This project follows Clean/Hexagonal Architecture with clear separation of concerns.
 
-## Service-Based Architecture
-
-**NEVER put database operations or business logic in form actions or load functions.**
-
-### Layer Structure
+### Directory Structure
 
 ```
-src/lib/services/
-├── [domain]/
-│   ├── [domain].repository.ts   # Data access layer (queries, inserts, updates)
-│   ├── [domain].service.ts      # Business logic layer (validation, orchestration)
-│   └── types.ts                 # Domain-specific types
-└── shared/
-    └── utils.ts                 # Shared service utilities
+src/
+├── core/                      # Domain layer (business logic)
+│   ├── domain/                # Entities and value objects
+│   │   ├── exercise/
+│   │   ├── split/
+│   │   ├── weight/
+│   │   ├── workout/
+│   │   └── common/
+│   ├── ports/                 # Interface contracts (abstractions)
+│   │   ├── auth/
+│   │   ├── cache/
+│   │   ├── email/
+│   │   ├── repositories/
+│   │   └── storage/
+│   └── usecases/              # Application use cases
+│       ├── exercise/
+│       ├── split/
+│       ├── weight/
+│       └── workout/
+├── adapters/                  # Infrastructure adapters
+│   ├── auth/
+│   │   └── better-auth/       # Better Auth implementation
+│   └── repositories/
+│       └── drizzle/           # Drizzle ORM repositories
+├── infrastructure/            # DI and cross-cutting concerns
+│   └── di/
+│       └── container.ts       # Dependency injection container
+├── lib/                       # Application layer
+│   ├── components/
+│   │   ├── forms/
+│   │   ├── modals/
+│   │   ├── ui/                # shadcn-svelte components
+│   │   └── workout/
+│   ├── server/
+│   │   ├── auth/              # Better Auth initialization
+│   │   ├── db/                # Drizzle client and schema
+│   │   ├── email.ts           # Resend email service
+│   │   └── rate-limit.ts      # Upstash rate limiting
+│   ├── schemas/               # Zod validation schemas
+│   ├── services/              # Legacy services (being migrated)
+│   ├── utils/
+│   ├── api-client.ts          # Fetch wrapper for API calls
+│   ├── auth-client.ts         # Better Auth client
+│   ├── config.ts              # Environment configuration
+│   └── constants.ts           # App constants
+└── routes/                    # SvelteKit routes
+    ├── api/                   # API endpoints (+server.ts)
+    ├── (app)/                 # Authenticated routes
+    ├── (auth)/                # Public auth routes
+    └── discover/              # Public content
 ```
 
-### Design Patterns to Use
+### Path Aliases
+
+```typescript
+import { ... } from '$core/domain/split';      // Domain entities
+import { ... } from '$core/ports/repositories'; // Port interfaces
+import { ... } from '$core/usecases/split';     // Use cases
+import { ... } from '$adapters/repositories/drizzle'; // Adapters
+import { container } from '$infrastructure/di/container'; // DI
+import { ... } from '$lib/components/ui';       // UI components
+```
+
+### Design Patterns
 
 1. **Repository Pattern** - Encapsulate all data access
    - All database queries in repositories
@@ -231,82 +329,153 @@ src/lib/services/
 3. **Dependency Injection** - Constructor-based DI
    - Pass dependencies through constructors
    - Makes testing easier with mocks
+   - Lazy singleton container in `$infrastructure/di/container.ts`
 
 4. **Factory Pattern** - Complex object creation
    - Use for entities with complex initialization
    - Centralize creation logic
 
-### Rules
+5. **Ports & Adapters** - Hexagonal architecture
+   - Ports define interfaces in `$core/ports/`
+   - Adapters implement interfaces in `$adapters/`
+   - Swap implementations without changing domain
 
-1. **Form actions and load functions** - Only handle HTTP concerns
+### Layer Rules
+
+1. **Domain (`src/core/domain/`)** - Pure business logic
+   - Entity classes with validation methods
+   - Value objects
+   - No external dependencies
+
+2. **Ports (`src/core/ports/`)** - Interface contracts
+   - Repository interfaces
+   - Service abstractions
+   - Define what, not how
+
+3. **Use Cases (`src/core/usecases/`)** - Application orchestration
+   - Coordinate domain entities and repositories
+   - Business rule enforcement
+   - Transaction boundaries
+
+4. **Adapters (`src/adapters/`)** - External implementations
+   - Drizzle repositories implement port interfaces
+   - Better Auth adapter
+   - Can be swapped without changing domain
+
+5. **Infrastructure (`src/infrastructure/`)** - DI and cross-cutting
+   - Lazy singleton container
+   - Wire up adapters to ports
+
+6. **Routes** - HTTP concerns only
    - Request/response handling
-   - Validation with schemas
-   - Call service methods
-   - Return results
+   - Validation with Zod schemas
+   - Delegate to use cases via container
 
-2. **Services** - Business logic only
-   - No HTTP concerns (no Request/Response objects)
-   - Coordinate repositories
-   - Enforce business rules
-   - Handle transactions
-
-3. **Repositories** - Data access only
-   - All database queries
-   - Simple CRUD operations
-   - No business logic
-   - Return raw data or domain types
-
-4. **Shared utilities** - Pure functions
-   - Extract common logic to `src/lib/utils/`
-   - Must be stateless
-   - No side effects
-
-### Example Structure
+### Example Flow
 
 ```typescript
-// ❌ BAD: Database logic in form action
+// Route: Call use case from container
 export const actions = {
-  create: async (event) => {
-    await db.insert(splits).values({...});
-  }
+	create: async (event) => {
+		const validation = createSplitSchema.safeParse(data);
+		if (!validation.success) return fail(400, { errors: validation.error });
+
+		const split = await container.createSplitUseCase.execute(validation.data, userId);
+		return { split };
+	}
 };
 
-// ✅ GOOD: Service layer handles logic
-export const actions = {
-  create: async (event) => {
-    const split = await splitService.createSplit(data, userId);
-    return { split };
-  }
-};
+// Use Case: Orchestrate domain logic
+class CreateSplitUseCase {
+	constructor(private splitRepository: SplitRepositoryPort) {}
+
+	async execute(input: CreateSplitInput, userId: string) {
+		Split.validateTitle(input.title);
+		Split.validateDifficulty(input.difficulty);
+		return this.splitRepository.create({ ...input, userId });
+	}
+}
+
+// Adapter: Implement port with Drizzle
+class DrizzleSplitRepository implements SplitRepositoryPort {
+	constructor(private db: DrizzleClient) {}
+
+	async create(data: CreateSplitData) {
+		return this.db.insert(splits).values(data).returning();
+	}
+}
 ```
+
+## Form Handling
+
+**Validation:** Zod schemas in `src/lib/schemas/`
+
+```typescript
+// Define schema
+export const createSplitSchema = z.object({
+	title: z.string().min(3).max(100),
+	description: z.string().max(500).optional(),
+	difficulty: z.enum(['beginner', 'intermediate', 'advanced'])
+});
+
+export type CreateSplitInput = z.infer<typeof createSplitSchema>;
+
+// Use in form action
+const validation = createSplitSchema.safeParse(data);
+if (!validation.success) {
+	return fail(400, { errors: validation.error.flatten() });
+}
+```
+
+## Environment Variables
+
+```bash
+# Database
+DATABASE_URL=postgresql://...
+
+# Authentication (Better Auth)
+BETTER_AUTH_SECRET=your_secret
+BETTER_AUTH_URL=http://localhost:5173
+BETTER_AUTH_TRUSTED_ORIGINS=http://localhost:5173
+
+# Rate Limiting (Upstash Redis)
+UPSTASH_REDIS_REST_URL=https://...
+UPSTASH_REDIS_REST_TOKEN=...
+
+# Email (Resend)
+RESEND_API_KEY=re_...
+EMAIL_FROM=noreply@yourdomain.com
+
+# Error Monitoring (Optional)
+SENTRY_DSN=https://...
+SENTRY_AUTH_TOKEN=...
+SENTRY_ORG=...
+SENTRY_PROJECT=...
+
+# Application
+PUBLIC_APP_URL=http://localhost:5173
+NODE_ENV=development
+VITE_API_BASE_URL=http://localhost:5173
+```
+
+## Local Development Services
+
+Docker Compose provides:
+
+- PostgreSQL (5432)
+- Redis (6379)
+- Mailpit for email testing (8025)
+- pgAdmin (5050)
+- Redis Commander (8081)
 
 ## Documentation Style Guidelines
 
 When writing documentation:
 
 - **Be concise and practical** - Only document what developers actually need to know
-- **No obvious warnings** - Don't state things like "the build will fail if required variables aren't set" or "the app won't work without configuration"
-- **No redundant notes** - Avoid "Note:", "Important:", "Remember:" unless it's genuinely non-obvious
+- **No obvious warnings** - Don't state things like "the build will fail if required variables aren't set"
+- **No redundant notes** - Avoid "Note:", "Important:", "Remember:" unless genuinely non-obvious
 - **Focus on the how, not the why-it-matters** - Assume developers understand basic cause and effect
-- **Skip CI/CD speculation** - Don't add notes about CI/CD, deployment, or build failures unless specifically relevant
 - **No hand-holding** - Developers know that missing required config breaks things
-
-### Good Documentation Example:
-
-```
-SUPABASE_URL=your_project_url
-SUPABASE_ANON_KEY=your_anon_key
-```
-
-### Bad Documentation Example:
-
-```
-SUPABASE_URL=your_project_url
-SUPABASE_ANON_KEY=your_anon_key
-
-**Note**: Make sure to set these variables or the application won't be able to connect to Supabase.
-**Important**: In CI/CD environments, ensure these are configured as secrets.
-**Remember**: Never commit these values to version control.
-```
 
 Keep documentation minimal, actionable, and respect the reader's intelligence.
