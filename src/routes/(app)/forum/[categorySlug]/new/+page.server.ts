@@ -1,7 +1,7 @@
-import { error, redirect } from '@sveltejs/kit';
-import { db } from '$lib/server/db';
-import { ForumRepository } from '$lib/services/forum/forum.repository';
-import { ForumService } from '$lib/services/forum/forum.service';
+import { error, fail, redirect } from '@sveltejs/kit';
+import { container } from '$infrastructure/di/container';
+import { createTopicSchema } from '$lib/schemas/forum';
+import { NotFoundError } from '$core/domain/common/errors';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -9,10 +9,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		throw redirect(302, `/login?redirect=/forum/${params.categorySlug}/new`);
 	}
 
-	const repository = new ForumRepository(db);
-	const service = new ForumService(repository);
-
-	const category = await service.getCategoryBySlug(params.categorySlug);
+	const category = await container.forumRepository.findCategoryBySlug(params.categorySlug);
 
 	if (!category) {
 		throw error(404, 'Category not found');
@@ -33,28 +30,34 @@ export const actions: Actions = {
 		const title = formData.get('title') as string;
 		const content = formData.get('content') as string;
 
-		const repository = new ForumRepository(db);
-		const service = new ForumService(repository);
-
-		const category = await service.getCategoryBySlug(params.categorySlug);
-
-		if (!category) {
-			throw error(404, 'Category not found');
+		const validation = createTopicSchema.safeParse({ title, content });
+		if (!validation.success) {
+			return fail(400, {
+				error: 'Validation failed',
+				errors: validation.error.flatten().fieldErrors
+			});
 		}
 
 		try {
-			const topic = await service.createTopic({
-				categoryId: category.id,
+			const topic = await container.createTopic.execute({
+				categoryId: params.categorySlug,
 				userId: locals.user.id,
-				title,
-				content
+				title: validation.data.title,
+				content: validation.data.content
 			});
 
 			throw redirect(303, `/forum/topic/${topic.id}`);
 		} catch (err) {
-			return {
+			if (err instanceof NotFoundError) {
+				throw error(404, 'Category not found');
+			}
+			// Re-throw redirects
+			if (err instanceof Response || (err && typeof err === 'object' && 'status' in err)) {
+				throw err;
+			}
+			return fail(400, {
 				error: err instanceof Error ? err.message : 'Failed to create topic'
-			};
+			});
 		}
 	}
 };

@@ -1,26 +1,25 @@
-import { error, redirect } from '@sveltejs/kit';
-import { db } from '$lib/server/db';
-import { ForumRepository } from '$lib/services/forum/forum.repository';
-import { ForumService } from '$lib/services/forum/forum.service';
+import { error, fail, redirect } from '@sveltejs/kit';
+import { container } from '$infrastructure/di/container';
+import { createPostSchema, updatePostSchema } from '$lib/schemas/forum';
+import { NotFoundError, ForbiddenError, BusinessRuleError } from '$core/domain/common/errors';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	const repository = new ForumRepository(db);
-	const service = new ForumService(repository);
+	try {
+		const topic = await container.getTopic.execute(params.id);
+		const posts = await container.getPosts.execute(params.id, { limit: 100, offset: 0 });
 
-	const topic = await service.getTopicById(params.id);
-
-	if (!topic) {
-		throw error(404, 'Topic not found');
+		return {
+			topic,
+			posts,
+			user: locals.user
+		};
+	} catch (err) {
+		if (err instanceof NotFoundError) {
+			throw error(404, 'Topic not found');
+		}
+		throw err;
 	}
-
-	const posts = await service.getPostsByTopic(params.id, { limit: 100, offset: 0 });
-
-	return {
-		topic,
-		posts,
-		user: locals.user
-	};
 };
 
 export const actions: Actions = {
@@ -32,21 +31,32 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const content = formData.get('content') as string;
 
-		const repository = new ForumRepository(db);
-		const service = new ForumService(repository);
+		const validation = createPostSchema.safeParse({ content });
+		if (!validation.success) {
+			return fail(400, {
+				error: 'Validation failed',
+				errors: validation.error.flatten().fieldErrors
+			});
+		}
 
 		try {
-			await service.createPost({
+			await container.createPost.execute({
 				topicId: params.id,
 				userId: locals.user.id,
-				content
+				content: validation.data.content
 			});
 
 			return { success: true };
 		} catch (err) {
-			return {
+			if (err instanceof NotFoundError) {
+				return fail(404, { error: 'Topic not found' });
+			}
+			if (err instanceof BusinessRuleError) {
+				return fail(400, { error: err.message });
+			}
+			return fail(400, {
 				error: err instanceof Error ? err.message : 'Failed to create post'
-			};
+			});
 		}
 	},
 
@@ -59,16 +69,29 @@ export const actions: Actions = {
 		const postId = formData.get('postId') as string;
 		const content = formData.get('content') as string;
 
-		const repository = new ForumRepository(db);
-		const service = new ForumService(repository);
+		const validation = updatePostSchema.safeParse({ content });
+		if (!validation.success) {
+			return fail(400, {
+				error: 'Validation failed',
+				errors: validation.error.flatten().fieldErrors
+			});
+		}
 
 		try {
-			await service.updatePost(postId, locals.user.id, { content });
+			await container.updatePost.execute(postId, locals.user.id, {
+				content: validation.data.content
+			});
 			return { success: true };
 		} catch (err) {
-			return {
+			if (err instanceof NotFoundError) {
+				return fail(404, { error: 'Post not found' });
+			}
+			if (err instanceof ForbiddenError) {
+				return fail(403, { error: err.message });
+			}
+			return fail(400, {
 				error: err instanceof Error ? err.message : 'Failed to update post'
-			};
+			});
 		}
 	},
 
@@ -80,16 +103,19 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const postId = formData.get('postId') as string;
 
-		const repository = new ForumRepository(db);
-		const service = new ForumService(repository);
-
 		try {
-			await service.deletePost(postId, locals.user.id);
+			await container.deletePost.execute(postId, locals.user.id);
 			return { success: true };
 		} catch (err) {
-			return {
+			if (err instanceof NotFoundError) {
+				return fail(404, { error: 'Post not found' });
+			}
+			if (err instanceof ForbiddenError) {
+				return fail(403, { error: err.message });
+			}
+			return fail(400, {
 				error: err instanceof Error ? err.message : 'Failed to delete post'
-			};
+			});
 		}
 	},
 
@@ -98,22 +124,24 @@ export const actions: Actions = {
 			throw error(401, 'Unauthorized');
 		}
 
-		const repository = new ForumRepository(db);
-		const service = new ForumService(repository);
-
 		try {
-			const topic = await service.getTopicById(params.id);
-			if (!topic) {
-				throw error(404, 'Topic not found');
-			}
-
-			await service.deleteTopic(params.id, locals.user.id);
+			const topic = await container.getTopic.execute(params.id);
+			await container.deleteTopic.execute(params.id, locals.user.id);
 			throw redirect(303, `/forum/${topic.category.slug}`);
 		} catch (err) {
-			if (err instanceof Error && 'status' in err) throw err;
-			return {
+			if (err instanceof NotFoundError) {
+				throw error(404, 'Topic not found');
+			}
+			if (err instanceof ForbiddenError) {
+				return fail(403, { error: err.message });
+			}
+			// Re-throw redirects
+			if (err instanceof Response || (err && typeof err === 'object' && 'status' in err)) {
+				throw err;
+			}
+			return fail(400, {
 				error: err instanceof Error ? err.message : 'Failed to delete topic'
-			};
+			});
 		}
 	}
 };

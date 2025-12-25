@@ -1,8 +1,16 @@
-import type { ForumCategory, ForumTopic, ForumPost } from '$lib/server/db/schema';
+/**
+ * Forum domain DTOs
+ */
 
-export type { ForumCategory, ForumTopic, ForumPost };
-
-// DTOs and extended types
+export interface ForumCategory {
+	id: string;
+	name: string;
+	slug: string;
+	description: string | null;
+	icon: string;
+	order: number;
+	createdAt: Date;
+}
 
 export interface ForumCategoryWithStats extends ForumCategory {
 	topicCount: number;
@@ -15,7 +23,17 @@ export interface ForumCategoryWithStats extends ForumCategory {
 	};
 }
 
-export interface ForumTopicWithDetails extends ForumTopic {
+export interface ForumTopicWithDetails {
+	id: string;
+	categoryId: string;
+	userId: string;
+	title: string;
+	content: string;
+	isPinned: boolean;
+	isLocked: boolean;
+	viewCount: number;
+	createdAt: Date;
+	updatedAt: Date;
 	author: {
 		id: string;
 		name: string;
@@ -35,7 +53,13 @@ export interface ForumTopicWithDetails extends ForumTopic {
 	};
 }
 
-export interface ForumPostWithAuthor extends ForumPost {
+export interface ForumPostWithAuthor {
+	id: string;
+	topicId: string;
+	userId: string;
+	content: string;
+	createdAt: Date;
+	updatedAt: Date;
 	author: {
 		id: string;
 		name: string;
@@ -43,42 +67,42 @@ export interface ForumPostWithAuthor extends ForumPost {
 	};
 }
 
-// Input types
+// Input DTOs
 
-export interface CreateTopicInput {
+export interface CreateTopicDto {
 	categoryId: string;
 	userId: string;
 	title: string;
 	content: string;
 }
 
-export interface UpdateTopicInput {
+export interface UpdateTopicDto {
 	title?: string;
 	content?: string;
 	isPinned?: boolean;
 	isLocked?: boolean;
 }
 
-export interface CreatePostInput {
+export interface CreatePostDto {
 	topicId: string;
 	userId: string;
 	content: string;
 }
 
-export interface UpdatePostInput {
+export interface UpdatePostDto {
 	content: string;
 }
 
-// Query options
+// Filter DTOs
 
-export interface TopicFilters {
+export interface TopicFiltersDto {
 	categoryId?: string;
 	userId?: string;
 	isPinned?: boolean;
 	search?: string;
 }
 
-export interface PaginationOptions {
+export interface PaginationDto {
 	limit: number;
 	offset: number;
 }

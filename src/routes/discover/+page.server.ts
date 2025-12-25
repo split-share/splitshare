@@ -1,5 +1,5 @@
 import { rateLimit, feedLimiter, rateLimitError } from '$lib/server/rate-limit';
-import { splitRepository } from '$lib/services/splits';
+import { container } from '$infrastructure/di/container';
 import { ITEMS_PER_PAGE } from '$lib/constants';
 import type { PageServerLoad } from './$types';
 
@@ -22,7 +22,7 @@ export const load: PageServerLoad = async (event) => {
 
 	const offset = (page - 1) * ITEMS_PER_PAGE;
 
-	const popularSplits = await splitRepository.findWithFilters(
+	const popularSplits = await container.splitRepository.findWithFilters(
 		filters,
 		{ limit: ITEMS_PER_PAGE, offset },
 		event.locals.user?.id

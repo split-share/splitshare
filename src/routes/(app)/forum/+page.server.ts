@@ -1,13 +1,8 @@
-import { db } from '$lib/server/db';
-import { ForumRepository } from '$lib/services/forum/forum.repository';
-import { ForumService } from '$lib/services/forum/forum.service';
+import { container } from '$infrastructure/di/container';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
-	const repository = new ForumRepository(db);
-	const service = new ForumService(repository);
-
-	const categories = await service.getCategoriesWithStats();
+	const categories = await container.getCategories.execute();
 
 	return {
 		categories

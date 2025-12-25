@@ -20,6 +20,8 @@ export interface IWeightEntryRepository {
 
 	create(data: CreateWeightEntryDto): Promise<WeightEntry>;
 
+	upsertByDate(data: CreateWeightEntryDto): Promise<WeightEntry>;
+
 	update(id: string, data: UpdateWeightEntryDto): Promise<WeightEntry>;
 
 	delete(id: string): Promise<void>;

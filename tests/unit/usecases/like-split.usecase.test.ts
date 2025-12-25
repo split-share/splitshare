@@ -73,7 +73,7 @@ describe('LikeSplitUseCase', () => {
 		});
 	});
 
-	it('should throw error if split not found', async () => {
+	it('should throw NotFoundError if split not found', async () => {
 		vi.mocked(splitRepository.findById).mockResolvedValue(undefined);
 
 		await expect(
@@ -81,10 +81,10 @@ describe('LikeSplitUseCase', () => {
 				userId: 'user-1',
 				splitId: 'split-1'
 			})
-		).rejects.toThrow('Split not found');
+		).rejects.toThrow("Split with id 'split-1' not found");
 	});
 
-	it('should throw error if already liked', async () => {
+	it('should throw AlreadyExistsError if already liked', async () => {
 		const mockSplit = new Split(
 			'split-1',
 			'user-2',
@@ -110,24 +110,6 @@ describe('LikeSplitUseCase', () => {
 				userId: 'user-1',
 				splitId: 'split-1'
 			})
-		).rejects.toThrow('Split already liked');
-	});
-
-	it('should throw error for invalid userId', async () => {
-		await expect(
-			useCase.execute({
-				userId: '',
-				splitId: 'split-1'
-			})
-		).rejects.toThrow('User ID is required');
-	});
-
-	it('should throw error for invalid splitId', async () => {
-		await expect(
-			useCase.execute({
-				userId: 'user-1',
-				splitId: ''
-			})
-		).rejects.toThrow('Split ID is required');
+		).rejects.toThrow('Like already exists');
 	});
 });

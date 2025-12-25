@@ -15,7 +15,8 @@ import type {
 	CreateSplitDto,
 	UpdateSplitDto,
 	SplitFiltersDto,
-	SplitWithDetailsDto
+	SplitWithDetailsDto,
+	SplitDto
 } from '../../../core/domain/split/split.dto';
 import type { Pagination } from '../../../core/domain/common/value-objects';
 import { Split } from '../../../core/domain/split/split.entity';
@@ -162,14 +163,14 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 		}));
 	}
 
-	async findByUserId(userId: string): Promise<Split[]> {
+	async findByUserId(userId: string): Promise<SplitDto[]> {
 		const results = await this.db
 			.select()
 			.from(splits)
 			.where(eq(splits.userId, userId))
 			.orderBy(desc(splits.createdAt));
 
-		return results.map((r) => this.toEntity(r));
+		return results.map((r) => this.toDto(r));
 	}
 
 	async findWithFilters(
@@ -449,5 +450,23 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 			raw.createdAt,
 			raw.updatedAt
 		);
+	}
+
+	private toDto(raw: typeof splits.$inferSelect): SplitDto {
+		return {
+			id: raw.id,
+			userId: raw.userId,
+			title: raw.title,
+			description: raw.description,
+			isPublic: raw.isPublic,
+			isDefault: raw.isDefault,
+			difficulty: raw.difficulty as 'beginner' | 'intermediate' | 'advanced',
+			duration: raw.duration,
+			imageUrl: raw.imageUrl,
+			videoUrl: raw.videoUrl,
+			tags: raw.tags,
+			createdAt: raw.createdAt,
+			updatedAt: raw.updatedAt
+		};
 	}
 }

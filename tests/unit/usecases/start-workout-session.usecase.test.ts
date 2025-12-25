@@ -174,7 +174,7 @@ describe('StartWorkoutSessionUseCase', () => {
 		);
 	});
 
-	it('should throw error if split not found', async () => {
+	it('should throw NotFoundError if split not found', async () => {
 		vi.mocked(workoutSessionRepository.findActiveByUserId).mockResolvedValue(undefined);
 		vi.mocked(splitRepository.findByIdWithDetails).mockResolvedValue(undefined);
 
@@ -184,10 +184,12 @@ describe('StartWorkoutSessionUseCase', () => {
 			dayId: 'day-1'
 		};
 
-		await expect(useCase.execute(input)).rejects.toThrow('Split not found');
+		await expect(useCase.execute(input)).rejects.toThrow(
+			"Split with id 'nonexistent-split' not found"
+		);
 	});
 
-	it('should throw error if user does not have access to private split', async () => {
+	it('should throw ForbiddenError if user does not have access to private split', async () => {
 		vi.mocked(workoutSessionRepository.findActiveByUserId).mockResolvedValue(undefined);
 		vi.mocked(splitRepository.findByIdWithDetails).mockResolvedValue(
 			createMockSplitWithDetails({ userId: 'other-user', isPublic: false })
@@ -199,7 +201,7 @@ describe('StartWorkoutSessionUseCase', () => {
 			dayId: 'day-1'
 		};
 
-		await expect(useCase.execute(input)).rejects.toThrow('You do not have access to this split');
+		await expect(useCase.execute(input)).rejects.toThrow('Not authorized to access this split');
 	});
 
 	it('should allow access to public split owned by another user', async () => {
@@ -236,7 +238,7 @@ describe('StartWorkoutSessionUseCase', () => {
 		expect(result).toEqual(mockSession);
 	});
 
-	it('should throw error if day not found in split', async () => {
+	it('should throw NotFoundError if day not found in split', async () => {
 		vi.mocked(workoutSessionRepository.findActiveByUserId).mockResolvedValue(undefined);
 		vi.mocked(splitRepository.findByIdWithDetails).mockResolvedValue(createMockSplitWithDetails());
 
@@ -246,7 +248,7 @@ describe('StartWorkoutSessionUseCase', () => {
 			dayId: 'nonexistent-day'
 		};
 
-		await expect(useCase.execute(input)).rejects.toThrow('Day not found in this split');
+		await expect(useCase.execute(input)).rejects.toThrow('Day not found');
 	});
 
 	it('should throw error if day is a rest day', async () => {

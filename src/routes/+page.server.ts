@@ -1,5 +1,5 @@
 import { rateLimit, feedLimiter, rateLimitError } from '$lib/server/rate-limit';
-import { splitRepository } from '$lib/services/splits';
+import { container } from '$infrastructure/di/container';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async (event) => {
 			: {})
 	};
 
-	const defaultSplits = await splitRepository.findWithFilters(
+	const defaultSplits = await container.splitRepository.findWithFilters(
 		filters,
 		{ limit: 100, offset: 0 },
 		event.locals.user?.id

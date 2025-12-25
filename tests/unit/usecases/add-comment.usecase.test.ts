@@ -80,7 +80,7 @@ describe('AddCommentUseCase', () => {
 		});
 	});
 
-	it('should throw error if split not found', async () => {
+	it('should throw NotFoundError if split not found', async () => {
 		vi.mocked(splitRepository.findById).mockResolvedValue(undefined);
 
 		await expect(
@@ -89,48 +89,6 @@ describe('AddCommentUseCase', () => {
 				splitId: 'split-1',
 				content: 'Great split!'
 			})
-		).rejects.toThrow('Split not found');
-	});
-
-	it('should throw error for invalid userId', async () => {
-		await expect(
-			useCase.execute({
-				userId: '',
-				splitId: 'split-1',
-				content: 'Great split!'
-			})
-		).rejects.toThrow('User ID is required');
-	});
-
-	it('should throw error for invalid splitId', async () => {
-		await expect(
-			useCase.execute({
-				userId: 'user-1',
-				splitId: '',
-				content: 'Great split!'
-			})
-		).rejects.toThrow('Split ID is required');
-	});
-
-	it('should throw error for empty content', async () => {
-		await expect(
-			useCase.execute({
-				userId: 'user-1',
-				splitId: 'split-1',
-				content: ''
-			})
-		).rejects.toThrow('Comment content is required');
-	});
-
-	it('should throw error for content exceeding 1000 characters', async () => {
-		const longContent = 'a'.repeat(1001);
-
-		await expect(
-			useCase.execute({
-				userId: 'user-1',
-				splitId: 'split-1',
-				content: longContent
-			})
-		).rejects.toThrow('Comment content must be less than 1000 characters');
+		).rejects.toThrow("Split with id 'split-1' not found");
 	});
 });

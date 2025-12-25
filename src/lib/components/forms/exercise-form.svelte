@@ -9,7 +9,7 @@
 	} from '$lib/components/ui/field';
 	import { DIFFICULTY_LEVELS, MUSCLE_GROUPS, EQUIPMENT_TYPES } from '$lib/constants';
 	import type { CreateExerciseInput } from '$lib/schemas/exercise';
-	import type { Exercise } from '$lib/services/exercises/types';
+	import type { Exercise } from '$core/domain/exercise/exercise.entity';
 
 	let {
 		onSubmit,

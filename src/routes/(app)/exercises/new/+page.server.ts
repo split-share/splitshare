@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { rateLimit, uploadLimiter, rateLimitError } from '$lib/server/rate-limit';
 import { createExerciseSchema } from '$lib/schemas/exercise';
-import { exerciseService } from '$lib/services/exercises';
+import { container } from '$infrastructure/di/container';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -40,7 +40,7 @@ export const actions: Actions = {
 
 		const validatedData = validation.data;
 
-		const exercise = await exerciseService.createExercise({
+		const exercise = await container.createExercise.execute({
 			userId: event.locals.user!.id,
 			name: validatedData.name,
 			description: validatedData.description,

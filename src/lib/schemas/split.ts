@@ -61,7 +61,7 @@ export const createCompleteSplitSchema = z.object({
 });
 
 export const commentSchema = z.object({
-	content: z.string().min(1, 'Comment cannot be empty').max(500, 'Comment is too long')
+	content: z.string().min(1, 'Comment cannot be empty').max(1000, 'Comment is too long')
 });
 
 export const workoutLogSchema = z.object({

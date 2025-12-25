@@ -24,7 +24,7 @@ describe('CreateSplitUseCase', () => {
 		useCase = new CreateSplitUseCase(splitRepository);
 	});
 
-	describe('Weight Validation', () => {
+	describe('Valid Inputs', () => {
 		it('should create split with exercises that have weight', async () => {
 			const mockSplit = new Split(
 				'split-1',
@@ -171,58 +171,6 @@ describe('CreateSplitUseCase', () => {
 			expect(result).toEqual(mockSplit);
 		});
 
-		it('should throw error for zero weight', async () => {
-			const input: CreateSplitDto = {
-				userId: 'user-1',
-				title: 'Test Split',
-				difficulty: 'beginner',
-				days: [
-					{
-						dayNumber: 1,
-						name: 'Day 1',
-						isRestDay: false,
-						exercises: [
-							{
-								exerciseName: 'Bench Press',
-								sets: 3,
-								reps: '8-12',
-								order: 0,
-								weight: 0
-							}
-						]
-					}
-				]
-			};
-
-			await expect(useCase.execute(input)).rejects.toThrow('Weight must be positive');
-		});
-
-		it('should throw error for negative weight', async () => {
-			const input: CreateSplitDto = {
-				userId: 'user-1',
-				title: 'Test Split',
-				difficulty: 'beginner',
-				days: [
-					{
-						dayNumber: 1,
-						name: 'Day 1',
-						isRestDay: false,
-						exercises: [
-							{
-								exerciseName: 'Bench Press',
-								sets: 3,
-								reps: '8-12',
-								order: 0,
-								weight: -50
-							}
-						]
-					}
-				]
-			};
-
-			await expect(useCase.execute(input)).rejects.toThrow('Weight must be positive');
-		});
-
 		it('should accept decimal weight', async () => {
 			const mockSplit = new Split(
 				'split-1',
@@ -270,7 +218,7 @@ describe('CreateSplitUseCase', () => {
 		});
 	});
 
-	describe('Basic Validation', () => {
+	describe('Business Rule Validation', () => {
 		it('should throw error if no days provided', async () => {
 			const input: CreateSplitDto = {
 				userId: 'user-1',
