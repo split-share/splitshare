@@ -1,5 +1,19 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { PageServerLoad } from '../../../src/routes/$types';
+import type { ILoggerService } from '$core/ports/logger/logger.port';
+import { RequestContext } from '$lib/server/logger/request-context';
+
+// Mock logger
+const mockLogger: ILoggerService = {
+	trace: vi.fn(),
+	debug: vi.fn(),
+	info: vi.fn(),
+	warn: vi.fn(),
+	error: vi.fn(),
+	fatal: vi.fn(),
+	child: vi.fn().mockReturnThis(),
+	emitWideEvent: vi.fn()
+};
 
 // Mock dependencies
 vi.mock('$lib/services/splits', () => ({
@@ -35,7 +49,9 @@ describe('page.server', () => {
 						createdAt: new Date(),
 						updatedAt: new Date()
 					},
-					session: null
+					session: null,
+					logger: mockLogger,
+					requestContext: new RequestContext()
 				},
 				params: {},
 				url: new URL('http://localhost'),
@@ -66,7 +82,12 @@ describe('page.server', () => {
 
 			const mockEvent = {
 				request: new Request('http://localhost?difficulty=beginner'),
-				locals: { user: null, session: null },
+				locals: {
+					user: null,
+					session: null,
+					logger: mockLogger,
+					requestContext: new RequestContext()
+				},
 				params: {},
 				url: new URL('http://localhost?difficulty=beginner'),
 				route: { id: '/' },
@@ -96,7 +117,12 @@ describe('page.server', () => {
 
 			const mockEvent = {
 				request: new Request('http://localhost'),
-				locals: { user: null, session: null },
+				locals: {
+					user: null,
+					session: null,
+					logger: mockLogger,
+					requestContext: new RequestContext()
+				},
 				params: {},
 				url: new URL('http://localhost'),
 				route: { id: '/' },

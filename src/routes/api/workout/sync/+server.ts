@@ -8,9 +8,12 @@ export const POST: RequestHandler = async (event) => {
 		return json({ error: 'Unauthorized' }, { status: 401 });
 	}
 
+	let sessionId: string | undefined;
+
 	try {
 		const data = await event.request.json();
-		const { sessionId, exerciseElapsedSeconds, restRemainingSeconds, pausedAt } = data;
+		sessionId = data.sessionId;
+		const { exerciseElapsedSeconds, restRemainingSeconds, pausedAt } = data;
 
 		if (!sessionId) {
 			return json({ error: 'Session ID required' }, { status: 400 });
@@ -32,7 +35,11 @@ export const POST: RequestHandler = async (event) => {
 
 		return json({ success: true });
 	} catch (error) {
-		console.error('Workout sync error:', error);
+		event.locals.logger.error('Workout sync failed', {
+			workoutSessionId: sessionId,
+			errorMessage: error instanceof Error ? error.message : String(error),
+			errorStack: error instanceof Error ? error.stack : undefined
+		});
 		return json({ error: 'Sync failed' }, { status: 500 });
 	}
 };

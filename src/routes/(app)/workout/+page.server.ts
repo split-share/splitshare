@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { container } from '$infrastructure/di/container';
+import { logAction } from '$lib/server/logger';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -59,7 +60,20 @@ export const actions: Actions = {
 				splitId,
 				dayId
 			});
+
+			logAction(event, 'workout.start', {
+				success: true,
+				resourceId: splitId,
+				resourceType: 'split',
+				metadata: { dayId }
+			});
 		} catch (error) {
+			logAction(event, 'workout.start', {
+				success: false,
+				resourceId: splitId,
+				resourceType: 'split',
+				error: error instanceof Error ? error : String(error)
+			});
 			return fail(400, { error: (error as Error).message });
 		}
 
@@ -86,7 +100,20 @@ export const actions: Actions = {
 				reps: parseInt(reps),
 				notes: notes || null
 			});
+
+			logAction(event, 'workout.set_complete', {
+				success: true,
+				resourceId: sessionId,
+				resourceType: 'workout_session',
+				metadata: { weight: weight ? parseFloat(weight) : null, reps: parseInt(reps) }
+			});
 		} catch (error) {
+			logAction(event, 'workout.set_complete', {
+				success: false,
+				resourceId: sessionId,
+				resourceType: 'workout_session',
+				error: error instanceof Error ? error : String(error)
+			});
 			return fail(400, { error: (error as Error).message });
 		}
 
@@ -157,7 +184,19 @@ export const actions: Actions = {
 				userId,
 				notes: notes || null
 			});
+
+			logAction(event, 'workout.complete', {
+				success: true,
+				resourceId: sessionId,
+				resourceType: 'workout_session'
+			});
 		} catch (error) {
+			logAction(event, 'workout.complete', {
+				success: false,
+				resourceId: sessionId,
+				resourceType: 'workout_session',
+				error: error instanceof Error ? error : String(error)
+			});
 			return fail(400, { error: (error as Error).message });
 		}
 
@@ -171,7 +210,19 @@ export const actions: Actions = {
 
 		try {
 			await container.abandonWorkoutSession.execute(sessionId, userId);
+
+			logAction(event, 'workout.abandon', {
+				success: true,
+				resourceId: sessionId,
+				resourceType: 'workout_session'
+			});
 		} catch (error) {
+			logAction(event, 'workout.abandon', {
+				success: false,
+				resourceId: sessionId,
+				resourceType: 'workout_session',
+				error: error instanceof Error ? error : String(error)
+			});
 			return fail(400, { error: (error as Error).message });
 		}
 

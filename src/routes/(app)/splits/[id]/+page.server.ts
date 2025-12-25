@@ -1,5 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import { container } from '$infrastructure/di/container';
+import { logAction } from '$lib/server/logger';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -19,6 +20,13 @@ export const load: PageServerLoad = async (event) => {
 			? container.likeRepository.hasUserLiked(currentUserId, splitId)
 			: Promise.resolve(false)
 	]);
+
+	// Log split view
+	logAction(event, 'split.view', {
+		success: true,
+		resourceId: splitId,
+		resourceType: 'split'
+	});
 
 	return {
 		split: splitData,
@@ -41,7 +49,19 @@ export const actions: Actions = {
 				userId: event.locals.user.id,
 				splitId
 			});
+
+			logAction(event, 'split.like', {
+				success: true,
+				resourceId: splitId,
+				resourceType: 'split'
+			});
 		} catch (err) {
+			logAction(event, 'split.like', {
+				success: false,
+				resourceId: splitId,
+				resourceType: 'split',
+				error: err instanceof Error ? err : String(err)
+			});
 			return fail(400, { error: err instanceof Error ? err.message : 'Failed to like split' });
 		}
 
@@ -57,7 +77,19 @@ export const actions: Actions = {
 
 		try {
 			await container.unlikeSplit.execute(event.locals.user.id, splitId);
+
+			logAction(event, 'split.unlike', {
+				success: true,
+				resourceId: splitId,
+				resourceType: 'split'
+			});
 		} catch (err) {
+			logAction(event, 'split.unlike', {
+				success: false,
+				resourceId: splitId,
+				resourceType: 'split',
+				error: err instanceof Error ? err : String(err)
+			});
 			return fail(400, { error: err instanceof Error ? err.message : 'Failed to unlike split' });
 		}
 
@@ -83,7 +115,20 @@ export const actions: Actions = {
 				splitId,
 				content
 			});
+
+			logAction(event, 'comment.create', {
+				success: true,
+				resourceId: splitId,
+				resourceType: 'split',
+				metadata: { contentLength: content.length }
+			});
 		} catch (err) {
+			logAction(event, 'comment.create', {
+				success: false,
+				resourceId: splitId,
+				resourceType: 'split',
+				error: err instanceof Error ? err : String(err)
+			});
 			return fail(400, { error: err instanceof Error ? err.message : 'Failed to add comment' });
 		}
 
@@ -105,7 +150,19 @@ export const actions: Actions = {
 
 		try {
 			await container.updateComment.execute(commentId, event.locals.user.id, { content });
+
+			logAction(event, 'comment.update', {
+				success: true,
+				resourceId: commentId,
+				resourceType: 'comment'
+			});
 		} catch (err) {
+			logAction(event, 'comment.update', {
+				success: false,
+				resourceId: commentId,
+				resourceType: 'comment',
+				error: err instanceof Error ? err : String(err)
+			});
 			return fail(400, { error: err instanceof Error ? err.message : 'Failed to update comment' });
 		}
 
@@ -126,7 +183,19 @@ export const actions: Actions = {
 
 		try {
 			await container.deleteComment.execute(commentId, event.locals.user.id);
+
+			logAction(event, 'comment.delete', {
+				success: true,
+				resourceId: commentId,
+				resourceType: 'comment'
+			});
 		} catch (err) {
+			logAction(event, 'comment.delete', {
+				success: false,
+				resourceId: commentId,
+				resourceType: 'comment',
+				error: err instanceof Error ? err : String(err)
+			});
 			return fail(400, { error: err instanceof Error ? err.message : 'Failed to delete comment' });
 		}
 

@@ -1,5 +1,6 @@
 import { db } from './index';
 import { forumCategories } from './schema';
+import { logger } from '../logger';
 
 const categories = [
 	{
@@ -40,13 +41,13 @@ const categories = [
 ];
 
 export async function seedForumCategories() {
-	console.log('Seeding forum categories...');
+	logger.info('Seeding forum categories...');
 
 	for (const category of categories) {
 		await db.insert(forumCategories).values(category).onConflictDoNothing();
 	}
 
-	console.log('Forum categories seeded successfully!');
+	logger.info('Forum categories seeded successfully');
 }
 
 // Run if executed directly
