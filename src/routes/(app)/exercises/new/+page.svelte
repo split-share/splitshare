@@ -27,7 +27,6 @@
 	let muscleGroup = $state(MUSCLE_GROUPS[0]);
 	let equipmentType = $state(EQUIPMENT_TYPES[0]);
 	let imageUrl = $state('');
-	let videoUrl = $state('');
 
 	// Submit form
 	async function handleSubmit() {
@@ -41,8 +40,7 @@
 				difficulty,
 				muscleGroup,
 				equipmentType,
-				imageUrl: imageUrl || undefined,
-				videoUrl: videoUrl || undefined
+				imageUrl: imageUrl || undefined
 			};
 
 			const formData = new FormData();
@@ -139,16 +137,6 @@
 							<option value={equipment}>{equipment}</option>
 						{/each}
 					</select>
-				</FieldRoot>
-
-				<FieldRoot>
-					<FieldLabel>Video URL (YouTube)</FieldLabel>
-					<Input
-						bind:value={videoUrl}
-						type="url"
-						placeholder="https://www.youtube.com/watch?v=..."
-					/>
-					<FieldDescription>Link to a YouTube demonstration video</FieldDescription>
 				</FieldRoot>
 
 				<FieldRoot>

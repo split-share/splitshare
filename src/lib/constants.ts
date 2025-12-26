@@ -82,46 +82,74 @@ export const SESSION_DURATION_DAYS = 7;
 // Popular exercises organized by muscle group
 export const POPULAR_EXERCISES = [
 	// Chest (5)
-	{ name: 'Bench Press', muscleGroup: 'Chest' },
-	{ name: 'Incline Dumbbell Press', muscleGroup: 'Chest' },
-	{ name: 'Cable Flyes', muscleGroup: 'Chest' },
-	{ name: 'Push-Ups', muscleGroup: 'Chest' },
-	{ name: 'Dumbbell Chest Press', muscleGroup: 'Chest' },
+	{ name: 'Bench Press', muscleGroup: 'Chest', gifUrl: '/exercises/bench-press.gif' },
+	{
+		name: 'Incline Dumbbell Press',
+		muscleGroup: 'Chest',
+		gifUrl: '/exercises/incline-dumbbell-press.gif'
+	},
+	{ name: 'Cable Flyes', muscleGroup: 'Chest', gifUrl: '/exercises/cable-flyes.gif' },
+	{ name: 'Push-Ups', muscleGroup: 'Chest', gifUrl: '/exercises/push-ups.gif' },
+	{
+		name: 'Dumbbell Chest Press',
+		muscleGroup: 'Chest',
+		gifUrl: '/exercises/dumbbell-chest-press.gif'
+	},
 
 	// Back (5)
-	{ name: 'Pull-Ups', muscleGroup: 'Back' },
-	{ name: 'Barbell Rows', muscleGroup: 'Back' },
-	{ name: 'Lat Pulldown', muscleGroup: 'Back' },
-	{ name: 'Dumbbell Rows', muscleGroup: 'Back' },
-	{ name: 'Deadlift', muscleGroup: 'Back' },
+	{ name: 'Pull-Ups', muscleGroup: 'Back', gifUrl: '/exercises/pull-ups.gif' },
+	{ name: 'Barbell Rows', muscleGroup: 'Back', gifUrl: '/exercises/barbell-rows.gif' },
+	{ name: 'Lat Pulldown', muscleGroup: 'Back', gifUrl: '/exercises/lat-pulldown.gif' },
+	{ name: 'Dumbbell Rows', muscleGroup: 'Back', gifUrl: '/exercises/dumbbell-rows.gif' },
+	{ name: 'Deadlift', muscleGroup: 'Back', gifUrl: '/exercises/deadlift.gif' },
 
 	// Shoulders (4)
-	{ name: 'Overhead Press', muscleGroup: 'Shoulders' },
-	{ name: 'Dumbbell Lateral Raises', muscleGroup: 'Shoulders' },
-	{ name: 'Face Pulls', muscleGroup: 'Shoulders' },
-	{ name: 'Arnold Press', muscleGroup: 'Shoulders' },
+	{ name: 'Overhead Press', muscleGroup: 'Shoulders', gifUrl: '/exercises/overhead-press.gif' },
+	{
+		name: 'Dumbbell Lateral Raises',
+		muscleGroup: 'Shoulders',
+		gifUrl: '/exercises/dumbbell-lateral-raises.gif'
+	},
+	{ name: 'Face Pulls', muscleGroup: 'Shoulders', gifUrl: '/exercises/face-pulls.gif' },
+	{ name: 'Arnold Press', muscleGroup: 'Shoulders', gifUrl: '/exercises/arnold-press.gif' },
 
 	// Biceps (2)
-	{ name: 'Barbell Curls', muscleGroup: 'Biceps' },
-	{ name: 'Hammer Curls', muscleGroup: 'Biceps' },
+	{ name: 'Barbell Curls', muscleGroup: 'Biceps', gifUrl: '/exercises/barbell-curls.gif' },
+	{ name: 'Hammer Curls', muscleGroup: 'Biceps', gifUrl: '/exercises/hammer-curls.gif' },
 
 	// Triceps (2)
-	{ name: 'Tricep Dips', muscleGroup: 'Triceps' },
-	{ name: 'Overhead Tricep Extension', muscleGroup: 'Triceps' },
+	{ name: 'Tricep Dips', muscleGroup: 'Triceps', gifUrl: '/exercises/tricep-dips.gif' },
+	{
+		name: 'Overhead Tricep Extension',
+		muscleGroup: 'Triceps',
+		gifUrl: '/exercises/overhead-tricep-extension.gif'
+	},
 
 	// Legs (7)
-	{ name: 'Barbell Squats', muscleGroup: 'Legs' },
-	{ name: 'Romanian Deadlift', muscleGroup: 'Legs' },
-	{ name: 'Leg Press', muscleGroup: 'Legs' },
-	{ name: 'Lunges', muscleGroup: 'Legs' },
-	{ name: 'Leg Curls', muscleGroup: 'Legs' },
-	{ name: 'Leg Extensions', muscleGroup: 'Legs' },
-	{ name: 'Calf Raises', muscleGroup: 'Legs' },
+	{ name: 'Barbell Squats', muscleGroup: 'Legs', gifUrl: '/exercises/barbell-squats.gif' },
+	{ name: 'Romanian Deadlift', muscleGroup: 'Legs', gifUrl: '/exercises/romanian-deadlift.gif' },
+	{ name: 'Leg Press', muscleGroup: 'Legs', gifUrl: '/exercises/leg-press.gif' },
+	{ name: 'Lunges', muscleGroup: 'Legs', gifUrl: '/exercises/lunges.gif' },
+	{ name: 'Leg Curls', muscleGroup: 'Legs', gifUrl: '/exercises/leg-curls.gif' },
+	{ name: 'Leg Extensions', muscleGroup: 'Legs', gifUrl: '/exercises/leg-extensions.gif' },
+	{ name: 'Calf Raises', muscleGroup: 'Legs', gifUrl: '/exercises/calf-raises.gif' },
 
 	// Core (5)
-	{ name: 'Planks', muscleGroup: 'Core' },
-	{ name: 'Hanging Leg Raises', muscleGroup: 'Core' },
-	{ name: 'Cable Crunches', muscleGroup: 'Core' },
-	{ name: 'Russian Twists', muscleGroup: 'Core' },
-	{ name: 'Ab Wheel Rollouts', muscleGroup: 'Core' }
+	{ name: 'Planks', muscleGroup: 'Core', gifUrl: '/exercises/planks.gif' },
+	{
+		name: 'Hanging Leg Raises',
+		muscleGroup: 'Core',
+		gifUrl: '/exercises/hanging-leg-raises.gif'
+	},
+	{ name: 'Cable Crunches', muscleGroup: 'Core', gifUrl: '/exercises/cable-crunches.gif' },
+	{ name: 'Russian Twists', muscleGroup: 'Core', gifUrl: '/exercises/russian-twists.gif' },
+	{ name: 'Ab Wheel Rollouts', muscleGroup: 'Core', gifUrl: '/exercises/ab-wheel-rollouts.gif' }
 ] as const;
+
+// Helper function to get GIF URL for an exercise by name
+export function getExerciseGifUrl(exerciseName: string): string | undefined {
+	const exercise = POPULAR_EXERCISES.find(
+		(e) => e.name.toLowerCase() === exerciseName.toLowerCase()
+	);
+	return exercise?.gifUrl;
+}

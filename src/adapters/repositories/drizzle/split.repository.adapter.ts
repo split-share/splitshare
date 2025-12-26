@@ -77,7 +77,6 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 				difficulty: split.split.difficulty as 'beginner' | 'intermediate' | 'advanced',
 				duration: split.split.duration,
 				imageUrl: split.split.imageUrl,
-				videoUrl: split.split.videoUrl,
 				tags: split.split.tags,
 				createdAt: split.split.createdAt,
 				updatedAt: split.split.updatedAt
@@ -144,7 +143,7 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 							muscleGroup: item.exercise.muscleGroup,
 							equipmentType: item.exercise.equipmentType,
 							imageUrl: item.exercise.imageUrl,
-							videoUrl: item.exercise.videoUrl
+							gifUrl: item.exercise.gifUrl
 						}
 					: {
 							id: item.dayExercise.exerciseId || '',
@@ -154,7 +153,7 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 							muscleGroup: '',
 							equipmentType: '',
 							imageUrl: null,
-							videoUrl: null
+							gifUrl: null
 						},
 				createdAt: item.dayExercise.createdAt
 			})),
@@ -307,7 +306,7 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 								muscleGroup: item.exercise.muscleGroup,
 								equipmentType: item.exercise.equipmentType,
 								imageUrl: item.exercise.imageUrl,
-								videoUrl: item.exercise.videoUrl
+								gifUrl: item.exercise.gifUrl
 							}
 						: {
 								id: item.dayExercise.exerciseId || '',
@@ -317,7 +316,7 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 								muscleGroup: '',
 								equipmentType: '',
 								imageUrl: null,
-								videoUrl: null
+								gifUrl: null
 							},
 					createdAt: item.dayExercise.createdAt
 				})),
@@ -336,7 +335,6 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 					difficulty: result.split.difficulty as 'beginner' | 'intermediate' | 'advanced',
 					duration: result.split.duration,
 					imageUrl: result.split.imageUrl,
-					videoUrl: result.split.videoUrl,
 					tags: result.split.tags,
 					createdAt: result.split.createdAt,
 					updatedAt: result.split.updatedAt
@@ -363,7 +361,6 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 					difficulty: input.difficulty,
 					duration: input.duration ?? null,
 					imageUrl: input.imageUrl ?? null,
-					videoUrl: input.videoUrl ?? null,
 					tags: input.tags ?? null
 				})
 				.returning();
@@ -445,7 +442,6 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 			raw.difficulty as 'beginner' | 'intermediate' | 'advanced',
 			raw.duration,
 			raw.imageUrl,
-			raw.videoUrl,
 			raw.tags,
 			raw.createdAt,
 			raw.updatedAt
@@ -463,7 +459,6 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 			difficulty: raw.difficulty as 'beginner' | 'intermediate' | 'advanced',
 			duration: raw.duration,
 			imageUrl: raw.imageUrl,
-			videoUrl: raw.videoUrl,
 			tags: raw.tags,
 			createdAt: raw.createdAt,
 			updatedAt: raw.updatedAt

@@ -37,7 +37,6 @@ describe('CreateSplitUseCase', () => {
 				null,
 				null,
 				null,
-				null,
 				new Date(),
 				new Date()
 			);
@@ -84,7 +83,6 @@ describe('CreateSplitUseCase', () => {
 				null,
 				null,
 				null,
-				null,
 				new Date(),
 				new Date()
 			);
@@ -127,7 +125,6 @@ describe('CreateSplitUseCase', () => {
 				true,
 				false,
 				'beginner',
-				null,
 				null,
 				null,
 				null,
@@ -180,7 +177,6 @@ describe('CreateSplitUseCase', () => {
 				true,
 				false,
 				'beginner',
-				null,
 				null,
 				null,
 				null,

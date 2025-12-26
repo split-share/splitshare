@@ -82,7 +82,7 @@ export class DrizzleExerciseRepositoryAdapter implements IExerciseRepository {
 				muscleGroup: data.muscleGroup,
 				equipmentType: data.equipmentType,
 				imageUrl: data.imageUrl ?? null,
-				videoUrl: data.videoUrl ?? null
+				gifUrl: data.gifUrl ?? null
 			})
 			.returning();
 
@@ -134,7 +134,7 @@ export class DrizzleExerciseRepositoryAdapter implements IExerciseRepository {
 			raw.muscleGroup,
 			raw.equipmentType,
 			raw.imageUrl,
-			raw.videoUrl,
+			raw.gifUrl,
 			raw.createdAt,
 			raw.updatedAt
 		);

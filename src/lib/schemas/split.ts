@@ -8,8 +8,7 @@ export const createSplitSchema = z.object({
 	duration: z.number().int().min(1).max(300).optional(),
 	isPublic: z.boolean().default(false),
 	tags: z.array(z.string()).max(10).optional(),
-	imageUrl: z.string().url().optional(),
-	videoUrl: z.string().url().optional()
+	imageUrl: z.string().url().optional()
 });
 
 export const updateSplitSchema = createSplitSchema.partial();
@@ -55,7 +54,6 @@ export const createCompleteSplitSchema = z.object({
 	isPublic: z.boolean().default(false),
 	tags: z.array(z.string()).max(10).optional(),
 	imageUrl: z.string().url().optional(),
-	videoUrl: z.string().url().optional(),
 	// Days with exercises
 	days: z.array(createSplitDaySchema).min(1, 'Split must have at least one day')
 });

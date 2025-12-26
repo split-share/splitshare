@@ -39,7 +39,7 @@ export interface DayExerciseDto {
 		equipmentType: string;
 		difficulty: string;
 		imageUrl: string | null;
-		videoUrl: string | null;
+		gifUrl: string | null;
 	} | null;
 }
 

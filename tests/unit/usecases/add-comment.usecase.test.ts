@@ -49,7 +49,6 @@ describe('AddCommentUseCase', () => {
 			null,
 			null,
 			null,
-			null,
 			new Date(),
 			new Date()
 		);

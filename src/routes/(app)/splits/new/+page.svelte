@@ -9,6 +9,7 @@
 	import * as Select from '$lib/components/ui/select';
 	import { DIFFICULTY_LEVELS, POPULAR_EXERCISES } from '$lib/constants';
 	import { Plus, Trash2 } from 'lucide-svelte';
+	import ExerciseGif from '$lib/components/exercise-gif.svelte';
 	import * as Switch from '$lib/components/ui/switch';
 	import type {
 		CreateCompleteSplitInput,
@@ -27,7 +28,6 @@
 	let isPublic = $state(false);
 	let selectedTags = $state<string[]>([]);
 	let imageUrl = $state('');
-	let videoUrl = $state('');
 
 	// Days state
 	let days = $state<CreateSplitDayInput[]>([]);
@@ -124,7 +124,6 @@
 				isPublic,
 				tags: selectedTags.length > 0 ? selectedTags : undefined,
 				imageUrl: imageUrl || undefined,
-				videoUrl: videoUrl || undefined,
 				days
 			};
 
@@ -336,11 +335,10 @@
 														<div
 															class="flex items-start gap-3 rounded-lg bg-background/80 p-4 border-none"
 														>
-															<div
-																class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0"
-															>
-																{exIndex + 1}
-															</div>
+															<ExerciseGif
+																exerciseName={exercise.exerciseName}
+																class="w-16 h-16 shrink-0"
+															/>
 															<div class="flex-1 space-y-3">
 																<div class="font-medium">{exercise.exerciseName}</div>
 																<div class="grid grid-cols-4 gap-3">
