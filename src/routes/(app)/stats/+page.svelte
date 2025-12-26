@@ -1,48 +1,47 @@
 <script lang="ts">
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import { Textarea } from '$lib/components/ui/textarea';
-	import { Scale, TrendingDown, TrendingUp, BarChart3, Trash2 } from 'lucide-svelte';
-	import { enhance } from '$app/forms';
+	import * as Tabs from '$lib/components/ui/tabs';
+	import {
+		Scale,
+		TrendingDown,
+		TrendingUp,
+		BarChart3,
+		Dumbbell,
+		Flame,
+		Clock,
+		Trophy,
+		Target
+	} from 'lucide-svelte';
 	import WeightChart from './weight-chart.svelte';
+	import {
+		StatCard,
+		RecentWorkoutsList,
+		RecentPRsList,
+		WeightEntryForm,
+		WeightHistoryList,
+		WorkoutHistoryList,
+		PersonalRecordsList
+	} from '$lib/components/stats';
 
 	let { data, form } = $props();
 
-	let weight = $state('');
-	let notes = $state('');
-	let isSubmitting = $state(false);
+	let activeTab = $state('overview');
 
 	function formatWeight(w: number): string {
 		return `${w.toFixed(1)} kg`;
 	}
 
-	function formatChange(change: number | null): {
-		text: string;
-		class: string;
-		icon: typeof TrendingUp;
-	} {
-		if (change === null) return { text: 'N/A', class: 'text-muted-foreground', icon: BarChart3 };
+	function formatTotalDuration(minutes: number): string {
+		const hours = Math.floor(minutes / 60);
+		if (hours === 0) return `${minutes} min`;
+		return `${hours} hrs`;
+	}
 
-		const absChange = Math.abs(change);
-		const sign = change > 0 ? '+' : '';
-
-		if (change > 0) {
-			return {
-				text: `${sign}${absChange.toFixed(1)} kg`,
-				class: 'text-orange-500',
-				icon: TrendingUp
-			};
-		} else if (change < 0) {
-			return {
-				text: `${change.toFixed(1)} kg`,
-				class: 'text-emerald-500',
-				icon: TrendingDown
-			};
-		}
-
-		return { text: '0.0 kg', class: 'text-muted-foreground', icon: BarChart3 };
+	function formatDuration(minutes: number): string {
+		if (minutes < 60) return `${minutes}m`;
+		const hours = Math.floor(minutes / 60);
+		const mins = minutes % 60;
+		return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
 	}
 
 	function formatDate(date: Date): string {
@@ -52,195 +51,281 @@
 			year: 'numeric'
 		});
 	}
+
+	function formatChange(change: number | null): { text: string; class: string } {
+		if (change === null) return { text: 'N/A', class: 'text-muted-foreground' };
+		const absChange = Math.abs(change);
+		const sign = change > 0 ? '+' : '';
+		if (change > 0) return { text: `${sign}${absChange.toFixed(1)} kg`, class: 'text-orange-500' };
+		if (change < 0) return { text: `${change.toFixed(1)} kg`, class: 'text-emerald-500' };
+		return { text: '0.0 kg', class: 'text-muted-foreground' };
+	}
 </script>
 
-<div class="container mx-auto p-6 space-y-6">
+<div class="container mx-auto px-4 py-4 space-y-4 sm:px-6 sm:py-6 sm:space-y-6">
 	<div>
-		<h1 class="text-3xl font-bold">Weight Tracking</h1>
-		<p class="text-muted-foreground">Monitor your body weight progress</p>
+		<h1 class="text-2xl font-bold sm:text-3xl">Stats & Progress</h1>
+		<p class="text-sm text-muted-foreground sm:text-base">Track your fitness journey</p>
 	</div>
 
-	<!-- Stats Cards -->
-	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-		<Card class="border-none shadow-none bg-card/50">
-			<CardHeader class="flex flex-row items-center justify-between pb-2">
-				<CardTitle class="text-sm font-medium">Current Weight</CardTitle>
-				<Scale class="h-4 w-4 text-muted-foreground" />
-			</CardHeader>
-			<CardContent>
-				<div class="text-2xl font-bold">
-					{data.stats.currentWeight ? formatWeight(data.stats.currentWeight) : 'N/A'}
-				</div>
-			</CardContent>
-		</Card>
+	<Tabs.Root bind:value={activeTab}>
+		<Tabs.List class="w-full grid grid-cols-4 h-auto">
+			<Tabs.Trigger value="overview" class="text-xs px-1 py-2 sm:text-sm sm:px-2">
+				<span class="hidden sm:inline">Overview</span>
+				<span class="sm:hidden">Stats</span>
+			</Tabs.Trigger>
+			<Tabs.Trigger value="weight" class="text-xs px-1 py-2 sm:text-sm sm:px-2">
+				<span class="hidden sm:inline">Body Weight</span>
+				<span class="sm:hidden">Weight</span>
+			</Tabs.Trigger>
+			<Tabs.Trigger value="workouts" class="text-xs px-1 py-2 sm:text-sm sm:px-2">
+				Workouts
+			</Tabs.Trigger>
+			<Tabs.Trigger value="strength" class="text-xs px-1 py-2 sm:text-sm sm:px-2">
+				Strength
+			</Tabs.Trigger>
+		</Tabs.List>
 
-		<Card class="border-none shadow-none bg-card/50">
-			<CardHeader class="flex flex-row items-center justify-between pb-2">
-				<CardTitle class="text-sm font-medium">Total Change</CardTitle>
-				{#if data.stats.totalChange !== null}
-					{#if data.stats.totalChange > 0}
-						<TrendingUp class="h-4 w-4 text-orange-500" />
-					{:else if data.stats.totalChange < 0}
-						<TrendingDown class="h-4 w-4 text-emerald-500" />
-					{:else}
-						<BarChart3 class="h-4 w-4 text-muted-foreground" />
-					{/if}
-				{:else}
-					<BarChart3 class="h-4 w-4 text-muted-foreground" />
-				{/if}
-			</CardHeader>
-			<CardContent>
-				<div class="text-2xl font-bold">
-					{#if data.stats.totalChange !== null}
-						{@const change = formatChange(data.stats.totalChange)}
-						<span class={change.class}>{change.text}</span>
-					{:else}
-						N/A
-					{/if}
-				</div>
-			</CardContent>
-		</Card>
-
-		<Card class="border-none shadow-none bg-card/50">
-			<CardHeader class="flex flex-row items-center justify-between pb-2">
-				<CardTitle class="text-sm font-medium">Average Weight</CardTitle>
-				<BarChart3 class="h-4 w-4 text-muted-foreground" />
-			</CardHeader>
-			<CardContent>
-				<div class="text-2xl font-bold">
-					{data.stats.averageWeight ? formatWeight(data.stats.averageWeight) : 'N/A'}
-				</div>
-			</CardContent>
-		</Card>
-
-		<Card class="border-none shadow-none bg-card/50">
-			<CardHeader class="flex flex-row items-center justify-between pb-2">
-				<CardTitle class="text-sm font-medium">Total Entries</CardTitle>
-				<Scale class="h-4 w-4 text-muted-foreground" />
-			</CardHeader>
-			<CardContent>
-				<div class="text-2xl font-bold">{data.stats.totalEntries}</div>
-			</CardContent>
-		</Card>
-	</div>
-
-	<div class="grid gap-6 md:grid-cols-2">
-		<!-- Chart -->
-		<Card class="border-none shadow-none bg-card/50 md:col-span-2">
-			<CardHeader>
-				<CardTitle>Weight Progress</CardTitle>
-			</CardHeader>
-			<CardContent>
-				{#if data.chartData.length === 0}
-					<p class="text-muted-foreground text-sm">
-						No data to display yet. Add your first weight entry!
-					</p>
-				{:else}
-					<WeightChart data={data.chartData} />
-				{/if}
-			</CardContent>
-		</Card>
-
-		<!-- Add Entry Form -->
-		<Card class="border-none shadow-none bg-card/50">
-			<CardHeader>
-				<CardTitle>Add Weight Entry</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<form
-					method="POST"
-					action="?/add"
-					use:enhance={() => {
-						isSubmitting = true;
-						return async ({ update }) => {
-							await update();
-							weight = '';
-							notes = '';
-							isSubmitting = false;
-						};
-					}}
+		<!-- Overview Tab -->
+		<Tabs.Content value="overview" class="space-y-4 mt-4 sm:space-y-6 sm:mt-6">
+			<div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+				<StatCard title="Workouts" value={data.workoutStats.totalWorkouts} subtitle="sessions">
+					{#snippet icon()}
+						<Dumbbell class="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+					{/snippet}
+				</StatCard>
+				<StatCard
+					title="Streak"
+					value={data.workoutStats.currentStreak}
+					subtitle={data.workoutStats.currentStreak === 1 ? 'day' : 'days'}
 				>
-					<div class="space-y-4">
-						<div class="space-y-2">
-							<Label for="weight">Weight (kg) *</Label>
-							<Input
-								id="weight"
-								name="weight"
-								type="number"
-								step="0.1"
-								min="1"
-								max="999.99"
-								bind:value={weight}
-								placeholder="e.g., 75.5"
-								required
-								disabled={isSubmitting}
-							/>
-						</div>
+					{#snippet icon()}
+						<Flame class="h-3 w-3 sm:h-4 sm:w-4 text-orange-500" />
+					{/snippet}
+				</StatCard>
+				<StatCard
+					title="Time"
+					value={formatTotalDuration(data.workoutStats.totalDuration)}
+					subtitle="total"
+				>
+					{#snippet icon()}
+						<Clock class="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+					{/snippet}
+				</StatCard>
+				<StatCard title="PRs" value={data.personalRecords.length} subtitle="achieved">
+					{#snippet icon()}
+						<Trophy class="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
+					{/snippet}
+				</StatCard>
+			</div>
 
-						<div class="space-y-2">
-							<Label for="notes">Notes (optional)</Label>
-							<Textarea
-								id="notes"
-								name="notes"
-								bind:value={notes}
-								placeholder="Add any notes about this entry..."
-								class="min-h-[60px]"
-								disabled={isSubmitting}
-							/>
-						</div>
+			<div class="grid gap-4 sm:gap-6 md:grid-cols-2">
+				<RecentWorkoutsList workouts={data.recentWorkouts} />
+				<RecentPRsList records={data.personalRecords} />
+			</div>
 
-						{#if form?.error}
-							<p class="text-sm text-destructive">{form.error}</p>
-						{/if}
-
-						<Button type="submit" class="w-full" disabled={isSubmitting}>
-							{isSubmitting ? 'Adding...' : 'Add Entry'}
-						</Button>
-					</div>
-				</form>
-			</CardContent>
-		</Card>
-
-		<!-- History List -->
-		<Card class="border-none shadow-none bg-card/50">
-			<CardHeader>
-				<CardTitle>History</CardTitle>
-			</CardHeader>
-			<CardContent>
-				{#if data.history.length === 0}
-					<p class="text-muted-foreground text-sm">No entries yet</p>
-				{:else}
-					<div class="space-y-3 max-h-[400px] overflow-y-auto">
-						{#each data.history as entry (entry.id)}
-							<div class="flex items-start justify-between border-b pb-3 last:border-0 last:pb-0">
-								<div class="space-y-1">
-									<p class="font-medium">{formatWeight(entry.weight)}</p>
-									<p class="text-sm text-muted-foreground">
-										{formatDate(entry.recordedAt)}
-									</p>
-									{#if entry.change !== null}
-										{@const change = formatChange(entry.change)}
-										{@const IconComponent = change.icon}
-										<div class="flex items-center gap-1">
-											<IconComponent class="h-3 w-3 {change.class}" />
-											<span class="text-xs {change.class}">{change.text}</span>
-										</div>
-									{/if}
-									{#if entry.notes}
-										<p class="text-xs text-muted-foreground italic">{entry.notes}</p>
-									{/if}
-								</div>
-								<form method="POST" action="?/delete" use:enhance>
-									<input type="hidden" name="id" value={entry.id} />
-									<Button type="submit" variant="ghost" size="icon" class="h-8 w-8">
-										<Trash2 class="h-4 w-4" />
-									</Button>
-								</form>
+			{#if data.weightStats.currentWeight}
+				<Card class="border-none shadow-none bg-card/50">
+					<CardHeader class="p-3 pb-2 sm:p-6 sm:pb-3">
+						<CardTitle class="flex items-center gap-2 text-sm sm:text-base">
+							<Scale class="h-4 w-4 sm:h-5 sm:w-5" />
+							Body Weight
+						</CardTitle>
+					</CardHeader>
+					<CardContent class="p-3 pt-0 sm:p-6 sm:pt-0">
+						<div class="flex items-center gap-6 sm:gap-8">
+							<div>
+								<p class="text-2xl font-bold sm:text-3xl">
+									{formatWeight(data.weightStats.currentWeight)}
+								</p>
+								<p class="text-xs text-muted-foreground sm:text-sm">current</p>
 							</div>
-						{/each}
-					</div>
+							{#if data.weightStats.totalChange !== null}
+								{@const change = formatChange(data.weightStats.totalChange)}
+								<div>
+									<p class="text-lg font-bold {change.class} sm:text-xl">{change.text}</p>
+									<p class="text-xs text-muted-foreground sm:text-sm">change</p>
+								</div>
+							{/if}
+						</div>
+					</CardContent>
+				</Card>
+			{/if}
+		</Tabs.Content>
+
+		<!-- Body Weight Tab -->
+		<Tabs.Content value="weight" class="space-y-4 mt-4 sm:space-y-6 sm:mt-6">
+			<div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+				<StatCard
+					title="Current"
+					value={data.weightStats.currentWeight
+						? formatWeight(data.weightStats.currentWeight)
+						: 'N/A'}
+				>
+					{#snippet icon()}
+						<Scale class="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+					{/snippet}
+				</StatCard>
+				<Card class="border-none shadow-none bg-card/50">
+					<CardHeader class="flex flex-row items-center justify-between p-3 pb-1 sm:p-6 sm:pb-2">
+						<CardTitle class="text-xs font-medium sm:text-sm">Change</CardTitle>
+						{#if data.weightStats.totalChange !== null}
+							{#if data.weightStats.totalChange > 0}
+								<TrendingUp class="h-3 w-3 sm:h-4 sm:w-4 text-orange-500" />
+							{:else if data.weightStats.totalChange < 0}
+								<TrendingDown class="h-3 w-3 sm:h-4 sm:w-4 text-emerald-500" />
+							{:else}
+								<BarChart3 class="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+							{/if}
+						{:else}
+							<BarChart3 class="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+						{/if}
+					</CardHeader>
+					<CardContent class="p-3 pt-0 sm:p-6 sm:pt-0">
+						<div class="text-xl font-bold sm:text-2xl">
+							{#if data.weightStats.totalChange !== null}
+								{@const change = formatChange(data.weightStats.totalChange)}
+								<span class={change.class}>{change.text}</span>
+							{:else}
+								N/A
+							{/if}
+						</div>
+					</CardContent>
+				</Card>
+				<StatCard
+					title="Average"
+					value={data.weightStats.averageWeight
+						? formatWeight(data.weightStats.averageWeight)
+						: 'N/A'}
+				>
+					{#snippet icon()}
+						<BarChart3 class="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+					{/snippet}
+				</StatCard>
+				<StatCard title="Entries" value={data.weightStats.totalEntries}>
+					{#snippet icon()}
+						<Scale class="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+					{/snippet}
+				</StatCard>
+			</div>
+
+			<Card class="border-none shadow-none bg-card/50">
+				<CardHeader class="p-3 pb-2 sm:p-6 sm:pb-3">
+					<CardTitle class="text-sm sm:text-base">Weight Progress</CardTitle>
+				</CardHeader>
+				<CardContent class="p-3 pt-0 sm:p-6 sm:pt-0">
+					{#if data.weightChartData.length === 0}
+						<p class="text-muted-foreground text-xs sm:text-sm">
+							No data to display yet. Add your first weight entry!
+						</p>
+					{:else}
+						<div class="h-[200px] sm:h-[300px]">
+							<WeightChart data={data.weightChartData} />
+						</div>
+					{/if}
+				</CardContent>
+			</Card>
+
+			<div class="grid gap-4 sm:gap-6 md:grid-cols-2">
+				<WeightEntryForm error={form?.error} />
+				<WeightHistoryList entries={data.weightHistory} />
+			</div>
+		</Tabs.Content>
+
+		<!-- Workouts Tab -->
+		<Tabs.Content value="workouts" class="space-y-4 mt-4 sm:space-y-6 sm:mt-6">
+			<div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+				<StatCard title="Total" value={data.workoutStats.totalWorkouts} subtitle="sessions">
+					{#snippet icon()}
+						<Dumbbell class="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+					{/snippet}
+				</StatCard>
+				<StatCard
+					title="Time"
+					value={formatTotalDuration(data.workoutStats.totalDuration)}
+					subtitle="total"
+				>
+					{#snippet icon()}
+						<Clock class="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+					{/snippet}
+				</StatCard>
+				<StatCard
+					title="Average"
+					value={data.workoutStats.averageDuration > 0
+						? formatDuration(Math.round(data.workoutStats.averageDuration))
+						: '--'}
+					subtitle="per session"
+				>
+					{#snippet icon()}
+						<Target class="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+					{/snippet}
+				</StatCard>
+				<StatCard
+					title="Streak"
+					value={data.workoutStats.currentStreak}
+					subtitle={data.workoutStats.currentStreak === 1 ? 'day' : 'days'}
+				>
+					{#snippet icon()}
+						<Flame class="h-3 w-3 sm:h-4 sm:w-4 text-orange-500" />
+					{/snippet}
+				</StatCard>
+			</div>
+
+			{#if data.workoutStats.lastWorkoutDate}
+				<Card class="border-none shadow-none bg-card/50">
+					<CardHeader class="p-3 pb-2 sm:p-6 sm:pb-3">
+						<CardTitle class="text-sm sm:text-base">Last Workout</CardTitle>
+					</CardHeader>
+					<CardContent class="p-3 pt-0 sm:p-6 sm:pt-0">
+						<p class="text-base sm:text-lg">
+							{formatDate(data.workoutStats.lastWorkoutDate)}
+						</p>
+					</CardContent>
+				</Card>
+			{/if}
+
+			<WorkoutHistoryList workouts={data.recentWorkouts} />
+		</Tabs.Content>
+
+		<!-- Strength Tab -->
+		<Tabs.Content value="strength" class="space-y-4 mt-4 sm:space-y-6 sm:mt-6">
+			<div class="grid grid-cols-3 gap-3 sm:gap-4">
+				<StatCard title="PRs" value={data.personalRecords.length} subtitle="records">
+					{#snippet icon()}
+						<Trophy class="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
+					{/snippet}
+				</StatCard>
+				{#if data.personalRecords.length > 0}
+					{@const topPR = data.personalRecords.reduce((max, pr) =>
+						pr.oneRepMax > max.oneRepMax ? pr : max
+					)}
+					<Card class="border-none shadow-none bg-card/50">
+						<CardHeader class="flex flex-row items-center justify-between p-3 pb-1 sm:p-6 sm:pb-2">
+							<CardTitle class="text-xs font-medium sm:text-sm">Best</CardTitle>
+							<Dumbbell class="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+						</CardHeader>
+						<CardContent class="p-3 pt-0 sm:p-6 sm:pt-0">
+							<div class="text-xl font-bold sm:text-2xl">
+								{Math.round(topPR.oneRepMax)}<span class="text-sm sm:text-base">kg</span>
+							</div>
+							<p class="text-[10px] text-muted-foreground truncate sm:text-xs">
+								{topPR.exercise.name}
+							</p>
+						</CardContent>
+					</Card>
+
+					{@const muscleGroups = [
+						...new Set(data.personalRecords.map((pr) => pr.exercise.muscleGroup))
+					]}
+					<StatCard title="Groups" value={muscleGroups.length} subtitle="muscles">
+						{#snippet icon()}
+							<Target class="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+						{/snippet}
+					</StatCard>
 				{/if}
-			</CardContent>
-		</Card>
-	</div>
+			</div>
+
+			<PersonalRecordsList records={data.personalRecords} />
+		</Tabs.Content>
+	</Tabs.Root>
 </div>

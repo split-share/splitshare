@@ -33,10 +33,10 @@
 </script>
 
 {#if chartData.length > 0}
-	<Chart.Container config={chartConfig} class="aspect-auto h-[300px] w-full">
+	<Chart.Container config={chartConfig} class="aspect-auto h-full w-full">
 		<LineChart
-			points={{ r: 4 }}
-			labels={{ offset: 12 }}
+			points={{ r: 3 }}
+			labels={{ offset: 8 }}
 			data={chartData}
 			x="date"
 			xScale={scaleUtc().nice(timeDay)}
@@ -56,12 +56,12 @@
 					format: (v: Date) => v.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 				},
 				yAxis: {
-					format: (v: number) => `${v.toFixed(1)} kg`
+					format: (v: number) => `${v.toFixed(0)}kg`
 				},
 				highlight: {
 					points: {
 						motion: 'none',
-						r: 6
+						r: 5
 					}
 				}
 			}}
@@ -70,7 +70,7 @@
 				<Chart.Tooltip
 					labelFormatter={(v: Date) => {
 						return v.toLocaleDateString('en-US', {
-							month: 'long',
+							month: 'short',
 							day: 'numeric',
 							year: 'numeric'
 						});
@@ -81,7 +81,7 @@
 		</LineChart>
 	</Chart.Container>
 {:else}
-	<div class="flex h-[300px] w-full items-center justify-center text-muted-foreground">
+	<div class="flex h-full w-full items-center justify-center text-muted-foreground text-sm">
 		No data available
 	</div>
 {/if}
