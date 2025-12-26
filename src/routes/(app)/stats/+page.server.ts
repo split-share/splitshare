@@ -6,16 +6,31 @@ import type { PageServerLoad, Actions } from './$types';
 export const load: PageServerLoad = async (event) => {
 	const userId = event.locals.user!.id;
 
-	const [stats, history, chartData] = await Promise.all([
+	const [
+		weightStats,
+		weightHistory,
+		weightChartData,
+		workoutStats,
+		personalRecords,
+		recentWorkouts
+	] = await Promise.all([
 		container.getWeightStats.execute(userId),
 		container.getWeightHistory.execute(userId, 50),
-		container.getWeightChartData.execute(userId, 90)
+		container.getWeightChartData.execute(userId, 90),
+		container.getUserStats.execute(userId),
+		container.getPersonalRecords.execute(userId),
+		container.getWorkoutHistory.execute(userId, 5)
 	]);
 
 	return {
-		stats,
-		history,
-		chartData
+		// Weight tracking data
+		weightStats,
+		weightHistory,
+		weightChartData,
+		// Workout stats
+		workoutStats,
+		personalRecords,
+		recentWorkouts
 	};
 };
 
