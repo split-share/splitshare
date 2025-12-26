@@ -11,7 +11,7 @@ export class Exercise {
 		public muscleGroup: string,
 		public equipmentType: string,
 		public imageUrl: string | null,
-		public videoUrl: string | null,
+		public gifUrl: string | null,
 		public readonly createdAt: Date,
 		public updatedAt: Date
 	) {}
@@ -26,7 +26,7 @@ export class Exercise {
 		muscleGroup?: string;
 		equipmentType?: string;
 		imageUrl?: string | null;
-		videoUrl?: string | null;
+		gifUrl?: string | null;
 	}): void {
 		if (data.name !== undefined) this.name = data.name;
 		if (data.description !== undefined) this.description = data.description;
@@ -34,7 +34,7 @@ export class Exercise {
 		if (data.muscleGroup !== undefined) this.muscleGroup = data.muscleGroup;
 		if (data.equipmentType !== undefined) this.equipmentType = data.equipmentType;
 		if (data.imageUrl !== undefined) this.imageUrl = data.imageUrl;
-		if (data.videoUrl !== undefined) this.videoUrl = data.videoUrl;
+		if (data.gifUrl !== undefined) this.gifUrl = data.gifUrl;
 		this.updatedAt = new Date();
 	}
 }

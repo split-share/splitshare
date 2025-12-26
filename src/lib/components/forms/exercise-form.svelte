@@ -29,7 +29,6 @@
 	let muscleGroup = $state(MUSCLE_GROUPS[0]);
 	let equipmentType = $state(EQUIPMENT_TYPES[0]);
 	let imageUrl = $state('');
-	let videoUrl = $state('');
 	let isSubmitting = $state(false);
 
 	async function handleSubmit() {
@@ -43,8 +42,7 @@
 				difficulty,
 				muscleGroup,
 				equipmentType,
-				imageUrl: imageUrl || undefined,
-				videoUrl: videoUrl || undefined
+				imageUrl: imageUrl || undefined
 			};
 
 			await onSubmit(payload);
@@ -56,7 +54,6 @@
 			muscleGroup = MUSCLE_GROUPS[0];
 			equipmentType = EQUIPMENT_TYPES[0];
 			imageUrl = '';
-			videoUrl = '';
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to create exercise';
 		} finally {
@@ -124,12 +121,6 @@
 					<option value={equipment}>{equipment}</option>
 				{/each}
 			</select>
-		</FieldRoot>
-
-		<FieldRoot>
-			<FieldLabel>Video URL (YouTube)</FieldLabel>
-			<Input bind:value={videoUrl} type="url" placeholder="https://www.youtube.com/watch?v=..." />
-			<FieldDescription>Link to a YouTube demonstration video</FieldDescription>
 		</FieldRoot>
 
 		<FieldRoot>

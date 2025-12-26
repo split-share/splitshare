@@ -31,7 +31,6 @@ describe('StartWorkoutSessionUseCase', () => {
 			difficulty: 'intermediate' as Difficulty,
 			duration: null,
 			imageUrl: null,
-			videoUrl: null,
 			tags: null,
 			createdAt: now,
 			updatedAt: now
@@ -70,7 +69,7 @@ describe('StartWorkoutSessionUseCase', () => {
 										muscleGroup: 'chest',
 										equipmentType: 'barbell',
 										imageUrl: null,
-										videoUrl: null
+										gifUrl: null
 									}
 								}
 							])

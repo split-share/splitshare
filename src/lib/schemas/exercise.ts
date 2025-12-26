@@ -43,14 +43,8 @@ export const createExerciseSchema = z.object({
 	}),
 	// Image URL (external URL, e.g., from Unsplash, Pexels, or Supabase Storage)
 	imageUrl: z.string().url('Invalid image URL').optional(),
-	// Video URL (YouTube URL, e.g., https://www.youtube.com/watch?v=VIDEO_ID)
-	videoUrl: z
-		.string()
-		.url('Invalid video URL')
-		.refine((url) => url.includes('youtube.com') || url.includes('youtu.be'), {
-			message: 'Video must be a YouTube URL'
-		})
-		.optional()
+	// GIF URL for exercise demonstration
+	gifUrl: z.string().url('Invalid GIF URL').optional()
 });
 
 export const updateExerciseSchema = createExerciseSchema.partial();

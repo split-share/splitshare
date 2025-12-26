@@ -43,7 +43,7 @@ describe('CompleteSetUseCase', () => {
 				muscleGroup: 'chest',
 				equipmentType: 'barbell',
 				imageUrl: null,
-				videoUrl: null
+				gifUrl: null
 			}
 		}));
 

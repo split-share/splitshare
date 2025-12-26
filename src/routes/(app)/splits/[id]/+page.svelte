@@ -13,7 +13,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Heart, MessageSquare, Trash2, Edit2, Share2, Play } from 'lucide-svelte';
-	import YouTubeEmbed from '$lib/components/youtube-embed.svelte';
+	import ExerciseGif from '$lib/components/exercise-gif.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -145,12 +145,8 @@
 		</div>
 	{/if}
 
-	<!-- Image or Video -->
-	{#if split.split.videoUrl}
-		<div class="mb-6">
-			<YouTubeEmbed url={split.split.videoUrl} title={split.split.title} />
-		</div>
-	{:else if split.split.imageUrl}
+	<!-- Split Image -->
+	{#if split.split.imageUrl}
 		<div class="mb-6 rounded-lg overflow-hidden border">
 			<img src={split.split.imageUrl} alt={split.split.title} class="w-full h-64 object-cover" />
 		</div>
@@ -252,43 +248,12 @@
 													</div>
 												</div>
 
-												{#if dayExercise.exercise.imageUrl}
-													<div class="rounded overflow-hidden border w-24 h-24 shrink-0">
-														<img
-															src={dayExercise.exercise.imageUrl}
-															alt={dayExercise.exercise.name}
-															class="w-full h-full object-cover"
-														/>
-													</div>
-												{/if}
+												<ExerciseGif
+													exerciseName={dayExercise.exercise.name}
+													gifUrl={dayExercise.exercise.gifUrl}
+													class="w-24 h-24 shrink-0"
+												/>
 											</div>
-
-											{#if dayExercise.exercise.videoUrl}
-												<div class="mt-3 pt-3 border-t">
-													<a
-														href={dayExercise.exercise.videoUrl}
-														target="_blank"
-														rel="noopener noreferrer"
-														class="text-sm text-primary hover:underline flex items-center gap-1"
-													>
-														<svg
-															xmlns="http://www.w3.org/2000/svg"
-															width="16"
-															height="16"
-															viewBox="0 0 24 24"
-															fill="none"
-															stroke="currentColor"
-															stroke-width="2"
-															stroke-linecap="round"
-															stroke-linejoin="round"
-														>
-															<path d="m22 2-7 20-4-9-9-4Z" />
-															<path d="M22 2 11 13" />
-														</svg>
-														Watch video demonstration
-													</a>
-												</div>
-											{/if}
 										</div>
 									{/each}
 								</div>

@@ -12,7 +12,6 @@ export class Split {
 		public difficulty: 'beginner' | 'intermediate' | 'advanced',
 		public duration: number | null,
 		public imageUrl: string | null,
-		public videoUrl: string | null,
 		public tags: string[] | null,
 		public readonly createdAt: Date,
 		public updatedAt: Date
@@ -28,7 +27,6 @@ export class Split {
 		difficulty?: 'beginner' | 'intermediate' | 'advanced';
 		duration?: number | null;
 		imageUrl?: string | null;
-		videoUrl?: string | null;
 		tags?: string[] | null;
 	}): void {
 		if (data.title !== undefined) this.title = data.title;
@@ -37,7 +35,6 @@ export class Split {
 		if (data.difficulty !== undefined) this.difficulty = data.difficulty;
 		if (data.duration !== undefined) this.duration = data.duration;
 		if (data.imageUrl !== undefined) this.imageUrl = data.imageUrl;
-		if (data.videoUrl !== undefined) this.videoUrl = data.videoUrl;
 		if (data.tags !== undefined) this.tags = data.tags;
 		this.updatedAt = new Date();
 	}

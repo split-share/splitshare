@@ -12,7 +12,7 @@ export interface CreateExerciseDto {
 	muscleGroup: string;
 	equipmentType: string;
 	imageUrl?: string | null;
-	videoUrl?: string | null;
+	gifUrl?: string | null;
 }
 
 export interface UpdateExerciseDto {
@@ -22,7 +22,7 @@ export interface UpdateExerciseDto {
 	muscleGroup?: string;
 	equipmentType?: string;
 	imageUrl?: string | null;
-	videoUrl?: string | null;
+	gifUrl?: string | null;
 }
 
 export interface ExerciseFiltersDto {

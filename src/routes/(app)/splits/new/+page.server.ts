@@ -23,7 +23,7 @@ export const load: PageServerLoad = async (event) => {
 			equipmentType: exercise.equipmentType,
 			difficulty: exercise.difficulty,
 			imageUrl: exercise.imageUrl,
-			videoUrl: exercise.videoUrl,
+			gifUrl: exercise.gifUrl,
 			createdAt: exercise.createdAt,
 			updatedAt: exercise.updatedAt
 		}))
@@ -67,7 +67,6 @@ export const actions: Actions = {
 				isPublic: validatedData.isPublic,
 				tags: validatedData.tags,
 				imageUrl: validatedData.imageUrl,
-				videoUrl: validatedData.videoUrl,
 				days: validatedData.days
 			});
 

@@ -207,7 +207,7 @@ export class DrizzleWorkoutSessionRepositoryAdapter implements IWorkoutSessionRe
 						equipmentType: item.exercise.equipmentType,
 						difficulty: item.exercise.difficulty,
 						imageUrl: item.exercise.imageUrl,
-						videoUrl: item.exercise.videoUrl
+						gifUrl: item.exercise.gifUrl
 					}
 				: null
 		}));

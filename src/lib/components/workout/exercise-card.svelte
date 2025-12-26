@@ -5,7 +5,8 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
-	import { Check, Dumbbell } from 'lucide-svelte';
+	import { Check } from 'lucide-svelte';
+	import ExerciseGif from '$lib/components/exercise-gif.svelte';
 	import type { DayExerciseDto } from '../../../core/domain/workout/workout-session.dto';
 	import type { CompletedSetData } from '../../../core/domain/workout/workout-session.entity';
 
@@ -45,33 +46,26 @@
 <Card class="border-2">
 	<CardHeader class="pb-4">
 		<div class="flex items-start justify-between gap-4">
-			<div class="flex items-start gap-3">
-				{#if exercise.exercise?.imageUrl}
-					<img
-						src={exercise.exercise.imageUrl}
-						alt={exercise.exerciseName}
-						class="w-16 h-16 rounded-lg object-cover"
-					/>
-				{:else}
-					<div
-						class="w-16 h-16 rounded-lg bg-muted flex items-center justify-center text-muted-foreground"
-					>
-						<Dumbbell class="h-8 w-8" />
+			<div>
+				<CardTitle class="text-xl">{exercise.exerciseName}</CardTitle>
+				{#if exercise.exercise}
+					<div class="flex flex-wrap gap-1 mt-1">
+						<Badge variant="outline" class="text-xs">{exercise.exercise.muscleGroup}</Badge>
+						<Badge variant="outline" class="text-xs">{exercise.exercise.equipmentType}</Badge>
 					</div>
 				{/if}
-				<div>
-					<CardTitle class="text-xl">{exercise.exerciseName}</CardTitle>
-					{#if exercise.exercise}
-						<div class="flex flex-wrap gap-1 mt-1">
-							<Badge variant="outline" class="text-xs">{exercise.exercise.muscleGroup}</Badge>
-							<Badge variant="outline" class="text-xs">{exercise.exercise.equipmentType}</Badge>
-						</div>
-					{/if}
-				</div>
 			</div>
 			<Badge variant="secondary" class="text-lg px-3 py-1">
 				Set {currentSet + 1}/{totalSets}
 			</Badge>
+		</div>
+		<!-- Exercise GIF demonstration -->
+		<div class="mt-4 flex justify-center">
+			<ExerciseGif
+				exerciseName={exercise.exerciseName}
+				gifUrl={exercise.exercise?.gifUrl}
+				class="w-48 h-48 md:w-64 md:h-64"
+			/>
 		</div>
 	</CardHeader>
 

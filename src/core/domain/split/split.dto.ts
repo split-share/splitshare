@@ -14,7 +14,6 @@ export interface SplitDto {
 	difficulty: Difficulty;
 	duration: number | null;
 	imageUrl: string | null;
-	videoUrl: string | null;
 	tags: string[] | null;
 	createdAt: Date;
 	updatedAt: Date;
@@ -29,7 +28,6 @@ export interface CreateSplitDto {
 	difficulty: Difficulty;
 	duration?: number | null;
 	imageUrl?: string | null;
-	videoUrl?: string | null;
 	tags?: string[] | null;
 	days: CreateSplitDayDto[];
 }
@@ -59,7 +57,6 @@ export interface UpdateSplitDto {
 	difficulty?: Difficulty;
 	duration?: number | null;
 	imageUrl?: string | null;
-	videoUrl?: string | null;
 	tags?: string[] | null;
 }
 
@@ -83,7 +80,6 @@ export interface SplitWithDetailsDto {
 		difficulty: Difficulty;
 		duration: number | null;
 		imageUrl: string | null;
-		videoUrl: string | null;
 		tags: string[] | null;
 		createdAt: Date;
 		updatedAt: Date;
@@ -124,7 +120,7 @@ export interface DayExerciseWithDetailsDto {
 		muscleGroup: string;
 		equipmentType: string;
 		imageUrl: string | null;
-		videoUrl: string | null;
+		gifUrl: string | null;
 	};
 	createdAt: Date;
 }

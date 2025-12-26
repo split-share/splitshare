@@ -48,7 +48,7 @@ export const actions: Actions = {
 			muscleGroup: validatedData.muscleGroup,
 			equipmentType: validatedData.equipmentType,
 			imageUrl: validatedData.imageUrl,
-			videoUrl: validatedData.videoUrl
+			gifUrl: validatedData.gifUrl
 		});
 
 		// Check if this is an AJAX request (from modal) or regular form submission

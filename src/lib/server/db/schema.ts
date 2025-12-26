@@ -66,7 +66,7 @@ export const exercises = pgTable('exercises', {
 	muscleGroup: text('muscle_group').notNull(),
 	equipmentType: text('equipment_type').notNull(),
 	imageUrl: text('image_url'), // Thumbnail image
-	videoUrl: text('video_url'), // YouTube or demonstration video URL
+	gifUrl: text('gif_url'), // Animated GIF demonstration
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
@@ -84,7 +84,6 @@ export const splits = pgTable('splits', {
 	difficulty: text('difficulty').notNull().default('intermediate'), // beginner, intermediate, advanced
 	duration: integer('duration'), // estimated duration in minutes
 	imageUrl: text('image_url'),
-	videoUrl: text('video_url'), // optional YouTube or video URL
 	tags: text('tags').array(), // workout type tags
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow()
