@@ -42,48 +42,55 @@
 	}
 </script>
 
-<div class="container mx-auto px-4 py-8 max-w-6xl">
+<div class="container mx-auto px-4 py-4 sm:py-8 max-w-6xl">
 	<!-- Header -->
-	<div class="mb-8">
-		<Button href="/forum/{data.topic.category.slug}" variant="ghost" class="mb-2">
-			<ArrowLeft class="h-4 w-4 mr-2" />
-			Back to {data.topic.category.name}
+	<div class="mb-6 sm:mb-8">
+		<Button
+			href="/forum/{data.topic.category.slug}"
+			variant="ghost"
+			class="mb-2 -ml-2 h-9 px-2 sm:h-10 sm:px-4"
+		>
+			<ArrowLeft class="h-4 w-4 mr-1 sm:mr-2" />
+			<span class="text-sm">Back</span>
 		</Button>
 
-		<div class="flex items-start justify-between gap-4">
-			<div class="flex-1">
-				<div class="flex items-center gap-3 mb-2">
-					<h1 class="text-4xl font-bold">{data.topic.title}</h1>
-					{#if data.topic.isPinned}
-						<Pin class="h-6 w-6 text-primary" />
-					{/if}
-					{#if data.topic.isLocked}
-						<Lock class="h-6 w-6 text-muted-foreground" />
-					{/if}
+		<div class="space-y-3 sm:space-y-0 sm:flex sm:items-start sm:justify-between sm:gap-4">
+			<div class="flex-1 min-w-0">
+				<div class="flex items-start gap-2 mb-2">
+					<h1 class="text-xl sm:text-3xl md:text-4xl font-bold">{data.topic.title}</h1>
+					<div class="flex items-center gap-1 flex-shrink-0 mt-1">
+						{#if data.topic.isPinned}
+							<Pin class="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primary" />
+						{/if}
+						{#if data.topic.isLocked}
+							<Lock class="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-muted-foreground" />
+						{/if}
+					</div>
 				</div>
 
-				<div class="flex items-center gap-4 text-sm text-muted-foreground">
+				<div
+					class="flex flex-wrap items-center gap-x-2 gap-y-1 sm:gap-x-4 text-xs sm:text-sm text-muted-foreground"
+				>
 					<span>by {data.topic.author.name}</span>
-					<span>•</span>
+					<span class="hidden sm:inline">•</span>
 					<span>{formatDate(data.topic.createdAt)}</span>
 					<span>•</span>
-					<div class="flex items-center gap-1.5">
-						<Eye class="h-4 w-4" />
-						<span>{data.topic.viewCount} views</span>
+					<div class="flex items-center gap-1">
+						<Eye class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+						<span>{data.topic.viewCount}</span>
 					</div>
-					<span>•</span>
-					<div class="flex items-center gap-1.5">
-						<MessageSquare class="h-4 w-4" />
-						<span>{data.topic.postCount} replies</span>
+					<div class="flex items-center gap-1">
+						<MessageSquare class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+						<span>{data.topic.postCount}</span>
 					</div>
 				</div>
 			</div>
 
 			{#if isAuthor}
-				<form method="POST" action="?/deleteTopic" use:enhance>
-					<Button type="submit" variant="destructive" size="sm">
+				<form method="POST" action="?/deleteTopic" use:enhance class="w-full sm:w-auto">
+					<Button type="submit" variant="destructive" size="sm" class="w-full sm:w-auto">
 						<Trash2 class="h-4 w-4 mr-2" />
-						Delete Topic
+						Delete
 					</Button>
 				</form>
 			{/if}
@@ -91,30 +98,30 @@
 	</div>
 
 	<!-- Original Post -->
-	<Card class="mb-8 border-none shadow-none bg-card/50">
-		<CardContent class="pt-6">
-			<div class="flex items-start gap-4">
+	<Card class="mb-6 sm:mb-8 border-none shadow-none bg-card/50">
+		<CardContent class="p-4 sm:pt-6">
+			<div class="flex items-start gap-3 sm:gap-4">
 				{#if data.topic.author.image}
 					<img
 						src={data.topic.author.image}
 						alt={data.topic.author.name}
-						class="h-12 w-12 rounded-full flex-shrink-0"
+						class="h-10 w-10 sm:h-12 sm:w-12 rounded-full flex-shrink-0"
 					/>
 				{:else}
 					<div
-						class="h-12 w-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold flex-shrink-0"
+						class="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold flex-shrink-0 text-sm sm:text-base"
 					>
 						{data.topic.author.name.charAt(0).toUpperCase()}
 					</div>
 				{/if}
 
-				<div class="flex-1">
-					<div class="mb-4">
-						<p class="font-semibold text-lg">{data.topic.author.name}</p>
+				<div class="flex-1 min-w-0">
+					<div class="mb-3 sm:mb-4">
+						<p class="font-semibold text-base sm:text-lg">{data.topic.author.name}</p>
 						<p class="text-xs text-muted-foreground">{formatDate(data.topic.createdAt)}</p>
 					</div>
 
-					<div class="prose prose-sm max-w-none">
+					<div class="prose prose-sm max-w-none break-words">
 						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 						{@html data.topic.content}
 					</div>
@@ -125,31 +132,31 @@
 
 	<!-- Replies -->
 	{#if data.posts.length > 0}
-		<div class="mb-8 space-y-4">
-			<h2 class="text-2xl font-bold">Replies ({data.posts.length})</h2>
+		<div class="mb-6 sm:mb-8 space-y-3 sm:space-y-4">
+			<h2 class="text-xl sm:text-2xl font-bold">Replies ({data.posts.length})</h2>
 
 			{#each data.posts as post (post.id)}
 				<Card class="border-none shadow-none bg-card/50">
-					<CardContent class="pt-6">
-						<div class="flex items-start gap-4">
+					<CardContent class="p-4 sm:pt-6">
+						<div class="flex items-start gap-3 sm:gap-4">
 							{#if post.author.image}
 								<img
 									src={post.author.image}
 									alt={post.author.name}
-									class="h-10 w-10 rounded-full flex-shrink-0"
+									class="h-8 w-8 sm:h-10 sm:w-10 rounded-full flex-shrink-0"
 								/>
 							{:else}
 								<div
-									class="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold flex-shrink-0"
+									class="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold flex-shrink-0 text-sm"
 								>
 									{post.author.name.charAt(0).toUpperCase()}
 								</div>
 							{/if}
 
-							<div class="flex-1 space-y-2">
-								<div class="flex items-center justify-between">
+							<div class="flex-1 min-w-0 space-y-2">
+								<div class="flex items-start justify-between gap-2">
 									<div>
-										<p class="font-semibold">{post.author.name}</p>
+										<p class="font-semibold text-sm sm:text-base">{post.author.name}</p>
 										<p class="text-xs text-muted-foreground">{formatDate(post.createdAt)}</p>
 										{#if post.updatedAt.getTime() !== post.createdAt.getTime()}
 											<p class="text-xs text-muted-foreground">(edited)</p>
@@ -157,17 +164,23 @@
 									</div>
 
 									{#if data.user?.id === post.author.id}
-										<div class="flex gap-2">
+										<div class="flex gap-1 sm:gap-2 flex-shrink-0">
 											<Button
 												variant="ghost"
-												size="sm"
+												size="icon"
+												class="h-8 w-8 sm:h-9 sm:w-9"
 												onclick={() => startEditing(post.id, post.content)}
 											>
 												<Edit2 class="h-4 w-4" />
 											</Button>
 											<form method="POST" action="?/deletePost" use:enhance>
 												<input type="hidden" name="postId" value={post.id} />
-												<Button type="submit" variant="ghost" size="sm">
+												<Button
+													type="submit"
+													variant="ghost"
+													size="icon"
+													class="h-8 w-8 sm:h-9 sm:w-9"
+												>
 													<Trash2 class="h-4 w-4" />
 												</Button>
 											</form>
@@ -205,7 +218,7 @@
 										</div>
 									</form>
 								{:else}
-									<div class="prose prose-sm max-w-none">
+									<div class="prose prose-sm max-w-none break-words">
 										<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 										{@html post.content}
 									</div>

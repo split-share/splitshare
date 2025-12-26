@@ -124,7 +124,7 @@
 	}
 </script>
 
-<div class="container mx-auto px-4 py-8 max-w-2xl">
+<div class="container mx-auto px-4 py-4 sm:py-8 max-w-2xl">
 	{#if form?.error}
 		<div
 			class="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg flex items-center gap-3"
@@ -258,16 +258,16 @@
 		</div>
 	{:else}
 		<!-- Active Workout View -->
-		<div class="space-y-6">
+		<div class="space-y-4 sm:space-y-6">
 			<!-- Header -->
-			<div class="flex items-center justify-between">
-				<div>
-					<h1 class="text-2xl font-bold">{data.activeSession?.split.title}</h1>
-					<p class="text-muted-foreground">{data.activeSession?.day.name}</p>
+			<div class="flex items-start justify-between gap-2">
+				<div class="min-w-0 flex-1">
+					<h1 class="text-xl sm:text-2xl font-bold truncate">{data.activeSession?.split.title}</h1>
+					<p class="text-sm sm:text-base text-muted-foreground">{data.activeSession?.day.name}</p>
 				</div>
 				<form method="POST" action="?/abandon" use:enhance>
 					<input type="hidden" name="sessionId" value={session?.id} />
-					<Button type="submit" variant="ghost" size="icon">
+					<Button type="submit" variant="ghost" size="icon" class="h-10 w-10 flex-shrink-0">
 						<X class="h-5 w-5" />
 					</Button>
 				</form>
@@ -285,8 +285,8 @@
 
 			<!-- Timer -->
 			<Card>
-				<CardContent class="py-6">
-					<div class="flex items-center justify-between">
+				<CardContent class="py-4 sm:py-6">
+					<div class="flex items-center justify-between gap-4">
 						<WorkoutTimer
 							mode="count-up"
 							initialSeconds={session!.exerciseElapsedSeconds}
@@ -307,7 +307,12 @@
 									}}
 								>
 									<input type="hidden" name="sessionId" value={session?.id} />
-									<Button type="submit" size="icon" variant="outline">
+									<Button
+										type="submit"
+										size="icon"
+										variant="outline"
+										class="h-11 w-11 sm:h-10 sm:w-10"
+									>
 										<Play class="h-5 w-5" />
 									</Button>
 								</form>
@@ -324,7 +329,12 @@
 								>
 									<input type="hidden" name="sessionId" value={session?.id} />
 									<input type="hidden" name="exerciseElapsedSeconds" value={timerSeconds} />
-									<Button type="submit" size="icon" variant="outline">
+									<Button
+										type="submit"
+										size="icon"
+										variant="outline"
+										class="h-11 w-11 sm:h-10 sm:w-10"
+									>
 										<Pause class="h-5 w-5" />
 									</Button>
 								</form>
@@ -353,11 +363,15 @@
 					<h3 class="text-sm font-medium text-muted-foreground">Up Next</h3>
 					<div class="space-y-2">
 						{#each exercises.slice(session!.currentExerciseIndex + 1, session!.currentExerciseIndex + 3) as exercise, idx (exercise.id)}
-							<div class="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-								<Badge variant="outline">{session!.currentExerciseIndex + 2 + idx}</Badge>
-								<span class="font-medium">{exercise.exerciseName}</span>
-								<span class="text-sm text-muted-foreground ml-auto">
-									{exercise.sets} x {exercise.reps}
+							<div class="flex items-center gap-2 sm:gap-3 p-3 bg-muted/50 rounded-lg">
+								<Badge variant="outline" class="flex-shrink-0"
+									>{session!.currentExerciseIndex + 2 + idx}</Badge
+								>
+								<span class="font-medium text-sm sm:text-base truncate flex-1"
+									>{exercise.exerciseName}</span
+								>
+								<span class="text-xs sm:text-sm text-muted-foreground flex-shrink-0">
+									{exercise.sets}×{exercise.reps}
 								</span>
 							</div>
 						{/each}

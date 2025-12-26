@@ -36,57 +36,67 @@
 	}
 </script>
 
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-4 sm:py-8">
 	<!-- Header Section -->
-	<div class="mb-8">
-		<h1 class="text-4xl font-bold">Discover Splits</h1>
-		<p class="mt-2 text-muted-foreground">Explore workout routines shared by the community</p>
+	<div class="mb-4 sm:mb-8">
+		<h1 class="text-2xl sm:text-4xl font-bold">Discover Splits</h1>
+		<p class="mt-1 sm:mt-2 text-sm sm:text-base text-muted-foreground">
+			Explore workout routines shared by the community
+		</p>
 	</div>
 
 	<!-- Filter Section -->
-	<div class="mb-6 flex flex-wrap items-center gap-3">
-		<span class="text-sm font-medium text-muted-foreground">Sort by:</span>
-		<div class="flex gap-2">
-			<Button
-				variant={sortBy === 'popular' ? 'default' : 'ghost'}
-				size="sm"
-				onclick={() => setSortBy('popular')}
-				class="gap-2"
-			>
-				<TrendingUp class="h-4 w-4" />
-				Popular
-			</Button>
-			<Button
-				variant={sortBy === 'recent' ? 'default' : 'ghost'}
-				size="sm"
-				onclick={() => setSortBy('recent')}
-				class="gap-2"
-			>
-				<Clock class="h-4 w-4" />
-				Recent
-			</Button>
+	<div class="mb-4 sm:mb-6 space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
+		<!-- Sort controls -->
+		<div class="flex items-center gap-2 sm:gap-3">
+			<span class="text-xs sm:text-sm font-medium text-muted-foreground">Sort:</span>
+			<div class="flex gap-1 sm:gap-2">
+				<Button
+					variant={sortBy === 'popular' ? 'default' : 'ghost'}
+					size="sm"
+					onclick={() => setSortBy('popular')}
+					class="gap-1 sm:gap-2 h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
+				>
+					<TrendingUp class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+					Popular
+				</Button>
+				<Button
+					variant={sortBy === 'recent' ? 'default' : 'ghost'}
+					size="sm"
+					onclick={() => setSortBy('recent')}
+					class="gap-1 sm:gap-2 h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
+				>
+					<Clock class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+					Recent
+				</Button>
+			</div>
 		</div>
 
-		<div class="h-6 w-px bg-border"></div>
+		<div class="hidden sm:block h-6 w-px bg-border"></div>
 
-		<span class="text-sm font-medium text-muted-foreground">Difficulty:</span>
-		<div class="flex gap-2 flex-wrap">
-			<Button
-				variant={!data.appliedFilter ? 'default' : 'ghost'}
-				size="sm"
-				onclick={() => filterByDifficulty(null)}
-			>
-				All
-			</Button>
-			{#each DIFFICULTY_LEVELS as difficulty (difficulty)}
+		<!-- Difficulty filter -->
+		<div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+			<span class="text-xs sm:text-sm font-medium text-muted-foreground">Difficulty:</span>
+			<div class="flex gap-1 sm:gap-2 flex-wrap">
 				<Button
-					variant={data.appliedFilter === difficulty ? 'default' : 'ghost'}
+					variant={!data.appliedFilter ? 'default' : 'ghost'}
 					size="sm"
-					onclick={() => filterByDifficulty(difficulty)}
+					onclick={() => filterByDifficulty(null)}
+					class="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
 				>
-					{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+					All
 				</Button>
-			{/each}
+				{#each DIFFICULTY_LEVELS as difficulty (difficulty)}
+					<Button
+						variant={data.appliedFilter === difficulty ? 'default' : 'ghost'}
+						size="sm"
+						onclick={() => filterByDifficulty(difficulty)}
+						class="h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
+					>
+						{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+					</Button>
+				{/each}
+			</div>
 		</div>
 	</div>
 

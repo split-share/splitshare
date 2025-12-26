@@ -89,10 +89,10 @@
 	}
 </script>
 
-<div class="container mx-auto p-6 max-w-4xl">
-	<div class="mb-6">
-		<h1 class="text-3xl font-bold">Log Workout</h1>
-		<p class="text-muted-foreground">Record your workout progress</p>
+<div class="container mx-auto px-4 py-4 sm:p-6 max-w-4xl">
+	<div class="mb-4 sm:mb-6">
+		<h1 class="text-2xl sm:text-3xl font-bold">Log Workout</h1>
+		<p class="text-sm sm:text-base text-muted-foreground">Record your workout progress</p>
 	</div>
 
 	<form method="POST" action="?/log" use:enhance={handleSubmit}>
@@ -142,12 +142,16 @@
 					</div>
 				{/if}
 
-				<!-- Duration and Notes -->
-				<div class="grid grid-cols-2 gap-4">
-					<div class="space-y-2">
-						<Label for="duration">Duration (minutes)</Label>
-						<Input id="duration" type="number" bind:value={duration} placeholder="60" />
-					</div>
+				<!-- Duration -->
+				<div class="space-y-2">
+					<Label for="duration">Duration (minutes)</Label>
+					<Input
+						id="duration"
+						type="number"
+						bind:value={duration}
+						placeholder="60"
+						class="max-w-[200px]"
+					/>
 				</div>
 
 				<div class="space-y-2">
@@ -189,26 +193,37 @@
 								{/if}
 							</div>
 
-							<div class="grid grid-cols-3 gap-3">
-								<div class="space-y-2">
-									<Label>Sets</Label>
+							<div class="grid grid-cols-3 gap-2 sm:gap-3">
+								<div class="space-y-1.5 sm:space-y-2">
+									<Label class="text-xs sm:text-sm">Sets</Label>
 									<Input
 										type="number"
 										bind:value={exercise.sets}
 										placeholder="3"
 										min="1"
 										required
+										class="h-10 sm:h-9 text-sm"
 									/>
 								</div>
 
-								<div class="space-y-2">
-									<Label>Reps</Label>
-									<Input bind:value={exercise.reps} placeholder="10" required />
+								<div class="space-y-1.5 sm:space-y-2">
+									<Label class="text-xs sm:text-sm">Reps</Label>
+									<Input
+										bind:value={exercise.reps}
+										placeholder="10"
+										required
+										class="h-10 sm:h-9 text-sm"
+									/>
 								</div>
 
-								<div class="space-y-2">
-									<Label>Weight (kg)</Label>
-									<Input type="number" bind:value={exercise.weight} placeholder="50" />
+								<div class="space-y-1.5 sm:space-y-2">
+									<Label class="text-xs sm:text-sm">Weight</Label>
+									<Input
+										type="number"
+										bind:value={exercise.weight}
+										placeholder="kg"
+										class="h-10 sm:h-9 text-sm"
+									/>
 								</div>
 							</div>
 

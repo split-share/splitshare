@@ -66,14 +66,14 @@
 
 <div class="text-center">
 	<div
-		class="text-6xl font-mono font-bold tabular-nums transition-colors duration-300"
+		class="text-4xl sm:text-5xl md:text-6xl font-mono font-bold tabular-nums transition-colors duration-300"
 		class:text-red-500={isOverTarget}
 		class:text-green-500={mode === 'count-down' && seconds > 0}
 	>
 		{formatTime(seconds)}
 	</div>
 	{#if mode === 'count-up' && targetSeconds}
-		<p class="text-sm text-muted-foreground mt-2">
+		<p class="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
 			Target: {formatTime(targetSeconds)}
 		</p>
 	{/if}

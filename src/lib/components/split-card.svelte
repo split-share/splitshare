@@ -49,7 +49,7 @@
 			{#if showPlayButton}
 				<Button
 					size="icon"
-					class="absolute bottom-3 right-3 h-12 w-12 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+					class="absolute bottom-3 right-3 h-12 w-12 rounded-full shadow-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
 					onclick={handlePlayClick}
 				>
 					<Play class="h-6 w-6" />
