@@ -47,24 +47,31 @@
 	}
 </script>
 
-<div class="container mx-auto px-4 py-8 max-w-6xl">
+<div class="container mx-auto px-4 py-4 sm:py-8 max-w-6xl">
 	<!-- Header -->
-	<div class="mb-6">
-		<div class="flex items-start justify-between gap-4">
-			<div class="flex-1">
-				<div class="flex items-center gap-3 mb-2">
-					<h1 class="text-4xl font-bold">{split.split.title}</h1>
-					<Badge variant={split.split.isPublic ? 'default' : 'secondary'}>
+	<div class="mb-4 sm:mb-6">
+		<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+			<div class="flex-1 min-w-0">
+				<div class="flex items-start gap-2 sm:gap-3 mb-2">
+					<h1 class="text-2xl sm:text-4xl font-bold">{split.split.title}</h1>
+					<Badge
+						variant={split.split.isPublic ? 'default' : 'secondary'}
+						class="flex-shrink-0 mt-1"
+					>
 						{split.split.isPublic ? 'Public' : 'Private'}
 					</Badge>
 				</div>
 				{#if split.split.description}
-					<p class="text-lg text-muted-foreground mb-3">{split.split.description}</p>
+					<p class="text-sm sm:text-lg text-muted-foreground mb-2 sm:mb-3">
+						{split.split.description}
+					</p>
 				{/if}
-				<div class="flex items-center gap-4 text-sm text-muted-foreground">
+				<div
+					class="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground"
+				>
 					<span>By {split.author.name}</span>
 					<span>•</span>
-					<Badge variant="outline">{split.split.difficulty}</Badge>
+					<Badge variant="outline" class="text-xs">{split.split.difficulty}</Badge>
 					{#if split.split.duration}
 						<span>•</span>
 						<span>{split.split.duration} min</span>
@@ -73,12 +80,16 @@
 			</div>
 
 			{#if isOwner}
-				<div class="flex gap-2">
-					<Button variant="outline" href="/splits/{split.split.id}/edit">
+				<div class="flex gap-2 w-full sm:w-auto">
+					<Button
+						variant="outline"
+						href="/splits/{split.split.id}/edit"
+						class="flex-1 sm:flex-none"
+					>
 						<Edit2 class="h-4 w-4 mr-2" />
 						Edit
 					</Button>
-					<Button variant="destructive">
+					<Button variant="destructive" class="flex-1 sm:flex-none">
 						<Trash2 class="h-4 w-4 mr-2" />
 						Delete
 					</Button>
@@ -90,43 +101,43 @@
 		{#if split.split.tags && split.split.tags.length > 0}
 			<div class="mt-3 flex flex-wrap gap-2">
 				{#each split.split.tags as tag (tag)}
-					<Badge variant="secondary">{tag}</Badge>
+					<Badge variant="secondary" class="text-xs">{tag}</Badge>
 				{/each}
 			</div>
 		{/if}
 	</div>
 
 	<!-- Engagement Stats -->
-	<div class="grid grid-cols-3 gap-4 mb-6">
-		<Card>
-			<CardContent class="pt-6">
-				<div class="flex items-center gap-3">
-					<Heart class="h-5 w-5 text-muted-foreground" />
+	<div class="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+		<Card class="border-none shadow-none bg-card/50">
+			<CardContent class="p-3 sm:pt-6">
+				<div class="flex items-center gap-2 sm:gap-3">
+					<Heart class="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
 					<div>
-						<div class="text-2xl font-bold">{data.likes.length}</div>
-						<div class="text-xs text-muted-foreground">Likes</div>
+						<div class="text-xl sm:text-2xl font-bold">{data.likes.length}</div>
+						<div class="text-[10px] sm:text-xs text-muted-foreground">Likes</div>
 					</div>
 				</div>
 			</CardContent>
 		</Card>
-		<Card>
-			<CardContent class="pt-6">
-				<div class="flex items-center gap-3">
-					<MessageSquare class="h-5 w-5 text-muted-foreground" />
+		<Card class="border-none shadow-none bg-card/50">
+			<CardContent class="p-3 sm:pt-6">
+				<div class="flex items-center gap-2 sm:gap-3">
+					<MessageSquare class="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
 					<div>
-						<div class="text-2xl font-bold">{data.comments.length}</div>
-						<div class="text-xs text-muted-foreground">Comments</div>
+						<div class="text-xl sm:text-2xl font-bold">{data.comments.length}</div>
+						<div class="text-[10px] sm:text-xs text-muted-foreground">Comments</div>
 					</div>
 				</div>
 			</CardContent>
 		</Card>
-		<Card>
-			<CardContent class="pt-6">
-				<div class="flex items-center gap-3">
-					<Share2 class="h-5 w-5 text-muted-foreground" />
+		<Card class="border-none shadow-none bg-card/50">
+			<CardContent class="p-3 sm:pt-6">
+				<div class="flex items-center gap-2 sm:gap-3">
+					<Share2 class="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
 					<div>
-						<div class="text-2xl font-bold">{split.days.length}</div>
-						<div class="text-xs text-muted-foreground">Days</div>
+						<div class="text-xl sm:text-2xl font-bold">{split.days.length}</div>
+						<div class="text-[10px] sm:text-xs text-muted-foreground">Days</div>
 					</div>
 				</div>
 			</CardContent>
@@ -135,9 +146,14 @@
 
 	<!-- Like Button -->
 	{#if isAuthenticated}
-		<div class="mb-6">
+		<div class="mb-4 sm:mb-6">
 			<form method="POST" action={data.hasUserLiked ? '?/unlike' : '?/like'} use:enhance>
-				<Button type="submit" variant={data.hasUserLiked ? 'default' : 'outline'} size="lg">
+				<Button
+					type="submit"
+					variant={data.hasUserLiked ? 'default' : 'outline'}
+					size="lg"
+					class="w-full sm:w-auto"
+				>
 					<Heart class={data.hasUserLiked ? 'h-5 w-5 mr-2 fill-current' : 'h-5 w-5 mr-2'} />
 					{data.hasUserLiked ? 'Unlike' : 'Like'} this Split
 				</Button>
@@ -160,23 +176,30 @@
 		</Tabs.List>
 
 		<!-- Workout Tab -->
-		<Tabs.Content value="workout" class="mt-6">
-			<div class="space-y-6">
+		<Tabs.Content value="workout" class="mt-4 sm:mt-6">
+			<div class="space-y-4 sm:space-y-6">
 				{#each split.days as day (day.id)}
 					<Card>
-						<CardHeader>
-							<div class="flex items-center justify-between">
+						<CardHeader class="p-4 sm:p-6">
+							<div
+								class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4"
+							>
 								<div>
-									<CardTitle>{day.name}</CardTitle>
-									<CardDescription>Day {day.dayNumber}</CardDescription>
+									<CardTitle class="text-lg sm:text-xl">{day.name}</CardTitle>
+									<CardDescription class="text-xs sm:text-sm">Day {day.dayNumber}</CardDescription>
 								</div>
-								<div class="flex items-center gap-2">
+								<div class="flex items-center gap-2 flex-wrap">
 									{#if day.isRestDay}
 										<Badge variant="secondary">Rest Day</Badge>
 									{:else}
-										<Badge variant="outline">{day.exercises.length} exercises</Badge>
+										<Badge variant="outline" class="text-xs">{day.exercises.length} exercises</Badge
+										>
 										{#if isAuthenticated}
-											<Button size="sm" href="/workout?splitId={split.split.id}&dayId={day.id}">
+											<Button
+												size="sm"
+												href="/workout?splitId={split.split.id}&dayId={day.id}"
+												class="h-9"
+											>
 												<Play class="h-4 w-4 mr-1" />
 												Start
 											</Button>
@@ -186,62 +209,63 @@
 							</div>
 						</CardHeader>
 						{#if !day.isRestDay && day.exercises.length > 0}
-							<CardContent>
-								<div class="space-y-4">
+							<CardContent class="p-3 sm:p-6">
+								<div class="space-y-3 sm:space-y-4">
 									{#each day.exercises as dayExercise (dayExercise.id)}
-										<div class="rounded-lg border p-4 hover:bg-muted/50 transition-colors">
-											<div class="flex items-start justify-between gap-4">
-												<div class="flex-1">
-													<div class="flex items-start gap-3">
+										<div class="rounded-lg border p-3 sm:p-4 hover:bg-muted/50 transition-colors">
+											<div
+												class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4"
+											>
+												<div class="flex-1 min-w-0">
+													<div class="flex items-start gap-2 sm:gap-3">
 														<div
-															class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0"
+															class="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-medium shrink-0"
 														>
 															{dayExercise.order + 1}
 														</div>
-														<div class="flex-1">
-															<h4 class="font-semibold text-lg mb-1">
+														<div class="flex-1 min-w-0">
+															<h4 class="font-semibold text-base sm:text-lg mb-1">
 																{dayExercise.exercise.name}
 															</h4>
 															{#if dayExercise.exercise.description}
-																<p class="text-sm text-muted-foreground mb-3">
+																<p
+																	class="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2"
+																>
 																	{dayExercise.exercise.description}
 																</p>
 															{/if}
 
-															<div class="flex flex-wrap gap-3 mb-3">
-																<div class="flex items-center gap-1.5">
-																	<span class="text-sm font-medium">Sets:</span>
-																	<Badge variant="secondary">{dayExercise.sets}</Badge>
-																</div>
-																<div class="flex items-center gap-1.5">
-																	<span class="text-sm font-medium">Reps:</span>
-																	<Badge variant="secondary">{dayExercise.reps}</Badge>
+															<div class="flex flex-wrap gap-2 sm:gap-3 mb-2 sm:mb-3">
+																<div class="flex items-center gap-1">
+																	<Badge variant="secondary" class="text-xs"
+																		>{dayExercise.sets}×{dayExercise.reps}</Badge
+																	>
 																</div>
 																{#if dayExercise.weight}
-																	<div class="flex items-center gap-1.5">
-																		<span class="text-sm font-medium">Weight:</span>
-																		<Badge variant="secondary">{dayExercise.weight} kg</Badge>
-																	</div>
+																	<Badge variant="secondary" class="text-xs"
+																		>{dayExercise.weight}kg</Badge
+																	>
 																{/if}
 																{#if dayExercise.restTime}
-																	<div class="flex items-center gap-1.5">
-																		<span class="text-sm font-medium">Rest:</span>
-																		<Badge variant="secondary">{dayExercise.restTime}s</Badge>
-																	</div>
+																	<Badge variant="secondary" class="text-xs"
+																		>{dayExercise.restTime}s rest</Badge
+																	>
 																{/if}
 															</div>
 
-															<div class="flex flex-wrap gap-2">
-																<Badge variant="outline">{dayExercise.exercise.muscleGroup}</Badge>
-																<Badge variant="outline">{dayExercise.exercise.equipmentType}</Badge
+															<div class="flex flex-wrap gap-1.5 sm:gap-2">
+																<Badge variant="outline" class="text-xs"
+																	>{dayExercise.exercise.muscleGroup}</Badge
 																>
-																<Badge variant="outline">{dayExercise.exercise.difficulty}</Badge>
+																<Badge variant="outline" class="text-xs"
+																	>{dayExercise.exercise.equipmentType}</Badge
+																>
 															</div>
 
 															{#if dayExercise.notes}
-																<div class="mt-3 rounded bg-muted p-2">
+																<div class="mt-2 sm:mt-3 rounded bg-muted p-2">
 																	<Label class="text-xs text-muted-foreground">Notes</Label>
-																	<p class="text-sm">{dayExercise.notes}</p>
+																	<p class="text-xs sm:text-sm">{dayExercise.notes}</p>
 																</div>
 															{/if}
 														</div>
@@ -251,7 +275,7 @@
 												<ExerciseGif
 													exerciseName={dayExercise.exercise.name}
 													gifUrl={dayExercise.exercise.gifUrl}
-													class="w-24 h-24 shrink-0"
+													class="w-20 h-20 sm:w-24 sm:h-24 shrink-0 self-center sm:self-start"
 												/>
 											</div>
 										</div>
