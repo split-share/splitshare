@@ -1,4 +1,13 @@
-import { pgTable, text, timestamp, uuid, boolean, integer, numeric } from 'drizzle-orm/pg-core';
+import {
+	pgTable,
+	text,
+	timestamp,
+	uuid,
+	boolean,
+	integer,
+	numeric,
+	index
+} from 'drizzle-orm/pg-core';
 
 // Users table - better-auth compatible
 export const user = pgTable('user', {
@@ -55,195 +64,265 @@ export const verification = pgTable('verification', {
 });
 
 // Exercises table
-export const exercises = pgTable('exercises', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	name: text('name').notNull(),
-	description: text('description'),
-	difficulty: text('difficulty').notNull().default('intermediate'), // beginner, intermediate, advanced
-	muscleGroup: text('muscle_group').notNull(),
-	equipmentType: text('equipment_type').notNull(),
-	imageUrl: text('image_url'), // Thumbnail image
-	gifUrl: text('gif_url'), // Animated GIF demonstration
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
+export const exercises = pgTable(
+	'exercises',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		name: text('name').notNull(),
+		description: text('description'),
+		difficulty: text('difficulty').notNull().default('intermediate'), // beginner, intermediate, advanced
+		muscleGroup: text('muscle_group').notNull(),
+		equipmentType: text('equipment_type').notNull(),
+		imageUrl: text('image_url'), // Thumbnail image
+		gifUrl: text('gif_url'), // Animated GIF demonstration
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+		updatedAt: timestamp('updated_at').notNull().defaultNow()
+	},
+	(table) => [index('exercises_user_id_idx').on(table.userId)]
+);
 
 // Splits table
-export const splits = pgTable('splits', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	title: text('title').notNull(),
-	description: text('description'),
-	isPublic: boolean('is_public').notNull().default(false),
-	isDefault: boolean('is_default').notNull().default(false),
-	difficulty: text('difficulty').notNull().default('intermediate'), // beginner, intermediate, advanced
-	duration: integer('duration'), // estimated duration in minutes
-	imageUrl: text('image_url'),
-	tags: text('tags').array(), // workout type tags
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
+export const splits = pgTable(
+	'splits',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		title: text('title').notNull(),
+		description: text('description'),
+		isPublic: boolean('is_public').notNull().default(false),
+		isDefault: boolean('is_default').notNull().default(false),
+		difficulty: text('difficulty').notNull().default('intermediate'), // beginner, intermediate, advanced
+		duration: integer('duration'), // estimated duration in minutes
+		imageUrl: text('image_url'),
+		tags: text('tags').array(), // workout type tags
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+		updatedAt: timestamp('updated_at').notNull().defaultNow()
+	},
+	(table) => [
+		index('splits_user_id_idx').on(table.userId),
+		index('splits_is_public_idx').on(table.isPublic)
+	]
+);
 
 // Split days table - represents each day in a workout split
-export const splitDays = pgTable('split_days', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	splitId: uuid('split_id')
-		.notNull()
-		.references(() => splits.id, { onDelete: 'cascade' }),
-	dayNumber: integer('day_number').notNull(), // 1-7 for ordering
-	name: text('name').notNull(), // e.g., "Chest Day", "Rest Day", "Leg Day"
-	isRestDay: boolean('is_rest_day').notNull().default(false),
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
+export const splitDays = pgTable(
+	'split_days',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		splitId: uuid('split_id')
+			.notNull()
+			.references(() => splits.id, { onDelete: 'cascade' }),
+		dayNumber: integer('day_number').notNull(), // 1-7 for ordering
+		name: text('name').notNull(), // e.g., "Chest Day", "Rest Day", "Leg Day"
+		isRestDay: boolean('is_rest_day').notNull().default(false),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+		updatedAt: timestamp('updated_at').notNull().defaultNow()
+	},
+	(table) => [index('split_days_split_id_idx').on(table.splitId)]
+);
 
 // Day exercises junction table - links exercises to specific days
-export const dayExercises = pgTable('day_exercises', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	dayId: uuid('day_id')
-		.notNull()
-		.references(() => splitDays.id, { onDelete: 'cascade' }),
-	exerciseId: uuid('exercise_id').references(() => exercises.id, { onDelete: 'cascade' }), // Optional: reference to structured exercise
-	exerciseName: text('exercise_name').notNull(), // The name of the exercise (can be free text or from structured exercise)
-	sets: integer('sets').notNull(),
-	reps: text('reps').notNull(), // e.g., "10", "8-12", "AMRAP"
-	restTime: integer('rest_time'), // rest time in seconds
-	order: integer('order').notNull(), // order within the day
-	notes: text('notes'),
-	weight: numeric('weight'), // weight in kg (optional, for weighted exercises)
-	createdAt: timestamp('created_at').notNull().defaultNow()
-});
+export const dayExercises = pgTable(
+	'day_exercises',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		dayId: uuid('day_id')
+			.notNull()
+			.references(() => splitDays.id, { onDelete: 'cascade' }),
+		exerciseId: uuid('exercise_id').references(() => exercises.id, { onDelete: 'cascade' }), // Optional: reference to structured exercise
+		exerciseName: text('exercise_name').notNull(), // The name of the exercise (can be free text or from structured exercise)
+		sets: integer('sets').notNull(),
+		reps: text('reps').notNull(), // e.g., "10", "8-12", "AMRAP"
+		restTime: integer('rest_time'), // rest time in seconds
+		order: integer('order').notNull(), // order within the day
+		notes: text('notes'),
+		weight: numeric('weight'), // weight in kg (optional, for weighted exercises)
+		createdAt: timestamp('created_at').notNull().defaultNow()
+	},
+	(table) => [index('day_exercises_day_id_idx').on(table.dayId)]
+);
 
 // Split shares table
-export const splitShares = pgTable('split_shares', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	splitId: uuid('split_id')
-		.notNull()
-		.references(() => splits.id, { onDelete: 'cascade' }),
-	shareToken: text('share_token').notNull().unique(),
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	expiresAt: timestamp('expires_at')
-});
+export const splitShares = pgTable(
+	'split_shares',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		splitId: uuid('split_id')
+			.notNull()
+			.references(() => splits.id, { onDelete: 'cascade' }),
+		shareToken: text('share_token').notNull().unique(),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+		expiresAt: timestamp('expires_at')
+	},
+	(table) => [index('split_shares_split_id_idx').on(table.splitId)]
+);
 
 // Social features tables
 
 // Likes table
-export const likes = pgTable('likes', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	splitId: uuid('split_id')
-		.notNull()
-		.references(() => splits.id, { onDelete: 'cascade' }),
-	createdAt: timestamp('created_at').notNull().defaultNow()
-});
+export const likes = pgTable(
+	'likes',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		splitId: uuid('split_id')
+			.notNull()
+			.references(() => splits.id, { onDelete: 'cascade' }),
+		createdAt: timestamp('created_at').notNull().defaultNow()
+	},
+	(table) => [
+		index('likes_user_id_idx').on(table.userId),
+		index('likes_split_id_idx').on(table.splitId)
+	]
+);
 
 // Comments table
-export const comments = pgTable('comments', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	splitId: uuid('split_id')
-		.notNull()
-		.references(() => splits.id, { onDelete: 'cascade' }),
-	content: text('content').notNull(),
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
+export const comments = pgTable(
+	'comments',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		splitId: uuid('split_id')
+			.notNull()
+			.references(() => splits.id, { onDelete: 'cascade' }),
+		content: text('content').notNull(),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+		updatedAt: timestamp('updated_at').notNull().defaultNow()
+	},
+	(table) => [
+		index('comments_user_id_idx').on(table.userId),
+		index('comments_split_id_idx').on(table.splitId)
+	]
+);
 
 // Follows table
-export const follows = pgTable('follows', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	followerId: text('follower_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	followingId: text('following_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	createdAt: timestamp('created_at').notNull().defaultNow()
-});
+export const follows = pgTable(
+	'follows',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		followerId: text('follower_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		followingId: text('following_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		createdAt: timestamp('created_at').notNull().defaultNow()
+	},
+	(table) => [
+		index('follows_follower_id_idx').on(table.followerId),
+		index('follows_following_id_idx').on(table.followingId)
+	]
+);
 
 // Workout logs table - track when users complete workouts
-export const workoutLogs = pgTable('workout_logs', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	splitId: uuid('split_id')
-		.notNull()
-		.references(() => splits.id, { onDelete: 'cascade' }),
-	dayId: uuid('day_id')
-		.notNull()
-		.references(() => splitDays.id, { onDelete: 'cascade' }),
-	duration: integer('duration'), // actual duration in minutes
-	notes: text('notes'),
-	completedAt: timestamp('completed_at').notNull().defaultNow(),
-	createdAt: timestamp('created_at').notNull().defaultNow()
-});
+export const workoutLogs = pgTable(
+	'workout_logs',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		splitId: uuid('split_id')
+			.notNull()
+			.references(() => splits.id, { onDelete: 'cascade' }),
+		dayId: uuid('day_id')
+			.notNull()
+			.references(() => splitDays.id, { onDelete: 'cascade' }),
+		duration: integer('duration'), // actual duration in minutes
+		notes: text('notes'),
+		completedAt: timestamp('completed_at').notNull().defaultNow(),
+		createdAt: timestamp('created_at').notNull().defaultNow()
+	},
+	(table) => [
+		index('workout_logs_user_id_idx').on(table.userId),
+		index('workout_logs_split_id_idx').on(table.splitId)
+	]
+);
 
 // Exercise logs table - track individual exercise performance
-export const exerciseLogs = pgTable('exercise_logs', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	workoutLogId: uuid('workout_log_id')
-		.notNull()
-		.references(() => workoutLogs.id, { onDelete: 'cascade' }),
-	exerciseId: uuid('exercise_id')
-		.notNull()
-		.references(() => exercises.id, { onDelete: 'cascade' }),
-	sets: integer('sets').notNull(),
-	reps: text('reps').notNull(),
-	weight: integer('weight'), // weight in kg or lbs
-	notes: text('notes'),
-	createdAt: timestamp('created_at').notNull().defaultNow()
-});
+export const exerciseLogs = pgTable(
+	'exercise_logs',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		workoutLogId: uuid('workout_log_id')
+			.notNull()
+			.references(() => workoutLogs.id, { onDelete: 'cascade' }),
+		exerciseId: uuid('exercise_id')
+			.notNull()
+			.references(() => exercises.id, { onDelete: 'cascade' }),
+		sets: integer('sets').notNull(),
+		reps: text('reps').notNull(),
+		weight: integer('weight'), // weight in kg or lbs
+		notes: text('notes'),
+		createdAt: timestamp('created_at').notNull().defaultNow()
+	},
+	(table) => [index('exercise_logs_workout_log_id_idx').on(table.workoutLogId)]
+);
 
 // Personal records table - track best lifts
-export const personalRecords = pgTable('personal_records', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	exerciseId: uuid('exercise_id')
-		.notNull()
-		.references(() => exercises.id, { onDelete: 'cascade' }),
-	weight: integer('weight').notNull(),
-	reps: integer('reps').notNull(),
-	achievedAt: timestamp('achieved_at').notNull(),
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
+export const personalRecords = pgTable(
+	'personal_records',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		exerciseId: uuid('exercise_id')
+			.notNull()
+			.references(() => exercises.id, { onDelete: 'cascade' }),
+		weight: integer('weight').notNull(),
+		reps: integer('reps').notNull(),
+		achievedAt: timestamp('achieved_at').notNull(),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+		updatedAt: timestamp('updated_at').notNull().defaultNow()
+	},
+	(table) => [index('personal_records_user_id_idx').on(table.userId)]
+);
 
 // Weight entries table - track body weight over time
-export const weightEntries = pgTable('weight_entries', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	weight: numeric('weight', { precision: 5, scale: 2 }).notNull(),
-	recordedAt: timestamp('recorded_at').notNull(),
-	notes: text('notes'),
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
+export const weightEntries = pgTable(
+	'weight_entries',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		weight: numeric('weight', { precision: 5, scale: 2 }).notNull(),
+		recordedAt: timestamp('recorded_at').notNull(),
+		notes: text('notes'),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+		updatedAt: timestamp('updated_at').notNull().defaultNow()
+	},
+	(table) => [index('weight_entries_user_id_idx').on(table.userId)]
+);
 
 // Bookmarks/Saved splits table
-export const bookmarks = pgTable('bookmarks', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	splitId: uuid('split_id')
-		.notNull()
-		.references(() => splits.id, { onDelete: 'cascade' }),
-	createdAt: timestamp('created_at').notNull().defaultNow()
-});
+export const bookmarks = pgTable(
+	'bookmarks',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		splitId: uuid('split_id')
+			.notNull()
+			.references(() => splits.id, { onDelete: 'cascade' }),
+		createdAt: timestamp('created_at').notNull().defaultNow()
+	},
+	(table) => [
+		index('bookmarks_user_id_idx').on(table.userId),
+		index('bookmarks_split_id_idx').on(table.splitId)
+	]
+);
 
 // Forum tables
 
@@ -259,36 +338,50 @@ export const forumCategories = pgTable('forum_categories', {
 });
 
 // Forum topics table - user-created discussion threads
-export const forumTopics = pgTable('forum_topics', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	categoryId: uuid('category_id')
-		.notNull()
-		.references(() => forumCategories.id, { onDelete: 'cascade' }),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	title: text('title').notNull(),
-	content: text('content').notNull(), // Rich text HTML
-	isPinned: boolean('is_pinned').notNull().default(false),
-	isLocked: boolean('is_locked').notNull().default(false),
-	viewCount: integer('view_count').notNull().default(0),
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
+export const forumTopics = pgTable(
+	'forum_topics',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		categoryId: uuid('category_id')
+			.notNull()
+			.references(() => forumCategories.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		title: text('title').notNull(),
+		content: text('content').notNull(), // Rich text HTML
+		isPinned: boolean('is_pinned').notNull().default(false),
+		isLocked: boolean('is_locked').notNull().default(false),
+		viewCount: integer('view_count').notNull().default(0),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+		updatedAt: timestamp('updated_at').notNull().defaultNow()
+	},
+	(table) => [
+		index('forum_topics_category_id_idx').on(table.categoryId),
+		index('forum_topics_user_id_idx').on(table.userId)
+	]
+);
 
 // Forum posts table - replies to topics
-export const forumPosts = pgTable('forum_posts', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	topicId: uuid('topic_id')
-		.notNull()
-		.references(() => forumTopics.id, { onDelete: 'cascade' }),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	content: text('content').notNull(), // Rich text HTML
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
+export const forumPosts = pgTable(
+	'forum_posts',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		topicId: uuid('topic_id')
+			.notNull()
+			.references(() => forumTopics.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		content: text('content').notNull(), // Rich text HTML
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+		updatedAt: timestamp('updated_at').notNull().defaultNow()
+	},
+	(table) => [
+		index('forum_posts_topic_id_idx').on(table.topicId),
+		index('forum_posts_user_id_idx').on(table.userId)
+	]
+);
 
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
@@ -312,27 +405,31 @@ export type ForumTopic = typeof forumTopics.$inferSelect;
 export type ForumPost = typeof forumPosts.$inferSelect;
 
 // Active workout sessions table - tracks in-progress workouts for resumability
-export const activeWorkoutSessions = pgTable('active_workout_sessions', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	splitId: uuid('split_id')
-		.notNull()
-		.references(() => splits.id, { onDelete: 'cascade' }),
-	dayId: uuid('day_id')
-		.notNull()
-		.references(() => splitDays.id, { onDelete: 'cascade' }),
-	currentExerciseIndex: integer('current_exercise_index').notNull().default(0),
-	currentSetIndex: integer('current_set_index').notNull().default(0),
-	phase: text('phase').notNull().default('exercise'), // 'exercise' | 'rest' | 'completed'
-	exerciseElapsedSeconds: integer('exercise_elapsed_seconds').notNull().default(0),
-	restRemainingSeconds: integer('rest_remaining_seconds'),
-	startedAt: timestamp('started_at').notNull().defaultNow(),
-	pausedAt: timestamp('paused_at'),
-	lastUpdatedAt: timestamp('last_updated_at').notNull().defaultNow(),
-	completedSets: text('completed_sets').notNull().default('[]'), // JSON array of CompletedSetData
-	createdAt: timestamp('created_at').notNull().defaultNow()
-});
+export const activeWorkoutSessions = pgTable(
+	'active_workout_sessions',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		splitId: uuid('split_id')
+			.notNull()
+			.references(() => splits.id, { onDelete: 'cascade' }),
+		dayId: uuid('day_id')
+			.notNull()
+			.references(() => splitDays.id, { onDelete: 'cascade' }),
+		currentExerciseIndex: integer('current_exercise_index').notNull().default(0),
+		currentSetIndex: integer('current_set_index').notNull().default(0),
+		phase: text('phase').notNull().default('exercise'), // 'exercise' | 'rest' | 'completed'
+		exerciseElapsedSeconds: integer('exercise_elapsed_seconds').notNull().default(0),
+		restRemainingSeconds: integer('rest_remaining_seconds'),
+		startedAt: timestamp('started_at').notNull().defaultNow(),
+		pausedAt: timestamp('paused_at'),
+		lastUpdatedAt: timestamp('last_updated_at').notNull().defaultNow(),
+		completedSets: text('completed_sets').notNull().default('[]'), // JSON array of CompletedSetData
+		createdAt: timestamp('created_at').notNull().defaultNow()
+	},
+	(table) => [index('active_workout_sessions_user_id_idx').on(table.userId)]
+);
 
 export type ActiveWorkoutSession = typeof activeWorkoutSessions.$inferSelect;
