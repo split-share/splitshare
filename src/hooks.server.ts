@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/sveltekit';
 import { env } from '$env/dynamic/private';
 import { sequence } from '@sveltejs/kit/hooks';
 import { logger, RequestContext, createRequestLogger } from '$lib/server/logger';
+import { building } from '$app/environment';
 
 if (env.SENTRY_DSN) {
 	Sentry.init({
@@ -142,6 +143,13 @@ const corsHandle: Handle = async ({ event, resolve }) => {
 };
 
 const authHandle: Handle = async ({ event, resolve }) => {
+	// Skip auth during build (prerendering fallback pages)
+	if (building) {
+		event.locals.session = null;
+		event.locals.user = null;
+		return resolve(event);
+	}
+
 	const sessionData = await auth.api.getSession({
 		headers: event.request.headers
 	});
