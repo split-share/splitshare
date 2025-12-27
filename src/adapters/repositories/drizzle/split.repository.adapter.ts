@@ -1,5 +1,5 @@
 import { eq, and, like, or, sql, desc, inArray } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Database } from '$lib/server/db';
 import {
 	splits,
 	splitDays,
@@ -9,7 +9,6 @@ import {
 	likes,
 	comments
 } from '$lib/server/db/schema';
-import type * as schema from '$lib/server/db/schema';
 import type { ISplitRepository } from '../../../core/ports/repositories/split.repository.port';
 import type {
 	CreateSplitDto,
@@ -25,7 +24,7 @@ import { Split } from '../../../core/domain/split/split.entity';
  * Drizzle adapter for Split repository
  */
 export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
-	constructor(private db: PostgresJsDatabase<typeof schema>) {}
+	constructor(private db: Database) {}
 
 	async findById(id: string): Promise<Split | undefined> {
 		const result = await this.db.select().from(splits).where(eq(splits.id, id)).limit(1);

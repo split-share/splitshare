@@ -1,7 +1,6 @@
 import { eq, and, desc, asc, gte, lte, sql } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Database } from '$lib/server/db';
 import { weightEntries } from '$lib/server/db/schema';
-import type * as schema from '$lib/server/db/schema';
 import type { IWeightEntryRepository } from '../../../core/ports/repositories/weight-entry.repository.port';
 import type {
 	CreateWeightEntryDto,
@@ -13,7 +12,7 @@ import type {
 import { WeightEntry } from '../../../core/domain/weight/weight-entry.entity';
 
 export class DrizzleWeightEntryRepositoryAdapter implements IWeightEntryRepository {
-	constructor(private db: PostgresJsDatabase<typeof schema>) {}
+	constructor(private db: Database) {}
 
 	async findById(id: string): Promise<WeightEntry | undefined> {
 		const result = await this.db

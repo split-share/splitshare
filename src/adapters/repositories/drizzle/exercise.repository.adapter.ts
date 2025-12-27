@@ -1,7 +1,6 @@
 import { eq, and, like, or, desc } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Database } from '$lib/server/db';
 import { exercises } from '$lib/server/db/schema';
-import type * as schema from '$lib/server/db/schema';
 import type { IExerciseRepository } from '../../../core/ports/repositories/exercise.repository.port';
 import type {
 	CreateExerciseDto,
@@ -14,7 +13,7 @@ import { Exercise } from '../../../core/domain/exercise/exercise.entity';
  * Drizzle adapter for Exercise repository
  */
 export class DrizzleExerciseRepositoryAdapter implements IExerciseRepository {
-	constructor(private db: PostgresJsDatabase<typeof schema>) {}
+	constructor(private db: Database) {}
 
 	async findById(id: string): Promise<Exercise | undefined> {
 		const result = await this.db.select().from(exercises).where(eq(exercises.id, id)).limit(1);

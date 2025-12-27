@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Database } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
-import type * as schema from '$lib/server/db/schema';
 import type { IUserRepository } from '../../../core/ports/repositories/user.repository.port';
 import { User } from '../../../core/domain/user/user.entity';
 
@@ -9,7 +8,7 @@ import { User } from '../../../core/domain/user/user.entity';
  * Drizzle adapter for User repository
  */
 export class DrizzleUserRepositoryAdapter implements IUserRepository {
-	constructor(private db: PostgresJsDatabase<typeof schema>) {}
+	constructor(private db: Database) {}
 
 	async findById(id: string): Promise<User | undefined> {
 		const result = await this.db.select().from(user).where(eq(user.id, id)).limit(1);

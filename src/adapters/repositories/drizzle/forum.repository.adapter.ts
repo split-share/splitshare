@@ -1,7 +1,6 @@
 import { eq, and, desc, sql, like, or, inArray } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Database } from '$lib/server/db';
 import { forumCategories, forumTopics, forumPosts, user } from '$lib/server/db/schema';
-import type * as schema from '$lib/server/db/schema';
 import type { IForumRepository } from '$core/ports/repositories/forum.repository.port';
 import type {
 	ForumCategory,
@@ -17,7 +16,7 @@ import type {
 } from '$core/domain/forum/forum.dto';
 
 export class DrizzleForumRepositoryAdapter implements IForumRepository {
-	constructor(private db: PostgresJsDatabase<typeof schema>) {}
+	constructor(private db: Database) {}
 
 	// Categories
 

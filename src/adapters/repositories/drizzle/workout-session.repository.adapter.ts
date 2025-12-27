@@ -1,5 +1,5 @@
 import { eq, and } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Database } from '$lib/server/db';
 import {
 	activeWorkoutSessions,
 	splits,
@@ -7,7 +7,6 @@ import {
 	dayExercises,
 	exercises
 } from '$lib/server/db/schema';
-import type * as schema from '$lib/server/db/schema';
 import type { IWorkoutSessionRepository } from '../../../core/ports/repositories/workout-session.repository.port';
 import type {
 	CreateWorkoutSessionDto,
@@ -21,7 +20,7 @@ import {
 } from '../../../core/domain/workout/workout-session.entity';
 
 export class DrizzleWorkoutSessionRepositoryAdapter implements IWorkoutSessionRepository {
-	constructor(private db: PostgresJsDatabase<typeof schema>) {}
+	constructor(private db: Database) {}
 
 	async findById(id: string): Promise<WorkoutSession | undefined> {
 		const result = await this.db

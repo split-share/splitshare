@@ -1,13 +1,12 @@
 import { eq, and, desc } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Database } from '$lib/server/db';
 import { personalRecords, exercises } from '$lib/server/db/schema';
-import type * as schema from '$lib/server/db/schema';
 import type { IPersonalRecordRepository } from '../../../core/ports/repositories/personal-record.repository.port';
 import type { PersonalRecordDto } from '../../../core/domain/workout/workout.dto';
 import { PersonalRecord } from '../../../core/domain/workout/personal-record.entity';
 
 export class DrizzlePersonalRecordRepositoryAdapter implements IPersonalRecordRepository {
-	constructor(private db: PostgresJsDatabase<typeof schema>) {}
+	constructor(private db: Database) {}
 
 	async findById(id: string): Promise<PersonalRecord | undefined> {
 		const result = await this.db

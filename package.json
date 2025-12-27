@@ -83,6 +83,7 @@
 		"@capacitor/share": "^7.0.2",
 		"@capacitor/status-bar": "^7.0.3",
 		"@friendofsvelte/tipex": "^0.0.9",
+		"@neondatabase/serverless": "^1.0.2",
 		"@sentry/sveltekit": "^10.25.0",
 		"@sveltejs/adapter-cloudflare": "^7.2.4",
 		"@sveltejs/adapter-node": "^5.4.0",

@@ -1,9 +1,25 @@
 import { Resend } from 'resend';
-import { RESEND_API_KEY, EMAIL_FROM } from '$env/static/private';
-import { PUBLIC_APP_URL } from '$env/static/public';
+import { env } from '$env/dynamic/private';
+import { env as publicEnv } from '$env/dynamic/public';
 import { logger } from './logger';
 
-const resend = new Resend(RESEND_API_KEY);
+function getResend() {
+	if (!env.RESEND_API_KEY) {
+		throw new Error('RESEND_API_KEY environment variable is not set');
+	}
+	return new Resend(env.RESEND_API_KEY);
+}
+
+function getEmailFrom() {
+	if (!env.EMAIL_FROM) {
+		throw new Error('EMAIL_FROM environment variable is not set');
+	}
+	return env.EMAIL_FROM;
+}
+
+function getAppUrl() {
+	return publicEnv.PUBLIC_APP_URL || 'http://localhost:5173';
+}
 
 interface EmailOptions {
 	to: string;
@@ -13,8 +29,9 @@ interface EmailOptions {
 
 async function sendEmail({ to, subject, html }: EmailOptions) {
 	try {
+		const resend = getResend();
 		const { data, error } = await resend.emails.send({
-			from: EMAIL_FROM,
+			from: getEmailFrom(),
 			to,
 			subject,
 			html
@@ -125,7 +142,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
 							<li>Follow other fitness enthusiasts</li>
 						</ul>
 						<div style="text-align: center; margin: 30px 0;">
-							<a href="${PUBLIC_APP_URL}/splits" style="background: #667eea; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">Get Started</a>
+							<a href="${getAppUrl()}/splits" style="background: #667eea; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">Get Started</a>
 						</div>
 						<p style="font-size: 14px; color: #6b7280; margin-top: 30px;">If you have any questions, feel free to reach out!</p>
 					</div>
