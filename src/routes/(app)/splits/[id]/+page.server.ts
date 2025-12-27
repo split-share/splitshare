@@ -1,6 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import { container } from '$infrastructure/di/container';
 import { logAction } from '$lib/server/logger';
+import { mutationLimiter, rateLimit } from '$lib/server/rate-limit';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -42,6 +43,12 @@ export const actions: Actions = {
 			return fail(401, { error: 'Unauthorized' });
 		}
 
+		// Rate limit mutations
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
+		}
+
 		const splitId = event.params.id;
 
 		try {
@@ -73,6 +80,12 @@ export const actions: Actions = {
 			return fail(401, { error: 'Unauthorized' });
 		}
 
+		// Rate limit mutations
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
+		}
+
 		const splitId = event.params.id;
 
 		try {
@@ -99,6 +112,12 @@ export const actions: Actions = {
 	addComment: async (event) => {
 		if (!event.locals.user) {
 			return fail(401, { error: 'Unauthorized' });
+		}
+
+		// Rate limit mutations
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
 		}
 
 		const formData = await event.request.formData();
@@ -140,6 +159,12 @@ export const actions: Actions = {
 			return fail(401, { error: 'Unauthorized' });
 		}
 
+		// Rate limit mutations
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
+		}
+
 		const formData = await event.request.formData();
 		const commentId = formData.get('commentId') as string;
 		const content = formData.get('content') as string;
@@ -172,6 +197,12 @@ export const actions: Actions = {
 	deleteComment: async (event) => {
 		if (!event.locals.user) {
 			return fail(401, { error: 'Unauthorized' });
+		}
+
+		// Rate limit mutations
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
 		}
 
 		const formData = await event.request.formData();

@@ -20,12 +20,6 @@ export const auth = betterAuth({
 	session: {
 		expiresIn: 60 * 60 * 24 * 7, // 7 days
 		updateAge: 60 * 60 * 24 // 1 day
-	},
-	advanced: {
-		generateId: () => {
-			// Generate a random ID
-			return crypto.randomUUID();
-		}
 	}
 });
 
