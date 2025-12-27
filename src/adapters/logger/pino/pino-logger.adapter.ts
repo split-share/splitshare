@@ -1,3 +1,4 @@
+import pino, { type Logger } from 'pino';
 import type {
 	ILoggerService,
 	LogContext,
@@ -5,16 +6,16 @@ import type {
 	LogLevel
 } from '$core/ports/logger/logger.port';
 
-const LOG_LEVELS: Record<LogLevel, number> = {
-	trace: 10,
-	debug: 20,
-	info: 30,
-	warn: 40,
-	error: 50,
-	fatal: 60
+const LOG_LEVEL_MAP: Record<LogLevel, pino.Level> = {
+	trace: 'trace',
+	debug: 'debug',
+	info: 'info',
+	warn: 'warn',
+	error: 'error',
+	fatal: 'fatal'
 };
 
-interface LoggerConfig {
+interface PinoLoggerConfig {
 	serviceName: string;
 	serviceVersion: string;
 	environment: string;
@@ -23,26 +24,42 @@ interface LoggerConfig {
 }
 
 /**
- * Simple console-based logger adapter
- * Compatible with Cloudflare Workers (no Node.js dependencies)
+ * Pino adapter for Logger service
+ * Implements structured logging following the "Wide Events" pattern
  */
 export class PinoLoggerAdapter implements ILoggerService {
+	private readonly logger: Logger;
 	private readonly serviceName: string;
 	private readonly serviceVersion: string;
 	private readonly environment: string;
-	private readonly minLevel: number;
-	private readonly baseContext: Record<string, unknown>;
 
-	constructor(config: LoggerConfig) {
+	constructor(config: PinoLoggerConfig) {
 		this.serviceName = config.serviceName;
 		this.serviceVersion = config.serviceVersion;
 		this.environment = config.environment;
-		this.minLevel = LOG_LEVELS[config.level || 'info'];
-		this.baseContext = {
-			serviceName: this.serviceName,
-			serviceVersion: this.serviceVersion,
-			environment: this.environment
-		};
+
+		const isDev = config.environment === 'development' || config.prettyPrint;
+
+		this.logger = pino({
+			level: config.level || (isDev ? 'debug' : 'info'),
+			base: {
+				serviceName: this.serviceName,
+				serviceVersion: this.serviceVersion,
+				environment: this.environment
+			},
+			timestamp: pino.stdTimeFunctions.isoTime,
+			...(isDev && {
+				transport: {
+					target: 'pino-pretty',
+					options: {
+						colorize: true,
+						translateTime: 'SYS:standard',
+						ignore: 'pid,hostname',
+						singleLine: false
+					}
+				}
+			})
+		});
 	}
 
 	trace(message: string, context?: LogContext): void {
@@ -70,15 +87,12 @@ export class PinoLoggerAdapter implements ILoggerService {
 	}
 
 	child(context: LogContext): ILoggerService {
-		const childLogger = new PinoLoggerAdapter({
-			serviceName: this.serviceName,
-			serviceVersion: this.serviceVersion,
-			environment: this.environment,
-			level: this.getLevelName(this.minLevel)
-		});
-		// Merge parent context
-		Object.assign(childLogger.baseContext, this.sanitizeContext(context));
-		return childLogger;
+		return new PinoChildLoggerAdapter(
+			this.logger.child(this.sanitizeContext(context)),
+			this.serviceName,
+			this.serviceVersion,
+			this.environment
+		);
 	}
 
 	emitWideEvent(event: Partial<WideEvent>): void {
@@ -92,44 +106,17 @@ export class PinoLoggerAdapter implements ILoggerService {
 			...event
 		};
 
-		this.log(wideEvent.level, wideEvent.message, wideEvent);
+		const level = LOG_LEVEL_MAP[wideEvent.level];
+		this.logger[level](this.sanitizeContext(wideEvent), wideEvent.message);
 	}
 
 	private log(level: LogLevel, message: string, context?: LogContext): void {
-		if (LOG_LEVELS[level] < this.minLevel) return;
-
-		const logEntry = {
-			level,
-			time: new Date().toISOString(),
-			msg: message,
-			...this.baseContext,
-			...(context ? this.sanitizeContext(context) : {})
-		};
-
-		const output = JSON.stringify(logEntry);
-
-		switch (level) {
-			case 'error':
-			case 'fatal':
-				console.error(output);
-				break;
-			case 'warn':
-				console.warn(output);
-				break;
-			case 'debug':
-			case 'trace':
-				console.debug(output);
-				break;
-			default:
-				console.log(output);
+		const pinoLevel = LOG_LEVEL_MAP[level];
+		if (context) {
+			this.logger[pinoLevel](this.sanitizeContext(context), message);
+		} else {
+			this.logger[pinoLevel](message);
 		}
-	}
-
-	private getLevelName(levelNum: number): LogLevel {
-		for (const [name, num] of Object.entries(LOG_LEVELS)) {
-			if (num === levelNum) return name as LogLevel;
-		}
-		return 'info';
 	}
 
 	private sanitizeContext(context: LogContext): Record<string, unknown> {
@@ -145,11 +132,98 @@ export class PinoLoggerAdapter implements ILoggerService {
 					stack: value.stack
 				};
 			} else if (typeof value === 'object' && value !== null) {
-				try {
-					sanitized[key] = JSON.parse(JSON.stringify(value));
-				} catch {
-					sanitized[key] = String(value);
-				}
+				sanitized[key] = JSON.parse(JSON.stringify(value));
+			} else {
+				sanitized[key] = value;
+			}
+		}
+
+		return sanitized;
+	}
+}
+
+/**
+ * Child logger that maintains parent context
+ */
+class PinoChildLoggerAdapter implements ILoggerService {
+	constructor(
+		private readonly logger: Logger,
+		private readonly serviceName: string,
+		private readonly serviceVersion: string,
+		private readonly environment: string
+	) {}
+
+	trace(message: string, context?: LogContext): void {
+		this.log('trace', message, context);
+	}
+
+	debug(message: string, context?: LogContext): void {
+		this.log('debug', message, context);
+	}
+
+	info(message: string, context?: LogContext): void {
+		this.log('info', message, context);
+	}
+
+	warn(message: string, context?: LogContext): void {
+		this.log('warn', message, context);
+	}
+
+	error(message: string, context?: LogContext): void {
+		this.log('error', message, context);
+	}
+
+	fatal(message: string, context?: LogContext): void {
+		this.log('fatal', message, context);
+	}
+
+	child(context: LogContext): ILoggerService {
+		return new PinoChildLoggerAdapter(
+			this.logger.child(this.sanitizeContext(context)),
+			this.serviceName,
+			this.serviceVersion,
+			this.environment
+		);
+	}
+
+	emitWideEvent(event: Partial<WideEvent>): void {
+		const wideEvent: WideEvent = {
+			timestamp: new Date().toISOString(),
+			level: event.level || 'info',
+			message: event.message || 'request completed',
+			serviceName: this.serviceName,
+			serviceVersion: this.serviceVersion,
+			environment: this.environment,
+			...event
+		};
+
+		const level = LOG_LEVEL_MAP[wideEvent.level];
+		this.logger[level](this.sanitizeContext(wideEvent), wideEvent.message);
+	}
+
+	private log(level: LogLevel, message: string, context?: LogContext): void {
+		const pinoLevel = LOG_LEVEL_MAP[level];
+		if (context) {
+			this.logger[pinoLevel](this.sanitizeContext(context), message);
+		} else {
+			this.logger[pinoLevel](message);
+		}
+	}
+
+	private sanitizeContext(context: LogContext): Record<string, unknown> {
+		const sanitized: Record<string, unknown> = {};
+
+		for (const [key, value] of Object.entries(context)) {
+			if (value === undefined) continue;
+
+			if (value instanceof Error) {
+				sanitized[key] = {
+					name: value.name,
+					message: value.message,
+					stack: value.stack
+				};
+			} else if (typeof value === 'object' && value !== null) {
+				sanitized[key] = JSON.parse(JSON.stringify(value));
 			} else {
 				sanitized[key] = value;
 			}

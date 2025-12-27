@@ -10,82 +10,64 @@ export type Database = PostgresJsDatabase<typeof schema> | NeonHttpDatabase<type
 
 // Lazy initialization to avoid connecting during build
 let _db: Database | null = null;
+let _dbPromise: Promise<Database> | null = null;
 
-function createDb(): Database {
+async function createDb(): Promise<Database> {
 	const databaseUrl = env.DATABASE_URL;
 	if (!databaseUrl) {
 		throw new Error('DATABASE_URL environment variable is not set');
 	}
 
-	// Production (Cloudflare): use Neon serverless with HTTP
-	// This is synchronous and creates a new client per request (stateless)
-	const client = neon(databaseUrl);
-	return drizzleNeon(client, { schema });
-}
-
-// For development, we use postgres.js which needs async import
-let _devDbPromise: Promise<Database> | null = null;
-
-async function createDevDb(): Promise<Database> {
-	const databaseUrl = env.DATABASE_URL;
-	if (!databaseUrl) {
-		throw new Error('DATABASE_URL environment variable is not set');
-	}
-
-	const [{ default: postgres }, { drizzle: drizzlePostgres }] = await Promise.all([
-		import('postgres'),
-		import('drizzle-orm/postgres-js')
-	]);
-	const client = postgres(databaseUrl, {
-		max: 10,
-		idle_timeout: 20,
-		connect_timeout: 10
-	});
-	return drizzlePostgres(client, { schema });
-}
-
-function getDb(): Database {
-	if (_db) return _db;
-
 	if (dev) {
-		// In development, we need to handle async initialization
-		// This will throw on first access but subsequent accesses will work
-		throw new Error('Database not initialized. Call initDb() first in development mode.');
-	}
-
-	// Production: create synchronously using Neon HTTP
-	_db = createDb();
-	return _db;
-}
-
-/**
- * Initialize the database connection.
- * Must be called before using db in development mode.
- * In production (Cloudflare), this is optional as Neon HTTP is stateless.
- */
-export async function initDb(): Promise<Database> {
-	if (_db) return _db;
-
-	if (dev) {
-		if (!_devDbPromise) {
-			_devDbPromise = createDevDb();
-		}
-		_db = await _devDbPromise;
+		// Local development: dynamically import postgres.js to avoid bundling in production
+		const [{ default: postgres }, { drizzle: drizzlePostgres }] = await Promise.all([
+			import('postgres'),
+			import('drizzle-orm/postgres-js')
+		]);
+		const client = postgres(databaseUrl, {
+			max: 10,
+			idle_timeout: 20,
+			connect_timeout: 10
+		});
+		return drizzlePostgres(client, { schema });
 	} else {
-		_db = createDb();
+		// Production (Cloudflare): use Neon serverless with HTTP
+		const client = neon(databaseUrl);
+		return drizzleNeon(client, { schema });
 	}
-
-	return _db;
 }
 
-// Proxy that handles initialization
+async function getDb(): Promise<Database> {
+	if (_db) return _db;
+	if (!_dbPromise) {
+		_dbPromise = createDb().then((db) => {
+			_db = db;
+			return db;
+		});
+	}
+	return _dbPromise;
+}
+
+// Proxy that handles async initialization transparently
 export const db = new Proxy({} as Database, {
 	get(_target, prop) {
 		if (building) {
 			throw new Error('Database cannot be accessed during build');
 		}
 
-		const database = getDb();
-		return Reflect.get(database, prop);
+		// If already initialized, return directly
+		if (_db) {
+			return Reflect.get(_db, prop);
+		}
+
+		// Return a function that awaits initialization then calls the method
+		return async (...args: unknown[]) => {
+			const database = await getDb();
+			const method = Reflect.get(database, prop);
+			if (typeof method === 'function') {
+				return method.apply(database, args);
+			}
+			return method;
+		};
 	}
 });

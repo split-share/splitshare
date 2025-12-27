@@ -12,10 +12,5 @@ export default defineConfig({
 			}
 		}),
 		sveltekit()
-	],
-	ssr: {
-		// Externalize postgres for Cloudflare Workers - it's only used in local dev
-		noExternal: process.env.NODE_ENV === 'production' ? [] : undefined,
-		external: ['postgres', 'drizzle-orm/postgres-js']
-	}
+	]
 });

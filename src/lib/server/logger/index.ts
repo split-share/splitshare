@@ -15,14 +15,15 @@ export type {
  * Create the application logger instance
  */
 function createLogger(): ILoggerService {
-	const environment = env.NODE_ENV || 'production';
-	const level = (env.LOG_LEVEL as LogLevel) || 'info';
+	const environment = env.NODE_ENV || 'development';
+	const level = (env.LOG_LEVEL as LogLevel) || (environment === 'production' ? 'info' : 'debug');
 
 	return new PinoLoggerAdapter({
 		serviceName: 'splitshare',
 		serviceVersion: env.npm_package_version || '1.0.0',
 		environment,
-		level
+		level,
+		prettyPrint: environment === 'development'
 	});
 }
 
