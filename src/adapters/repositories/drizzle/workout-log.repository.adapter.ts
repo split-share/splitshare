@@ -1,7 +1,6 @@
 import { eq, and, desc, gte, lte, inArray, sql } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Database } from '$lib/server/db';
 import { workoutLogs, exerciseLogs, exercises, splits, splitDays } from '$lib/server/db/schema';
-import type * as schema from '$lib/server/db/schema';
 import type { IWorkoutLogRepository } from '../../../core/ports/repositories/workout-log.repository.port';
 import type {
 	CreateWorkoutLogDto,
@@ -12,7 +11,7 @@ import type {
 import { WorkoutLog } from '../../../core/domain/workout/workout-log.entity';
 
 export class DrizzleWorkoutLogRepositoryAdapter implements IWorkoutLogRepository {
-	constructor(private db: PostgresJsDatabase<typeof schema>) {}
+	constructor(private db: Database) {}
 
 	async findById(id: string): Promise<WorkoutLog | undefined> {
 		const result = await this.db.select().from(workoutLogs).where(eq(workoutLogs.id, id)).limit(1);

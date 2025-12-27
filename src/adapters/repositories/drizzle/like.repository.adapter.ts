@@ -1,17 +1,15 @@
 import { eq, and } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Database } from '$lib/server/db';
 import type { ILikeRepository } from '$core/ports/repositories/like.repository.port';
 import { Like } from '$core/domain/split/like.entity';
 import type { CreateLikeDto, LikeWithUserDto } from '$core/domain/split/like.dto';
-import * as schema from '$lib/server/db/schema';
-
-const { likes, user } = schema;
+import { likes, user } from '$lib/server/db/schema';
 
 /**
  * Drizzle ORM implementation of ILikeRepository
  */
 export class DrizzleLikeRepositoryAdapter implements ILikeRepository {
-	constructor(private db: PostgresJsDatabase<typeof schema>) {}
+	constructor(private db: Database) {}
 
 	async findById(id: string): Promise<Like | undefined> {
 		const result = await this.db.select().from(likes).where(eq(likes.id, id)).limit(1);

@@ -1,5 +1,5 @@
 import { eq, desc } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Database } from '$lib/server/db';
 import type { ICommentRepository } from '$core/ports/repositories/comment.repository.port';
 import { Comment } from '$core/domain/split/comment.entity';
 import type {
@@ -7,15 +7,13 @@ import type {
 	UpdateCommentDto,
 	CommentWithUserDto
 } from '$core/domain/split/comment.dto';
-import * as schema from '$lib/server/db/schema';
-
-const { comments, user } = schema;
+import { comments, user } from '$lib/server/db/schema';
 
 /**
  * Drizzle ORM implementation of ICommentRepository
  */
 export class DrizzleCommentRepositoryAdapter implements ICommentRepository {
-	constructor(private db: PostgresJsDatabase<typeof schema>) {}
+	constructor(private db: Database) {}
 
 	async findById(id: string): Promise<Comment | undefined> {
 		const result = await this.db.select().from(comments).where(eq(comments.id, id)).limit(1);
