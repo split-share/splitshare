@@ -13,6 +13,12 @@ if (env.SENTRY_DSN) {
 	});
 }
 
+// Allowed origins for CORS (configurable via env)
+const ALLOWED_ORIGINS = env.CORS_ALLOWED_ORIGINS?.split(',') || [
+	'http://localhost:5173',
+	'http://localhost:4173'
+];
+
 /**
  * Logging middleware - initializes request context and emits wide event on completion
  * Following the "Wide Events" pattern from loggingsucks.com
@@ -66,6 +72,75 @@ function shouldSkipLogging(pathname: string): boolean {
 	return skipPatterns.some((pattern) => pattern.test(pathname));
 }
 
+/**
+ * Security headers middleware - adds security headers to all responses
+ */
+const securityHeadersHandle: Handle = async ({ event, resolve }) => {
+	const response = await resolve(event);
+
+	// Security headers
+	response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+	response.headers.set('X-Content-Type-Options', 'nosniff');
+	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+	response.headers.set('X-XSS-Protection', '1; mode=block');
+	response.headers.set(
+		'Permissions-Policy',
+		'camera=(), microphone=(), geolocation=(), payment=()'
+	);
+
+	// Content Security Policy (adjust as needed for your app)
+	if (process.env.NODE_ENV === 'production') {
+		response.headers.set(
+			'Content-Security-Policy',
+			[
+				"default-src 'self'",
+				"script-src 'self' 'unsafe-inline'",
+				"style-src 'self' 'unsafe-inline'",
+				"img-src 'self' data: https:",
+				"font-src 'self' data:",
+				"connect-src 'self' https:",
+				"frame-ancestors 'self'"
+			].join('; ')
+		);
+	}
+
+	return response;
+};
+
+/**
+ * CORS middleware - handles cross-origin requests
+ */
+const corsHandle: Handle = async ({ event, resolve }) => {
+	const origin = event.request.headers.get('origin');
+
+	// Handle preflight requests
+	if (event.request.method === 'OPTIONS') {
+		if (origin && ALLOWED_ORIGINS.includes(origin)) {
+			return new Response(null, {
+				status: 204,
+				headers: {
+					'Access-Control-Allow-Origin': origin,
+					'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+					'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+					'Access-Control-Allow-Credentials': 'true',
+					'Access-Control-Max-Age': '86400'
+				}
+			});
+		}
+		return new Response(null, { status: 403 });
+	}
+
+	const response = await resolve(event);
+
+	// Add CORS headers to actual requests
+	if (origin && ALLOWED_ORIGINS.includes(origin)) {
+		response.headers.set('Access-Control-Allow-Origin', origin);
+		response.headers.set('Access-Control-Allow-Credentials', 'true');
+	}
+
+	return response;
+};
+
 const authHandle: Handle = async ({ event, resolve }) => {
 	const sessionData = await auth.api.getSession({
 		headers: event.request.headers
@@ -85,8 +160,8 @@ const authHandle: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-// Build the handle sequence: logging -> sentry (if enabled) -> auth
-const handles: Handle[] = [loggingHandle];
+// Build the handle sequence: logging -> security headers -> cors -> sentry (if enabled) -> auth
+const handles: Handle[] = [loggingHandle, securityHeadersHandle, corsHandle];
 if (env.SENTRY_DSN) {
 	handles.push(Sentry.sentryHandle());
 }
