@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { container } from '$infrastructure/di/container';
+import { workoutSyncSchema } from '$lib/schemas/split';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async (event) => {
@@ -11,21 +12,35 @@ export const POST: RequestHandler = async (event) => {
 	let sessionId: string | undefined;
 
 	try {
-		const data = await event.request.json();
-		sessionId = data.sessionId;
-		const { exerciseElapsedSeconds, restRemainingSeconds, pausedAt } = data;
+		const rawData = await event.request.json();
 
-		if (!sessionId) {
-			return json({ error: 'Session ID required' }, { status: 400 });
+		// Validate input with Zod schema
+		const validation = workoutSyncSchema.safeParse(rawData);
+		if (!validation.success) {
+			return json(
+				{
+					error: 'Validation failed',
+					details: validation.error.flatten().fieldErrors
+				},
+				{ status: 400 }
+			);
 		}
+
+		const {
+			sessionId: validatedSessionId,
+			exerciseElapsedSeconds,
+			restRemainingSeconds,
+			pausedAt
+		} = validation.data;
+		sessionId = validatedSessionId;
 
 		const updateData: Record<string, unknown> = {};
 
 		if (exerciseElapsedSeconds !== undefined) {
-			updateData.exerciseElapsedSeconds = parseInt(exerciseElapsedSeconds);
+			updateData.exerciseElapsedSeconds = exerciseElapsedSeconds;
 		}
 		if (restRemainingSeconds !== undefined) {
-			updateData.restRemainingSeconds = parseInt(restRemainingSeconds);
+			updateData.restRemainingSeconds = restRemainingSeconds;
 		}
 		if (pausedAt !== undefined) {
 			updateData.pausedAt = pausedAt ? new Date(pausedAt) : null;

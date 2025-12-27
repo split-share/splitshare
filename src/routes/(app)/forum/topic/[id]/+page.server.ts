@@ -2,6 +2,8 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { container } from '$infrastructure/di/container';
 import { createPostSchema, updatePostSchema } from '$lib/schemas/forum';
 import { NotFoundError, ForbiddenError, BusinessRuleError } from '$core/domain/common/errors';
+import { sanitizeHtml } from '$lib/utils/sanitize';
+import { mutationLimiter, rateLimit } from '$lib/server/rate-limit';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -9,9 +11,20 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		const topic = await container.getTopic.execute(params.id);
 		const posts = await container.getPosts.execute(params.id, { limit: 100, offset: 0 });
 
+		// Sanitize HTML content to prevent XSS attacks
+		const sanitizedTopic = {
+			...topic,
+			content: sanitizeHtml(topic.content)
+		};
+
+		const sanitizedPosts = posts.map((post) => ({
+			...post,
+			content: sanitizeHtml(post.content)
+		}));
+
 		return {
-			topic,
-			posts,
+			topic: sanitizedTopic,
+			posts: sanitizedPosts,
 			user: locals.user
 		};
 	} catch (err) {
@@ -23,12 +36,18 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 };
 
 export const actions: Actions = {
-	createPost: async ({ request, params, locals }) => {
-		if (!locals.user?.id) {
+	createPost: async (event) => {
+		if (!event.locals.user?.id) {
 			throw error(401, 'Unauthorized');
 		}
 
-		const formData = await request.formData();
+		// Rate limit mutations
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
+		}
+
+		const formData = await event.request.formData();
 		const content = formData.get('content') as string;
 
 		const validation = createPostSchema.safeParse({ content });
@@ -41,8 +60,8 @@ export const actions: Actions = {
 
 		try {
 			await container.createPost.execute({
-				topicId: params.id,
-				userId: locals.user.id,
+				topicId: event.params.id,
+				userId: event.locals.user.id,
 				content: validation.data.content
 			});
 
@@ -60,12 +79,18 @@ export const actions: Actions = {
 		}
 	},
 
-	updatePost: async ({ request, locals }) => {
-		if (!locals.user?.id) {
+	updatePost: async (event) => {
+		if (!event.locals.user?.id) {
 			throw error(401, 'Unauthorized');
 		}
 
-		const formData = await request.formData();
+		// Rate limit mutations
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
+		}
+
+		const formData = await event.request.formData();
 		const postId = formData.get('postId') as string;
 		const content = formData.get('content') as string;
 
@@ -78,7 +103,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			await container.updatePost.execute(postId, locals.user.id, {
+			await container.updatePost.execute(postId, event.locals.user.id, {
 				content: validation.data.content
 			});
 			return { success: true };
@@ -95,16 +120,22 @@ export const actions: Actions = {
 		}
 	},
 
-	deletePost: async ({ request, locals }) => {
-		if (!locals.user?.id) {
+	deletePost: async (event) => {
+		if (!event.locals.user?.id) {
 			throw error(401, 'Unauthorized');
 		}
 
-		const formData = await request.formData();
+		// Rate limit mutations
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
+		}
+
+		const formData = await event.request.formData();
 		const postId = formData.get('postId') as string;
 
 		try {
-			await container.deletePost.execute(postId, locals.user.id);
+			await container.deletePost.execute(postId, event.locals.user.id);
 			return { success: true };
 		} catch (err) {
 			if (err instanceof NotFoundError) {
@@ -119,14 +150,20 @@ export const actions: Actions = {
 		}
 	},
 
-	deleteTopic: async ({ params, locals }) => {
-		if (!locals.user?.id) {
+	deleteTopic: async (event) => {
+		if (!event.locals.user?.id) {
 			throw error(401, 'Unauthorized');
 		}
 
+		// Rate limit mutations
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
+		}
+
 		try {
-			const topic = await container.getTopic.execute(params.id);
-			await container.deleteTopic.execute(params.id, locals.user.id);
+			const topic = await container.getTopic.execute(event.params.id);
+			await container.deleteTopic.execute(event.params.id, event.locals.user.id);
 			throw redirect(303, `/forum/${topic.category.slug}`);
 		} catch (err) {
 			if (err instanceof NotFoundError) {

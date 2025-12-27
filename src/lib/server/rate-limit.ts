@@ -54,6 +54,16 @@ export const feedLimiter = redis
 		})
 	: null;
 
+// Rate limiter for mutations (posts, comments, likes, etc.)
+export const mutationLimiter = redis
+	? new Ratelimit({
+			redis,
+			limiter: Ratelimit.slidingWindow(30, '1 m'), // 30 mutations per minute
+			analytics: true,
+			prefix: 'ratelimit:mutation'
+		})
+	: null;
+
 export async function rateLimit(
 	event: RequestEvent,
 	limiter: Ratelimit | null
