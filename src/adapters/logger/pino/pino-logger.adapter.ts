@@ -40,6 +40,8 @@ export class PinoLoggerAdapter implements ILoggerService {
 
 		const isDev = config.environment === 'development' || config.prettyPrint;
 
+		// Note: pino transports (pino-pretty) don't work in Cloudflare Workers
+		// as they require Node.js worker threads. Use basic pino in all environments.
 		this.logger = pino({
 			level: config.level || (isDev ? 'debug' : 'info'),
 			base: {
@@ -47,18 +49,7 @@ export class PinoLoggerAdapter implements ILoggerService {
 				serviceVersion: this.serviceVersion,
 				environment: this.environment
 			},
-			timestamp: pino.stdTimeFunctions.isoTime,
-			...(isDev && {
-				transport: {
-					target: 'pino-pretty',
-					options: {
-						colorize: true,
-						translateTime: 'SYS:standard',
-						ignore: 'pid,hostname',
-						singleLine: false
-					}
-				}
-			})
+			timestamp: pino.stdTimeFunctions.isoTime
 		});
 	}
 
