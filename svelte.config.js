@@ -1,4 +1,4 @@
-import adapterAuto from '@sveltejs/adapter-auto';
+import adapterCloudflare from '@sveltejs/adapter-cloudflare';
 import adapterNode from '@sveltejs/adapter-node';
 import adapterStatic from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
@@ -18,8 +18,8 @@ function getAdapter() {
 	if (isDockerBuild) {
 		return adapterNode();
 	}
-	// Default: adapter-auto for Vercel/Cloudflare/Netlify
-	return adapterAuto();
+	// Default: Cloudflare Pages
+	return adapterCloudflare();
 }
 
 /** @type {import('@sveltejs/kit').Config} */
