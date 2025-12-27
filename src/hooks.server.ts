@@ -5,6 +5,7 @@ import { env } from '$env/dynamic/private';
 import { sequence } from '@sveltejs/kit/hooks';
 import { logger, RequestContext, createRequestLogger } from '$lib/server/logger';
 import { building } from '$app/environment';
+import { initDb } from '$lib/server/db';
 
 if (env.SENTRY_DSN) {
 	Sentry.init({
@@ -168,8 +169,19 @@ const authHandle: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-// Build the handle sequence: logging -> security headers -> cors -> sentry (if enabled) -> auth
-const handles: Handle[] = [loggingHandle, securityHeadersHandle, corsHandle];
+/**
+ * Database initialization middleware - ensures db is ready before any request
+ * Required for development mode where postgres.js needs async initialization
+ */
+const dbInitHandle: Handle = async ({ event, resolve }) => {
+	if (!building) {
+		await initDb();
+	}
+	return resolve(event);
+};
+
+// Build the handle sequence: db init -> logging -> security headers -> cors -> sentry (if enabled) -> auth
+const handles: Handle[] = [dbInitHandle, loggingHandle, securityHeadersHandle, corsHandle];
 if (env.SENTRY_DSN) {
 	handles.push(Sentry.sentryHandle());
 }
