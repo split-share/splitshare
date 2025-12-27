@@ -19,12 +19,12 @@
 		onTick
 	}: Props = $props();
 
-	// eslint-disable-next-line svelte/prefer-writable-derived -- Timer needs mutable state updated by interval
-	let seconds = $state(initialSeconds);
+	// eslint-disable-next-line svelte/prefer-writable-derived -- Timer state updated by interval
+	let seconds = $state(0);
 	let isOverTarget = $derived(mode === 'count-up' && targetSeconds && seconds > targetSeconds);
 
+	// Sync seconds when initialSeconds prop changes
 	$effect(() => {
-		// Reset when initialSeconds changes
 		seconds = initialSeconds;
 	});
 

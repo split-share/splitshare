@@ -15,7 +15,7 @@
 
 	let { data }: { data: PageData } = $props();
 
-	const { splits } = data;
+	const splits = $derived(data.splits);
 
 	function handlePlayClick(e: MouseEvent, splitId: string) {
 		e.preventDefault();
