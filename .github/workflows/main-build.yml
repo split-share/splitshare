@@ -70,6 +70,7 @@ jobs:
             type-check) npm run check ;;
             test) npm run test:unit ;;
           esac
+
   build-and-publish-docker:
     name: Build and Publish Docker Image
     runs-on: ubuntu-latest
@@ -94,6 +95,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
+            type=sha
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -103,12 +105,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-            SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
-            SENTRY_ORG=${{ secrets.SENTRY_ORG }}
-            SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }}
-            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+            DATABASE_URL=postgresql://user:pass@localhost:5432/db
+            BETTER_AUTH_SECRET=docker-build-secret
+            BETTER_AUTH_URL=http://localhost:3000
 
   build-web:
     name: Build Web
@@ -134,11 +133,10 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          # Dummy values for CI build validation - real values set in deployment platform
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+          BETTER_AUTH_SECRET: ci-build-secret-not-for-production
+          BETTER_AUTH_URL: http://localhost:5173
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -181,11 +179,9 @@ jobs:
       - name: Build web assets
         run: npm run build:mobile
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+          BETTER_AUTH_SECRET: ci-build-secret-not-for-production
+          BETTER_AUTH_URL: http://localhost:5173
 
       - name: Add Android platform
         run: npx cap add android
@@ -233,11 +229,9 @@ jobs:
       - name: Build web assets
         run: npm run build:mobile
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+          BETTER_AUTH_SECRET: ci-build-secret-not-for-production
+          BETTER_AUTH_URL: http://localhost:5173
 
       - name: Add iOS platform
         run: npx cap add ios
