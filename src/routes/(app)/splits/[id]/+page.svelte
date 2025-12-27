@@ -18,7 +18,7 @@
 
 	let { data }: { data: PageData } = $props();
 
-	const { split } = data;
+	const split = $derived(data.split);
 	const isOwner = $derived(data.user?.id === split.author.id);
 	const isAuthenticated = $derived(!!data.user);
 

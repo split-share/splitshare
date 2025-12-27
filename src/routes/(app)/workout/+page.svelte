@@ -23,14 +23,35 @@
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	// State
-	let selectedSplitId = $state(data.preselectedSplitId || '');
-	let selectedDayId = $state(data.preselectedDayId || '');
-	let isPaused = $state(data.activeSession?.session.pausedAt !== null);
+	// State - these need to be mutable for user interaction
+	// eslint-disable-next-line svelte/prefer-writable-derived -- Bound to Select component
+	let selectedSplitId = $state('');
+	// eslint-disable-next-line svelte/prefer-writable-derived -- Bound to Select component
+	let selectedDayId = $state('');
+	// eslint-disable-next-line svelte/prefer-writable-derived -- Toggled by user actions
+	let isPaused = $state(false);
 	let isSubmitting = $state(false);
 	let workoutNotes = $state('');
 	let showCompleteModal = $state(false);
-	let timerSeconds = $state(data.activeSession?.session.exerciseElapsedSeconds || 0);
+	// eslint-disable-next-line svelte/prefer-writable-derived -- Updated by timer callback
+	let timerSeconds = $state(0);
+
+	// Sync state with data when it changes
+	$effect(() => {
+		selectedSplitId = data.preselectedSplitId || '';
+	});
+
+	$effect(() => {
+		selectedDayId = data.preselectedDayId || '';
+	});
+
+	$effect(() => {
+		isPaused = data.activeSession?.session.pausedAt !== null;
+	});
+
+	$effect(() => {
+		timerSeconds = data.activeSession?.session.exerciseElapsedSeconds || 0;
+	});
 
 	// Derived
 	let selectedSplit = $derived(data.splits.find((s) => s.id === selectedSplitId));

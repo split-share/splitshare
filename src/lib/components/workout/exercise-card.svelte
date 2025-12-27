@@ -30,9 +30,20 @@
 		isSubmitting = false
 	}: Props = $props();
 
-	let weight = $state(suggestedWeight || '');
-	let reps = $state(exercise.reps.split('-')[0] || '10');
+	// eslint-disable-next-line svelte/prefer-writable-derived -- Mutable state bound to inputs
+	let weight = $state('');
+	// eslint-disable-next-line svelte/prefer-writable-derived -- Mutable state bound to inputs
+	let reps = $state('');
 	let notes = $state('');
+
+	// Sync weight and reps when props change
+	$effect(() => {
+		weight = suggestedWeight || '';
+	});
+
+	$effect(() => {
+		reps = exercise.reps.split('-')[0] || '10';
+	});
 
 	function handleCompleteSet() {
 		const weightNum = weight ? parseFloat(weight) : null;

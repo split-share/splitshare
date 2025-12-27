@@ -18,9 +18,9 @@
 		keywords?: string;
 	} = $props();
 
-	const fullTitle = title.includes('SplitShare') ? title : `${title} | SplitShare`;
-	const fullUrl = url ? `https://splitshare.app${url}` : 'https://splitshare.app';
-	const fullImage = image.startsWith('http') ? image : `https://splitshare.app${image}`;
+	const fullTitle = $derived(title.includes('SplitShare') ? title : `${title} | SplitShare`);
+	const fullUrl = $derived(url ? `https://splitshare.app${url}` : 'https://splitshare.app');
+	const fullImage = $derived(image.startsWith('http') ? image : `https://splitshare.app${image}`);
 </script>
 
 <svelte:head>
