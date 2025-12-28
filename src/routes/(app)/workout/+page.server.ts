@@ -1,7 +1,16 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { container } from '$infrastructure/di/container';
-import { logAction } from '$lib/server/logger';
+import { logAction, logger } from '$lib/server/logger';
 import type { PageServerLoad, Actions } from './$types';
+
+function getErrorMessage(error: unknown): string {
+	return error instanceof Error ? error.message : String(error);
+}
+
+function getFormString(formData: FormData, key: string): string | null {
+	const value = formData.get(key);
+	return typeof value === 'string' ? value : null;
+}
 
 export const load: PageServerLoad = async (event) => {
 	const userId = event.locals.user!.id;
@@ -46,8 +55,8 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
 	start: async (event) => {
 		const formData = await event.request.formData();
-		const splitId = formData.get('splitId') as string;
-		const dayId = formData.get('dayId') as string;
+		const splitId = getFormString(formData, 'splitId');
+		const dayId = getFormString(formData, 'dayId');
 		const userId = event.locals.user!.id;
 
 		if (!splitId || !dayId) {
@@ -74,7 +83,7 @@ export const actions: Actions = {
 				resourceType: 'split',
 				error: error instanceof Error ? error : String(error)
 			});
-			return fail(400, { error: (error as Error).message });
+			return fail(400, { error: getErrorMessage(error) });
 		}
 
 		return { success: true };
@@ -82,10 +91,10 @@ export const actions: Actions = {
 
 	completeSet: async (event) => {
 		const formData = await event.request.formData();
-		const sessionId = formData.get('sessionId') as string;
-		const weight = formData.get('weight') as string;
-		const reps = formData.get('reps') as string;
-		const notes = formData.get('notes') as string;
+		const sessionId = getFormString(formData, 'sessionId');
+		const weight = getFormString(formData, 'weight');
+		const reps = getFormString(formData, 'reps');
+		const notes = getFormString(formData, 'notes');
 		const userId = event.locals.user!.id;
 
 		if (!sessionId || !reps) {
@@ -114,7 +123,7 @@ export const actions: Actions = {
 				resourceType: 'workout_session',
 				error: error instanceof Error ? error : String(error)
 			});
-			return fail(400, { error: (error as Error).message });
+			return fail(400, { error: getErrorMessage(error) });
 		}
 
 		return { success: true };
@@ -122,8 +131,12 @@ export const actions: Actions = {
 
 	skipRest: async (event) => {
 		const formData = await event.request.formData();
-		const sessionId = formData.get('sessionId') as string;
+		const sessionId = getFormString(formData, 'sessionId');
 		const userId = event.locals.user!.id;
+
+		if (!sessionId) {
+			return fail(400, { error: 'Session ID is required' });
+		}
 
 		try {
 			await container.updateWorkoutSession.execute(sessionId, userId, {
@@ -132,7 +145,7 @@ export const actions: Actions = {
 				exerciseElapsedSeconds: 0
 			});
 		} catch (error) {
-			return fail(400, { error: (error as Error).message });
+			return fail(400, { error: getErrorMessage(error) });
 		}
 
 		return { success: true };
@@ -140,17 +153,21 @@ export const actions: Actions = {
 
 	pause: async (event) => {
 		const formData = await event.request.formData();
-		const sessionId = formData.get('sessionId') as string;
-		const exerciseElapsedSeconds = formData.get('exerciseElapsedSeconds') as string;
+		const sessionId = getFormString(formData, 'sessionId');
+		const exerciseElapsedSeconds = getFormString(formData, 'exerciseElapsedSeconds');
 		const userId = event.locals.user!.id;
+
+		if (!sessionId) {
+			return fail(400, { error: 'Session ID is required' });
+		}
 
 		try {
 			await container.updateWorkoutSession.execute(sessionId, userId, {
 				pausedAt: new Date(),
-				exerciseElapsedSeconds: parseInt(exerciseElapsedSeconds) || 0
+				exerciseElapsedSeconds: exerciseElapsedSeconds ? parseInt(exerciseElapsedSeconds) : 0
 			});
 		} catch (error) {
-			return fail(400, { error: (error as Error).message });
+			return fail(400, { error: getErrorMessage(error) });
 		}
 
 		return { success: true };
@@ -158,15 +175,19 @@ export const actions: Actions = {
 
 	resume: async (event) => {
 		const formData = await event.request.formData();
-		const sessionId = formData.get('sessionId') as string;
+		const sessionId = getFormString(formData, 'sessionId');
 		const userId = event.locals.user!.id;
+
+		if (!sessionId) {
+			return fail(400, { error: 'Session ID is required' });
+		}
 
 		try {
 			await container.updateWorkoutSession.execute(sessionId, userId, {
 				pausedAt: null
 			});
 		} catch (error) {
-			return fail(400, { error: (error as Error).message });
+			return fail(400, { error: getErrorMessage(error) });
 		}
 
 		return { success: true };
@@ -174,9 +195,13 @@ export const actions: Actions = {
 
 	complete: async (event) => {
 		const formData = await event.request.formData();
-		const sessionId = formData.get('sessionId') as string;
-		const notes = formData.get('notes') as string;
+		const sessionId = getFormString(formData, 'sessionId');
+		const notes = getFormString(formData, 'notes');
 		const userId = event.locals.user!.id;
+
+		if (!sessionId) {
+			return fail(400, { error: 'Session ID is required' });
+		}
 
 		try {
 			await container.completeWorkoutSession.execute({
@@ -197,7 +222,7 @@ export const actions: Actions = {
 				resourceType: 'workout_session',
 				error: error instanceof Error ? error : String(error)
 			});
-			return fail(400, { error: (error as Error).message });
+			return fail(400, { error: getErrorMessage(error) });
 		}
 
 		redirect(303, '/dashboard');
@@ -205,8 +230,12 @@ export const actions: Actions = {
 
 	abandon: async (event) => {
 		const formData = await event.request.formData();
-		const sessionId = formData.get('sessionId') as string;
+		const sessionId = getFormString(formData, 'sessionId');
 		const userId = event.locals.user!.id;
+
+		if (!sessionId) {
+			return fail(400, { error: 'Session ID is required' });
+		}
 
 		try {
 			await container.abandonWorkoutSession.execute(sessionId, userId);
@@ -223,7 +252,7 @@ export const actions: Actions = {
 				resourceType: 'workout_session',
 				error: error instanceof Error ? error : String(error)
 			});
-			return fail(400, { error: (error as Error).message });
+			return fail(400, { error: getErrorMessage(error) });
 		}
 
 		return { success: true };
@@ -231,10 +260,14 @@ export const actions: Actions = {
 
 	sync: async (event) => {
 		const formData = await event.request.formData();
-		const sessionId = formData.get('sessionId') as string;
-		const exerciseElapsedSeconds = formData.get('exerciseElapsedSeconds') as string;
-		const restRemainingSeconds = formData.get('restRemainingSeconds') as string;
+		const sessionId = getFormString(formData, 'sessionId');
+		const exerciseElapsedSeconds = getFormString(formData, 'exerciseElapsedSeconds');
+		const restRemainingSeconds = getFormString(formData, 'restRemainingSeconds');
 		const userId = event.locals.user!.id;
+
+		if (!sessionId) {
+			return { success: false };
+		}
 
 		try {
 			const updateData: Record<string, unknown> = {};
@@ -245,8 +278,9 @@ export const actions: Actions = {
 				updateData.restRemainingSeconds = parseInt(restRemainingSeconds);
 			}
 			await container.updateWorkoutSession.execute(sessionId, userId, updateData);
-		} catch {
-			// Silently fail for sync - not critical
+		} catch (error) {
+			logger.debug('Workout sync failed', { sessionId, error: getErrorMessage(error) });
+			return { success: false };
 		}
 
 		return { success: true };
