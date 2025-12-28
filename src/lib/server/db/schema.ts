@@ -16,6 +16,7 @@ export const user = pgTable('user', {
 	email: text('email').notNull().unique(),
 	emailVerified: boolean('emailVerified').notNull().default(false),
 	image: text('image'),
+	twoFactorEnabled: boolean('twoFactorEnabled').notNull().default(false),
 	createdAt: timestamp('createdAt').notNull().defaultNow(),
 	updatedAt: timestamp('updatedAt').notNull().defaultNow()
 });
@@ -62,6 +63,22 @@ export const verification = pgTable('verification', {
 	createdAt: timestamp('createdAt').notNull().defaultNow(),
 	updatedAt: timestamp('updatedAt').notNull().defaultNow()
 });
+
+// Two-factor authentication table - better-auth compatible
+export const twoFactor = pgTable(
+	'twoFactor',
+	{
+		id: text('id').primaryKey(),
+		userId: text('userId')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		secret: text('secret').notNull(),
+		backupCodes: text('backupCodes').notNull(),
+		createdAt: timestamp('createdAt').notNull().defaultNow(),
+		updatedAt: timestamp('updatedAt').notNull().defaultNow()
+	},
+	(table) => [index('two_factor_user_id_idx').on(table.userId)]
+);
 
 // Exercises table
 export const exercises = pgTable(
@@ -387,6 +404,7 @@ export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type Account = typeof account.$inferSelect;
 export type Verification = typeof verification.$inferSelect;
+export type TwoFactor = typeof twoFactor.$inferSelect;
 export type Exercise = typeof exercises.$inferSelect;
 export type Split = typeof splits.$inferSelect;
 export type SplitDay = typeof splitDays.$inferSelect;
