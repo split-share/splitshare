@@ -90,7 +90,7 @@ export class CompleteWorkoutSessionUseCase {
 
 		// Update personal records
 		for (const log of exerciseLogs) {
-			if (log.weight !== null && log.weight !== undefined) {
+			if (log.weight != null) {
 				const repsNum = parseInt(log.reps);
 				if (!isNaN(repsNum)) {
 					const existing = await this.personalRecordRepository.findByUserIdAndExerciseId(
