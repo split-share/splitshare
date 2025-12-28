@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -52,15 +53,13 @@
 			});
 
 			if (response.ok || response.redirected) {
-				// Will redirect automatically from server action to /splits/new
-				window.location.href = '/splits/new';
+				goto('/splits/new');
 			} else {
 				const result = await response.json();
 				error = result.error || 'Failed to create exercise';
 			}
-		} catch (err) {
+		} catch {
 			error = 'An error occurred while creating the exercise';
-			console.error(err);
 		} finally {
 			loading = false;
 		}
