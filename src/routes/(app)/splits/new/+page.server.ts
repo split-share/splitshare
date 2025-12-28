@@ -5,6 +5,11 @@ import { container } from '$infrastructure/di/container';
 import { logAction } from '$lib/server/logger';
 import type { PageServerLoad, Actions } from './$types';
 
+function getFormString(formData: FormData, key: string): string | null {
+	const value = formData.get(key);
+	return typeof value === 'string' ? value : null;
+}
+
 export const load: PageServerLoad = async (event) => {
 	const rateLimitResult = await rateLimit(event, uploadLimiter);
 	if (!rateLimitResult.success) {
@@ -38,11 +43,15 @@ export const actions: Actions = {
 		}
 
 		const formData = await event.request.formData();
-		const data = Object.fromEntries(formData);
+		const payload = getFormString(formData, 'payload');
+
+		if (!payload) {
+			return fail(400, { error: 'Invalid form data' });
+		}
 
 		let parsedData;
 		try {
-			parsedData = JSON.parse(data.payload as string);
+			parsedData = JSON.parse(payload);
 		} catch {
 			return fail(400, { error: 'Invalid form data' });
 		}

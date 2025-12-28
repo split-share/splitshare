@@ -6,6 +6,11 @@ import { sanitizeHtml } from '$lib/utils/sanitize';
 import { mutationLimiter, rateLimit } from '$lib/server/rate-limit';
 import type { Actions, PageServerLoad } from './$types';
 
+function getFormString(formData: FormData, key: string): string | null {
+	const value = formData.get(key);
+	return typeof value === 'string' ? value : null;
+}
+
 export const load: PageServerLoad = async ({ params, locals }) => {
 	try {
 		const topic = await container.getTopic.execute(params.id);
@@ -48,7 +53,7 @@ export const actions: Actions = {
 		}
 
 		const formData = await event.request.formData();
-		const content = formData.get('content') as string;
+		const content = getFormString(formData, 'content');
 
 		const validation = createPostSchema.safeParse({ content });
 		if (!validation.success) {
@@ -91,8 +96,12 @@ export const actions: Actions = {
 		}
 
 		const formData = await event.request.formData();
-		const postId = formData.get('postId') as string;
-		const content = formData.get('content') as string;
+		const postId = getFormString(formData, 'postId');
+		const content = getFormString(formData, 'content');
+
+		if (!postId) {
+			return fail(400, { error: 'Post ID is required' });
+		}
 
 		const validation = updatePostSchema.safeParse({ content });
 		if (!validation.success) {
@@ -132,7 +141,11 @@ export const actions: Actions = {
 		}
 
 		const formData = await event.request.formData();
-		const postId = formData.get('postId') as string;
+		const postId = getFormString(formData, 'postId');
+
+		if (!postId) {
+			return fail(400, { error: 'Post ID is required' });
+		}
 
 		try {
 			await container.deletePost.execute(postId, event.locals.user.id);

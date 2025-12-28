@@ -4,6 +4,11 @@ import { logAction } from '$lib/server/logger';
 import { mutationLimiter, rateLimit } from '$lib/server/rate-limit';
 import type { PageServerLoad, Actions } from './$types';
 
+function getFormString(formData: FormData, key: string): string | null {
+	const value = formData.get(key);
+	return typeof value === 'string' ? value : null;
+}
+
 export const load: PageServerLoad = async (event) => {
 	const splitId = event.params.id;
 	const currentUserId = event.locals.user?.id;
@@ -121,7 +126,7 @@ export const actions: Actions = {
 		}
 
 		const formData = await event.request.formData();
-		const content = formData.get('content') as string;
+		const content = getFormString(formData, 'content');
 		const splitId = event.params.id;
 
 		if (!content || !content.trim()) {
@@ -166,8 +171,8 @@ export const actions: Actions = {
 		}
 
 		const formData = await event.request.formData();
-		const commentId = formData.get('commentId') as string;
-		const content = formData.get('content') as string;
+		const commentId = getFormString(formData, 'commentId');
+		const content = getFormString(formData, 'content');
 
 		if (!commentId || !content || !content.trim()) {
 			return fail(400, { error: 'Comment ID and content are required' });
@@ -206,7 +211,7 @@ export const actions: Actions = {
 		}
 
 		const formData = await event.request.formData();
-		const commentId = formData.get('commentId') as string;
+		const commentId = getFormString(formData, 'commentId');
 
 		if (!commentId) {
 			return fail(400, { error: 'Comment ID is required' });

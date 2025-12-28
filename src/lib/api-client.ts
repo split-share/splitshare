@@ -28,8 +28,12 @@ export async function apiRequest<T>(endpoint: string, options: FetchOptions = {}
 	const response = await fetch(url, config);
 
 	if (!response.ok) {
-		const error = await response.json().catch(() => ({ message: 'Request failed' }));
-		throw new Error(error.message || `HTTP ${response.status}`);
+		const errorData = await response.json().catch(() => null);
+		const message =
+			errorData && typeof errorData === 'object' && 'message' in errorData
+				? String(errorData.message)
+				: `HTTP ${response.status}`;
+		throw new Error(message);
 	}
 
 	return response.json();

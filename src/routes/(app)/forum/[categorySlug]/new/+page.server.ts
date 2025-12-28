@@ -4,6 +4,11 @@ import { createTopicSchema } from '$lib/schemas/forum';
 import { NotFoundError } from '$core/domain/common/errors';
 import type { Actions, PageServerLoad } from './$types';
 
+function getFormString(formData: FormData, key: string): string | null {
+	const value = formData.get(key);
+	return typeof value === 'string' ? value : null;
+}
+
 export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!locals.user) {
 		throw redirect(302, `/login?redirect=/forum/${params.categorySlug}/new`);
@@ -27,8 +32,8 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const title = formData.get('title') as string;
-		const content = formData.get('content') as string;
+		const title = getFormString(formData, 'title');
+		const content = getFormString(formData, 'content');
 
 		const validation = createTopicSchema.safeParse({ title, content });
 		if (!validation.success) {

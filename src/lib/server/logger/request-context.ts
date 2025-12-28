@@ -6,10 +6,10 @@ import type {
 } from '$core/ports/logger/logger.port';
 
 /**
- * Generates a unique request ID
+ * Generates a unique request ID using crypto-secure randomization
  */
 export function generateRequestId(): string {
-	return `req_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 9)}`;
+	return `req_${crypto.randomUUID()}`;
 }
 
 /**

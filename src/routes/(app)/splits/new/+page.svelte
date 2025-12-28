@@ -154,9 +154,8 @@
 					error = result.error || 'Failed to create split';
 				}
 			}
-		} catch (err) {
+		} catch {
 			error = 'An error occurred while creating the split';
-			console.error(err);
 		} finally {
 			loading = false;
 		}

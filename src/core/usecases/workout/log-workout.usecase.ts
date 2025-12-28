@@ -13,7 +13,7 @@ export class LogWorkoutUseCase {
 	async execute(input: CreateWorkoutLogDto): Promise<WorkoutLog> {
 		for (const exercise of input.exercises) {
 			ExerciseLog.validateSets(exercise.sets);
-			if (exercise.weight !== null && exercise.weight !== undefined) {
+			if (exercise.weight != null) {
 				ExerciseLog.validateWeight(exercise.weight);
 			}
 		}
@@ -21,7 +21,7 @@ export class LogWorkoutUseCase {
 		const workoutLog = await this.workoutLogRepository.createWithExercises(input);
 
 		for (const exercise of input.exercises) {
-			if (exercise.weight !== null && exercise.weight !== undefined) {
+			if (exercise.weight != null) {
 				const repsNum = parseInt(exercise.reps);
 				if (!isNaN(repsNum)) {
 					const existing = await this.personalRecordRepository.findByUserIdAndExerciseId(
