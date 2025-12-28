@@ -9,6 +9,7 @@ import type {
 	WorkoutLogWithDetailsDto,
 	WorkoutStatsDto
 } from '../../../core/domain/workout/workout.dto';
+import type { ExercisePerformanceDto } from '../../../core/domain/workout/progression-suggestion.dto';
 import { WorkoutLog } from '../../../core/domain/workout/workout-log.entity';
 
 export class DrizzleWorkoutLogRepositoryAdapter implements IWorkoutLogRepository {
@@ -310,6 +311,32 @@ export class DrizzleWorkoutLogRepositoryAdapter implements IWorkoutLogRepository
 			lastWorkoutDate: stats?.lastWorkoutDate || null,
 			currentStreak
 		};
+	}
+
+	async findExerciseHistory(
+		userId: string,
+		exerciseId: string,
+		limit = 5
+	): Promise<ExercisePerformanceDto[]> {
+		const results = await this.db
+			.select({
+				date: workoutLogs.completedAt,
+				weight: exerciseLogs.weight,
+				sets: exerciseLogs.sets,
+				reps: exerciseLogs.reps
+			})
+			.from(exerciseLogs)
+			.innerJoin(workoutLogs, eq(exerciseLogs.workoutLogId, workoutLogs.id))
+			.where(and(eq(workoutLogs.userId, userId), eq(exerciseLogs.exerciseId, exerciseId)))
+			.orderBy(desc(workoutLogs.completedAt))
+			.limit(limit);
+
+		return results.map((r) => ({
+			date: r.date,
+			weight: r.weight,
+			sets: r.sets,
+			reps: r.reps
+		}));
 	}
 
 	private async calculateStreak(userId: string): Promise<number> {

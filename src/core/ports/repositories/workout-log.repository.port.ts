@@ -5,6 +5,7 @@ import type {
 	WorkoutLogWithDetailsDto,
 	WorkoutStatsDto
 } from '../../domain/workout/workout.dto';
+import type { ExercisePerformanceDto } from '../../domain/workout/progression-suggestion.dto';
 
 export interface IWorkoutLogRepository {
 	findById(id: string): Promise<WorkoutLog | undefined>;
@@ -30,4 +31,13 @@ export interface IWorkoutLogRepository {
 	isOwnedByUser(id: string, userId: string): Promise<boolean>;
 
 	getUserStats(userId: string): Promise<WorkoutStatsDto>;
+
+	/**
+	 * Get recent exercise performance history for progression analysis
+	 */
+	findExerciseHistory(
+		userId: string,
+		exerciseId: string,
+		limit?: number
+	): Promise<ExercisePerformanceDto[]>;
 }
