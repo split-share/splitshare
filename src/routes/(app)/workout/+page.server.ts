@@ -44,11 +44,25 @@ export const load: PageServerLoad = async (event) => {
 	const splitIdParam = url.searchParams.get('splitId');
 	const dayIdParam = url.searchParams.get('dayId');
 
+	// Load progression suggestions if there's an active session
+	let progressionSuggestions: Record<
+		string,
+		import('$core/domain/workout/progression-suggestion.dto').ProgressionSuggestionDto
+	> = {};
+	if (activeSession) {
+		const exerciseIds = activeSession.exercises
+			.map((e) => e.exerciseId)
+			.filter((id): id is string => id !== null);
+		const suggestionsMap = await container.getProgressionSuggestions.execute(userId, exerciseIds);
+		progressionSuggestions = Object.fromEntries(suggestionsMap);
+	}
+
 	return {
 		activeSession,
 		splits,
 		preselectedSplitId: splitIdParam,
-		preselectedDayId: dayIdParam
+		preselectedDayId: dayIdParam,
+		progressionSuggestions
 	};
 };
 

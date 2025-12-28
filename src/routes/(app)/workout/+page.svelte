@@ -375,6 +375,9 @@
 					suggestedWeight={currentExercise.weight}
 					onCompleteSet={handleCompleteSet}
 					{isSubmitting}
+					progressionSuggestion={currentExercise.exerciseId
+						? data.progressionSuggestions[currentExercise.exerciseId]
+						: undefined}
 				/>
 			{/if}
 
