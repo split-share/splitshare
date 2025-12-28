@@ -34,7 +34,6 @@
 			if (result.error) {
 				error = result.error.message || 'Invalid email or password';
 			} else {
-				// Invalidate all data to reload user info
 				await invalidateAll();
 				await goto('/splits');
 			}

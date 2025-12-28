@@ -5,7 +5,8 @@
 	import ModeToggle from '$lib/components/mode-toggle.svelte';
 	import SeoHead from '$lib/components/seo-head.svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { Menu, X } from 'lucide-svelte';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import { Menu, X, Settings, LogOut, User } from 'lucide-svelte';
 	import type { LayoutData } from './$types';
 
 	let { data, children }: { data: LayoutData; children: Snippet } = $props();
@@ -53,15 +54,38 @@
 			</div>
 			<div class="flex items-center gap-2 md:gap-3">
 				{#if data.user}
-					<span class="text-sm text-muted-foreground hidden md:inline">{data.user.name}</span>
-					<form method="POST" action="/logout" class="hidden md:block">
-						<button
-							type="submit"
-							class="rounded-lg border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
-						>
-							Logout
-						</button>
-					</form>
+					<div class="hidden md:block">
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger>
+								{#snippet child({ props })}
+									<button
+										{...props}
+										class="flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm hover:bg-accent transition-colors"
+									>
+										<User class="h-4 w-4" />
+										<span class="max-w-[120px] truncate">{data.user?.name}</span>
+									</button>
+								{/snippet}
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Content align="end" class="w-48">
+								<a href="/settings/profile" class="block">
+									<DropdownMenu.Item>
+										<Settings class="mr-2 h-4 w-4" />
+										Settings
+									</DropdownMenu.Item>
+								</a>
+								<DropdownMenu.Separator />
+								<form method="POST" action="/logout" class="w-full">
+									<button type="submit" class="w-full text-left">
+										<DropdownMenu.Item>
+											<LogOut class="mr-2 h-4 w-4" />
+											Logout
+										</DropdownMenu.Item>
+									</button>
+								</form>
+							</DropdownMenu.Content>
+						</DropdownMenu.Root>
+					</div>
 				{:else}
 					<a
 						href="/login"
@@ -130,6 +154,14 @@
 						onclick={closeMobileMenu}
 					>
 						Stats
+					</a>
+					<a
+						href="/settings/profile"
+						class="px-4 py-3 text-sm hover:bg-accent transition-colors active:bg-accent/80 flex items-center gap-2"
+						onclick={closeMobileMenu}
+					>
+						<Settings class="h-4 w-4" />
+						Settings
 					</a>
 					<div class="border-t border-border/40 mt-2 pt-2 px-4">
 						<div class="flex items-center justify-between py-2">
