@@ -12,5 +12,23 @@ export default defineConfig({
 			}
 		}),
 		sveltekit()
-	]
+	],
+	build: {
+		rollupOptions: {
+			onwarn(warning, warn) {
+				// Suppress circular dependency warnings from third-party libraries
+				if (warning.code === 'CIRCULAR_DEPENDENCY') {
+					const msg = warning.message || '';
+					if (
+						msg.includes('kysely') ||
+						msg.includes('svelte/src/internal') ||
+						msg.includes('d3-interpolate')
+					) {
+						return;
+					}
+				}
+				warn(warning);
+			}
+		}
+	}
 });
