@@ -5,16 +5,16 @@ services:
     container_name: splitshare-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: splitshare
-      POSTGRES_USER: splitshare
-      POSTGRES_PASSWORD: splitshare_dev_password
+      POSTGRES_DB: ${POSTGRES_DB:-splitshare}
+      POSTGRES_USER: ${POSTGRES_USER:-splitshare}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-splitshare_dev_password}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U splitshare']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-splitshare}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,13 +26,13 @@ services:
     image: redis:7-alpine
     container_name: splitshare-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass redis_dev_password
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_dev_password}
     ports:
       - '6379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD:-redis_dev_password}', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,15 +41,15 @@ services:
 
   # Upstash Redis HTTP Proxy for compatibility with Upstash SDK
   upstash-proxy:
-    image: hiett/serverless-redis-http:latest
+    image: hiett/serverless-redis-http:0.0.9
     container_name: splitshare-upstash-proxy
     restart: unless-stopped
     ports:
       - '8079:80'
     environment:
       SRH_MODE: env
-      SRH_TOKEN: example_token
-      SRH_CONNECTION_STRING: redis://:redis_dev_password@redis:6379
+      SRH_TOKEN: ${UPSTASH_REDIS_REST_TOKEN:-example_token}
+      SRH_CONNECTION_STRING: redis://:${REDIS_PASSWORD:-redis_dev_password}@redis:6379
     networks:
       - splitshare-network
     depends_on:
@@ -58,7 +58,7 @@ services:
 
   # Mailpit for email testing
   mailpit:
-    image: axllent/mailpit:latest
+    image: axllent/mailpit:v1.21
     container_name: splitshare-mailpit
     restart: unless-stopped
     ports:
@@ -70,9 +70,42 @@ services:
     networks:
       - splitshare-network
 
+  # SplitShare App
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: splitshare-app
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-splitshare}:${POSTGRES_PASSWORD:-splitshare_dev_password}@postgres:5432/${POSTGRES_DB:-splitshare}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-local-dev-secret-key-change-in-production-min-32-chars}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS:-http://localhost:3000}
+      UPSTASH_REDIS_REST_URL: http://upstash-proxy:80
+      UPSTASH_REDIS_REST_TOKEN: ${UPSTASH_REDIS_REST_TOKEN:-example_token}
+      RESEND_API_KEY: ${RESEND_API_KEY:-not-needed-for-local-dev}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@splitshare.local}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:3000}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      NODE_ENV: ${NODE_ENV:-production}
+    networks:
+      - splitshare-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      upstash-proxy:
+        condition: service_started
+    profiles:
+      - app
+
   # pgAdmin for database management (optional)
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:8.14
     container_name: splitshare-pgadmin
     restart: unless-stopped
     environment:
@@ -93,11 +126,11 @@ services:
 
   # Redis Commander for Redis management (optional)
   redis-commander:
-    image: rediscommander/redis-commander:latest
+    image: rediscommander/redis-commander:0.8.1
     container_name: splitshare-redis-commander
     restart: unless-stopped
     environment:
-      REDIS_HOSTS: local:redis:6379:0:redis_dev_password
+      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD:-redis_dev_password}
     ports:
       - '8081:8081'
     networks:
