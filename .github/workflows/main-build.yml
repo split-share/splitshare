@@ -14,55 +14,15 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  install-deps:
-    name: Install Dependencies
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Cache node_modules
-        id: cache-deps
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Install dependencies
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: npm ci
-
   validate:
     name: Validate Code Quality
     runs-on: ubuntu-latest
-    needs: install-deps
     strategy:
       matrix:
         task: [lint, type-check, test]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Restore cached dependencies
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
+      - uses: ./.github/actions/setup-node
       - name: Run ${{ matrix.task }}
         run: |
           case "${{ matrix.task }}" in
@@ -70,6 +30,7 @@ jobs:
             type-check) npm run check ;;
             test) npm run test:unit ;;
           esac
+
   build-and-publish-docker:
     name: Build and Publish Docker Image
     runs-on: ubuntu-latest
@@ -103,9 +64,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-            SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
             SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }}
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -116,21 +74,7 @@ jobs:
     needs: validate
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Restore cached dependencies
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
+      - uses: ./.github/actions/setup-node
       - name: Build project
         run: npm run build
         env:
@@ -156,12 +100,7 @@ jobs:
     needs: build-web
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+      - uses: ./.github/actions/setup-node
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -169,18 +108,15 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Restore cached dependencies
-        id: cache-deps
+      - name: Cache Gradle
         uses: actions/cache@v4
         with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Install dependencies
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: npm ci
+            ${{ runner.os }}-gradle-
 
       - name: Build web assets
         run: npm run build:mobile
@@ -225,7 +161,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Restore cached dependencies
+      - name: Cache node_modules
         id: cache-deps
         uses: actions/cache@v4
         with:
