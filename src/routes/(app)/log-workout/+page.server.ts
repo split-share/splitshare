@@ -3,6 +3,11 @@ import { container } from '$infrastructure/di/container';
 import { logWorkoutSchema } from '$lib/schemas/split';
 import type { PageServerLoad, Actions } from './$types';
 
+function getFormString(formData: FormData, key: string): string | null {
+	const value = formData.get(key);
+	return typeof value === 'string' ? value : null;
+}
+
 export const load: PageServerLoad = async (event) => {
 	const userId = event.locals.user!.id;
 
@@ -27,11 +32,15 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
 	log: async (event) => {
 		const formData = await event.request.formData();
-		const data = Object.fromEntries(formData);
+		const payload = getFormString(formData, 'payload');
+
+		if (!payload) {
+			return fail(400, { error: 'Invalid form data' });
+		}
 
 		let parsedData: unknown;
 		try {
-			parsedData = JSON.parse(data.payload as string);
+			parsedData = JSON.parse(payload);
 		} catch {
 			return fail(400, { error: 'Invalid form data' });
 		}

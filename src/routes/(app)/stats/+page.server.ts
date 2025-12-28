@@ -34,11 +34,17 @@ export const load: PageServerLoad = async (event) => {
 	};
 };
 
+function getFormString(formData: FormData, key: string): string | null {
+	const value = formData.get(key);
+	return typeof value === 'string' ? value : null;
+}
+
 export const actions: Actions = {
 	add: async (event) => {
 		const formData = await event.request.formData();
-		const weight = parseFloat(formData.get('weight') as string);
-		const notes = formData.get('notes') as string;
+		const weightStr = getFormString(formData, 'weight');
+		const weight = weightStr ? parseFloat(weightStr) : NaN;
+		const notes = getFormString(formData, 'notes');
 
 		const recordedAt = new Date();
 		recordedAt.setHours(0, 0, 0, 0);
@@ -74,7 +80,7 @@ export const actions: Actions = {
 
 	delete: async (event) => {
 		const formData = await event.request.formData();
-		const id = formData.get('id') as string;
+		const id = getFormString(formData, 'id');
 
 		if (!id) {
 			return fail(400, { error: 'Weight entry ID is required' });
