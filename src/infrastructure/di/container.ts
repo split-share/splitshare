@@ -51,6 +51,7 @@ import { UpdateWorkoutSessionUseCase } from '../../core/usecases/workout/update-
 import { CompleteSetUseCase } from '../../core/usecases/workout/complete-set.usecase';
 import { CompleteWorkoutSessionUseCase } from '../../core/usecases/workout/complete-workout-session.usecase';
 import { AbandonWorkoutSessionUseCase } from '../../core/usecases/workout/abandon-workout-session.usecase';
+import { GetProgressionSuggestionsUseCase } from '../../core/usecases/workout/get-progression-suggestions.usecase';
 
 import { GetCategoriesUseCase } from '../../core/usecases/forum/get-categories.usecase';
 import { GetTopicsUseCase } from '../../core/usecases/forum/get-topics.usecase';
@@ -287,6 +288,14 @@ class Container {
 
 	get abandonWorkoutSession(): AbandonWorkoutSessionUseCase {
 		return new AbandonWorkoutSessionUseCase(this.workoutSessionRepository);
+	}
+
+	get getProgressionSuggestions(): GetProgressionSuggestionsUseCase {
+		return new GetProgressionSuggestionsUseCase(
+			this.workoutLogRepository,
+			this.personalRecordRepository,
+			this.exerciseRepository
+		);
 	}
 
 	// Forum use cases
