@@ -7,8 +7,10 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Check } from 'lucide-svelte';
 	import ExerciseGif from '$lib/components/exercise-gif.svelte';
+	import ProgressionSuggestion from './progression-suggestion.svelte';
 	import type { DayExerciseDto } from '../../../core/domain/workout/workout-session.dto';
 	import type { CompletedSetData } from '../../../core/domain/workout/workout-session.entity';
+	import type { ProgressionSuggestionDto } from '../../../core/domain/workout/progression-suggestion.dto';
 
 	interface Props {
 		exercise: DayExerciseDto;
@@ -18,6 +20,7 @@
 		suggestedWeight: string | null;
 		onCompleteSet: (weight: number | null, reps: number, notes: string | null) => void;
 		isSubmitting?: boolean;
+		progressionSuggestion?: ProgressionSuggestionDto;
 	}
 
 	let {
@@ -27,7 +30,8 @@
 		completedSetsForExercise,
 		suggestedWeight,
 		onCompleteSet,
-		isSubmitting = false
+		isSubmitting = false,
+		progressionSuggestion
 	}: Props = $props();
 
 	// eslint-disable-next-line svelte/prefer-writable-derived -- Mutable state bound to inputs
@@ -36,9 +40,23 @@
 	let reps = $state('');
 	let notes = $state('');
 
+	// Compute the effective suggested weight (prefer progression suggestion if ready to progress)
+	const effectiveSuggestedWeight = $derived(() => {
+		if (
+			progressionSuggestion?.reason === 'ready_to_progress' &&
+			progressionSuggestion.suggestedWeight
+		) {
+			return progressionSuggestion.suggestedWeight.toString();
+		}
+		if (progressionSuggestion?.lastPerformance?.weight) {
+			return progressionSuggestion.lastPerformance.weight.toString();
+		}
+		return suggestedWeight || '';
+	});
+
 	// Sync weight and reps when props change
 	$effect(() => {
-		weight = suggestedWeight || '';
+		weight = effectiveSuggestedWeight();
 	});
 
 	$effect(() => {
@@ -94,6 +112,11 @@
 				</div>
 			{/if}
 		</div>
+
+		<!-- Progressive Overload Suggestion -->
+		{#if progressionSuggestion}
+			<ProgressionSuggestion suggestion={progressionSuggestion} />
+		{/if}
 
 		<!-- Completed sets summary -->
 		{#if completedSetsForExercise.length > 0}

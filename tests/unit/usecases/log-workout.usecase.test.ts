@@ -21,7 +21,8 @@ describe('LogWorkoutUseCase', () => {
 			delete: vi.fn(),
 			exists: vi.fn(),
 			isOwnedByUser: vi.fn(),
-			getUserStats: vi.fn()
+			getUserStats: vi.fn(),
+			findExerciseHistory: vi.fn()
 		};
 
 		personalRecordRepository = {
