@@ -35,6 +35,8 @@ describe('CompleteSetUseCase', () => {
 			order: i,
 			notes: null,
 			weight: null,
+			groupId: null,
+			groupType: null,
 			exercise: {
 				id: `exercise-${i + 1}`,
 				name: `Exercise ${i + 1}`,

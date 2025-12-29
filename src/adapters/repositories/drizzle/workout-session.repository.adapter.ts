@@ -198,6 +198,8 @@ export class DrizzleWorkoutSessionRepositoryAdapter implements IWorkoutSessionRe
 			weight: item.dayExercise.weight,
 			notes: item.dayExercise.notes,
 			order: item.dayExercise.order,
+			groupId: item.dayExercise.groupId,
+			groupType: item.dayExercise.groupType as 'superset' | 'triset' | null,
 			exercise: item.exercise
 				? {
 						id: item.exercise.id,

@@ -17,6 +17,7 @@
 	import WorkoutProgress from '$lib/components/workout/workout-progress.svelte';
 	import ExerciseCard from '$lib/components/workout/exercise-card.svelte';
 	import RestOverlay from '$lib/components/workout/rest-overlay.svelte';
+	import GroupProgress from '$lib/components/workout/group-progress.svelte';
 	import { Play, Pause, X, Check, Dumbbell, AlertCircle } from 'lucide-svelte';
 	import { hapticImpact, hapticNotification } from '$lib/utils/mobile';
 	import type { PageData, ActionData } from './$types';
@@ -73,6 +74,21 @@
 			return exercises[session.currentExerciseIndex + 1]?.exerciseName;
 		}
 		return currentExercise?.exerciseName;
+	});
+
+	// Group-related derived state
+	let currentGroupInfo = $derived.by(() => {
+		if (!currentExercise?.groupId) return null;
+
+		const groupExercises = exercises.filter((ex) => ex.groupId === currentExercise.groupId);
+		const currentIndexInGroup = groupExercises.findIndex((ex) => ex.id === currentExercise.id);
+
+		return {
+			groupType: currentExercise.groupType as 'superset' | 'triset',
+			currentIndex: currentIndexInGroup,
+			totalInGroup: groupExercises.length,
+			exerciseNames: groupExercises.map((ex) => ex.exerciseName)
+		};
 	});
 
 	// Sync timer values periodically
@@ -301,6 +317,16 @@
 					totalExercises={exercises.length}
 					currentSetIndex={session!.currentSetIndex}
 					totalSets={currentExercise.sets}
+				/>
+			{/if}
+
+			<!-- Group Progress (for supersets/trisets) -->
+			{#if currentGroupInfo}
+				<GroupProgress
+					groupType={currentGroupInfo.groupType}
+					currentIndex={currentGroupInfo.currentIndex}
+					totalInGroup={currentGroupInfo.totalInGroup}
+					exerciseNames={currentGroupInfo.exerciseNames}
 				/>
 			{/if}
 

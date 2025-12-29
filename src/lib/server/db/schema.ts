@@ -159,9 +159,14 @@ export const dayExercises = pgTable(
 		order: integer('order').notNull(), // order within the day
 		notes: text('notes'),
 		weight: numeric('weight'), // weight in kg (optional, for weighted exercises)
+		groupId: text('group_id'), // UUID linking exercises in same superset/triset
+		groupType: text('group_type'), // 'superset' | 'triset' | null
 		createdAt: timestamp('created_at').notNull().defaultNow()
 	},
-	(table) => [index('day_exercises_day_id_idx').on(table.dayId)]
+	(table) => [
+		index('day_exercises_day_id_idx').on(table.dayId),
+		index('day_exercises_group_id_idx').on(table.groupId)
+	]
 );
 
 // Split shares table

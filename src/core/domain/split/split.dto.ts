@@ -48,6 +48,8 @@ export interface CreateDayExerciseDto {
 	order: number;
 	notes?: string | null;
 	weight?: number | null;
+	groupId?: string | null;
+	groupType?: 'superset' | 'triset' | null;
 }
 
 export interface UpdateSplitDto {
@@ -112,6 +114,8 @@ export interface DayExerciseWithDetailsDto {
 	order: number;
 	notes: string | null;
 	weight: number | null;
+	groupId: string | null;
+	groupType: 'superset' | 'triset' | null;
 	exercise: {
 		id: string;
 		name: string;

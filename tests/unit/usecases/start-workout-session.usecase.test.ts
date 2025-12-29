@@ -60,6 +60,8 @@ describe('StartWorkoutSessionUseCase', () => {
 									order: 0,
 									notes: null,
 									weight: null,
+									groupId: null,
+									groupType: null,
 									createdAt: now,
 									exercise: {
 										id: 'exercise-1',
