@@ -13,6 +13,7 @@
 		Target
 	} from 'lucide-svelte';
 	import WeightChart from './weight-chart.svelte';
+	import MuscleHeatmap from './muscle-heatmap.svelte';
 	import {
 		StatCard,
 		RecentWorkoutsList,
@@ -69,7 +70,7 @@
 	</div>
 
 	<Tabs.Root bind:value={activeTab}>
-		<Tabs.List class="w-full grid grid-cols-4 h-auto">
+		<Tabs.List class="w-full grid grid-cols-5 h-auto">
 			<Tabs.Trigger value="overview" class="text-xs px-1 py-2 sm:text-sm sm:px-2">
 				<span class="hidden sm:inline">Overview</span>
 				<span class="sm:hidden">Stats</span>
@@ -80,6 +81,9 @@
 			</Tabs.Trigger>
 			<Tabs.Trigger value="workouts" class="text-xs px-1 py-2 sm:text-sm sm:px-2">
 				Workouts
+			</Tabs.Trigger>
+			<Tabs.Trigger value="muscles" class="text-xs px-1 py-2 sm:text-sm sm:px-2">
+				Muscles
 			</Tabs.Trigger>
 			<Tabs.Trigger value="strength" class="text-xs px-1 py-2 sm:text-sm sm:px-2">
 				Strength
@@ -285,6 +289,11 @@
 			{/if}
 
 			<WorkoutHistoryList workouts={data.recentWorkouts} />
+		</Tabs.Content>
+
+		<!-- Muscles Tab -->
+		<Tabs.Content value="muscles" class="space-y-4 mt-4 sm:space-y-6 sm:mt-6">
+			<MuscleHeatmap data={data.muscleHeatmapData} />
 		</Tabs.Content>
 
 		<!-- Strength Tab -->

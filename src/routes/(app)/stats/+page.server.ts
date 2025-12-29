@@ -12,14 +12,16 @@ export const load: PageServerLoad = async (event) => {
 		weightChartData,
 		workoutStats,
 		personalRecords,
-		recentWorkouts
+		recentWorkouts,
+		muscleHeatmapData
 	] = await Promise.all([
 		container.getWeightStats.execute(userId),
 		container.getWeightHistory.execute(userId, 50),
 		container.getWeightChartData.execute(userId, 90),
 		container.getUserStats.execute(userId),
 		container.getPersonalRecords.execute(userId),
-		container.getWorkoutHistory.execute(userId, 5)
+		container.getWorkoutHistory.execute(userId, 5),
+		container.getMuscleHeatmap.execute(userId, 7)
 	]);
 
 	return {
@@ -30,7 +32,9 @@ export const load: PageServerLoad = async (event) => {
 		// Workout stats
 		workoutStats,
 		personalRecords,
-		recentWorkouts
+		recentWorkouts,
+		// Muscle heatmap
+		muscleHeatmapData
 	};
 };
 
