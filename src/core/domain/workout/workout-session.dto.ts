@@ -31,6 +31,8 @@ export interface DayExerciseDto {
 	weight: string | null;
 	notes: string | null;
 	order: number;
+	groupId: string | null;
+	groupType: 'superset' | 'triset' | null;
 	exercise: {
 		id: string;
 		name: string;
