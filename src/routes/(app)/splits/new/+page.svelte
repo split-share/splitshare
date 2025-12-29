@@ -9,13 +9,21 @@
 	import * as Select from '$lib/components/ui/select';
 	import { DIFFICULTY_LEVELS, POPULAR_EXERCISES } from '$lib/constants';
 	import { Plus, Trash2 } from 'lucide-svelte';
-	import ExerciseGif from '$lib/components/exercise-gif.svelte';
 	import * as Switch from '$lib/components/ui/switch';
+	import DraggableExerciseList from '$lib/components/workout/draggable-exercise-list.svelte';
 	import type {
 		CreateCompleteSplitInput,
 		CreateSplitDayInput,
 		AddExerciseToDayInput
 	} from '$lib/schemas/split';
+
+	interface ExerciseItem extends AddExerciseToDayInput {
+		id: string;
+	}
+
+	interface DayWithIds extends Omit<CreateSplitDayInput, 'exercises'> {
+		exercises: ExerciseItem[];
+	}
 
 	let loading = $state(false);
 	let error = $state('');
@@ -29,8 +37,16 @@
 	let selectedTags = $state<string[]>([]);
 	let imageUrl = $state('');
 
-	// Days state
-	let days = $state<CreateSplitDayInput[]>([]);
+	// Days state with unique IDs for drag-and-drop
+	let days = $state<DayWithIds[]>([]);
+
+	// Counter for generating unique IDs
+	let exerciseIdCounter = $state(0);
+
+	function generateId(): string {
+		exerciseIdCounter++;
+		return `exercise-${exerciseIdCounter}-${Date.now()}`;
+	}
 
 	// Exercise name inputs for each day
 	let newExerciseNames = new SvelteMap<number, string>();
@@ -53,7 +69,7 @@
 
 	function addDay() {
 		const dayNumber = days.length + 1;
-		const newDay: CreateSplitDayInput = {
+		const newDay: DayWithIds = {
 			dayNumber,
 			name: `Day ${dayNumber}`,
 			isRestDay: false,
@@ -82,19 +98,49 @@
 		const exerciseName = newExerciseNames.get(dayIndex)?.trim();
 		if (!exerciseName) return;
 
-		const exerciseData: AddExerciseToDayInput = {
+		const exerciseData: ExerciseItem = {
+			id: generateId(),
 			exerciseName: exerciseName,
 			sets: 3,
 			reps: '8-12',
 			restTime: 60,
 			order: days[dayIndex].exercises.length,
 			notes: '',
-			weight: undefined
+			weight: undefined,
+			groupId: undefined,
+			groupType: undefined
 		};
 		days[dayIndex].exercises = [...days[dayIndex].exercises, exerciseData];
 
 		// Clear the input
 		newExerciseNames.set(dayIndex, '');
+	}
+
+	function handleExercisesChange(dayIndex: number, exercises: ExerciseItem[]) {
+		days[dayIndex].exercises = exercises;
+	}
+
+	function handleCreateGroup(
+		dayIndex: number,
+		exerciseIds: string[],
+		groupType: 'superset' | 'triset'
+	) {
+		const groupId = crypto.randomUUID();
+		days[dayIndex].exercises = days[dayIndex].exercises.map((ex) => {
+			if (exerciseIds.includes(ex.id)) {
+				return { ...ex, groupId, groupType };
+			}
+			return ex;
+		});
+	}
+
+	function handleUngroup(dayIndex: number, groupId: string) {
+		days[dayIndex].exercises = days[dayIndex].exercises.map((ex) => {
+			if (ex.groupId === groupId) {
+				return { ...ex, groupId: undefined, groupType: undefined };
+			}
+			return ex;
+		});
 	}
 
 	function removeExerciseFromDay(dayIndex: number, exerciseIndex: number) {
@@ -116,6 +162,16 @@
 				return;
 			}
 
+			// Strip the client-side `id` field from exercises before sending
+			const daysForSubmit: CreateSplitDayInput[] = days.map((day) => ({
+				...day,
+				exercises: day.exercises.map(({ id: _id, ...exercise }) => ({
+					...exercise,
+					groupId: exercise.groupId ?? null,
+					groupType: exercise.groupType ?? null
+				}))
+			}));
+
 			const payload: CreateCompleteSplitInput = {
 				title,
 				description: description || undefined,
@@ -124,7 +180,7 @@
 				isPublic,
 				tags: selectedTags.length > 0 ? selectedTags : undefined,
 				imageUrl: imageUrl || undefined,
-				days
+				days: daysForSubmit
 			};
 
 			const formData = new FormData();
@@ -329,69 +385,15 @@
 									{#if !day.isRestDay}
 										<div class="space-y-3">
 											{#if day.exercises.length > 0}
-												<div class="space-y-2">
-													{#each day.exercises as exercise, exIndex (exercise.order)}
-														<div
-															class="flex items-start gap-3 rounded-lg bg-background/80 p-4 border-none"
-														>
-															<ExerciseGif
-																exerciseName={exercise.exerciseName}
-																class="w-16 h-16 shrink-0"
-															/>
-															<div class="flex-1 space-y-3">
-																<div class="font-medium">{exercise.exerciseName}</div>
-																<div class="grid grid-cols-4 gap-3">
-																	<div class="space-y-1">
-																		<Label class="text-xs text-muted-foreground">Sets</Label>
-																		<Input
-																			type="number"
-																			bind:value={exercise.sets}
-																			min="1"
-																			max="20"
-																			class="h-9"
-																		/>
-																	</div>
-																	<div class="space-y-1">
-																		<Label class="text-xs text-muted-foreground">Reps</Label>
-																		<Input
-																			bind:value={exercise.reps}
-																			placeholder="8-12"
-																			class="h-9"
-																		/>
-																	</div>
-																	<div class="space-y-1">
-																		<Label class="text-xs text-muted-foreground">Weight (kg)</Label>
-																		<Input
-																			type="number"
-																			bind:value={exercise.weight}
-																			placeholder="Optional"
-																			min="0"
-																			max="1000"
-																			step="0.5"
-																			class="h-9"
-																		/>
-																	</div>
-																	<div class="space-y-1">
-																		<Label class="text-xs text-muted-foreground">Notes</Label>
-																		<Input
-																			bind:value={exercise.notes}
-																			placeholder="Optional"
-																			class="h-9"
-																		/>
-																	</div>
-																</div>
-															</div>
-															<Button
-																type="button"
-																variant="ghost"
-																size="icon"
-																onclick={() => removeExerciseFromDay(dayIndex, exIndex)}
-															>
-																<Trash2 class="h-4 w-4" />
-															</Button>
-														</div>
-													{/each}
-												</div>
+												<DraggableExerciseList
+													exercises={day.exercises}
+													onExercisesChange={(exercises) =>
+														handleExercisesChange(dayIndex, exercises)}
+													onRemoveExercise={(exIndex) => removeExerciseFromDay(dayIndex, exIndex)}
+													onCreateGroup={(exerciseIds, groupType) =>
+														handleCreateGroup(dayIndex, exerciseIds, groupType)}
+													onUngroup={(groupId) => handleUngroup(dayIndex, groupId)}
+												/>
 											{/if}
 
 											<div class="flex gap-2">
