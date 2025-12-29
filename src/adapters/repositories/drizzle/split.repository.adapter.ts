@@ -134,6 +134,8 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 				order: item.dayExercise.order,
 				notes: item.dayExercise.notes,
 				weight: item.dayExercise.weight ? Number(item.dayExercise.weight) : null,
+				groupId: item.dayExercise.groupId,
+				groupType: item.dayExercise.groupType as 'superset' | 'triset' | null,
 				exercise: item.exercise
 					? {
 							id: item.exercise.id,
@@ -297,6 +299,8 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 					order: item.dayExercise.order,
 					notes: item.dayExercise.notes,
 					weight: item.dayExercise.weight ? Number(item.dayExercise.weight) : null,
+					groupId: item.dayExercise.groupId,
+					groupType: item.dayExercise.groupType as 'superset' | 'triset' | null,
 					exercise: item.exercise
 						? {
 								id: item.exercise.id,
@@ -386,7 +390,9 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 						restTime: ex.restTime ?? null,
 						order: ex.order,
 						notes: ex.notes ?? null,
-						weight: ex.weight !== null && ex.weight !== undefined ? String(ex.weight) : null
+						weight: ex.weight !== null && ex.weight !== undefined ? String(ex.weight) : null,
+						groupId: ex.groupId ?? null,
+						groupType: ex.groupType ?? null
 					}));
 
 					await tx.insert(dayExercises).values(exerciseValues);
