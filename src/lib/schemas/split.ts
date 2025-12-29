@@ -33,7 +33,9 @@ export const addExerciseToDaySchema = z.object({
 		.number()
 		.positive('Weight must be positive')
 		.max(1000, 'Weight exceeds maximum (1000kg)')
-		.optional()
+		.optional(),
+	groupId: z.string().uuid().nullable().optional(),
+	groupType: z.enum(['superset', 'triset']).nullable().optional()
 });
 
 // Schema for creating a split day
