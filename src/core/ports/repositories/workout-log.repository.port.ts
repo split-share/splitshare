@@ -40,4 +40,9 @@ export interface IWorkoutLogRepository {
 		exerciseId: string,
 		limit?: number
 	): Promise<ExercisePerformanceDto[]>;
+
+	/**
+	 * Check if user has completed at least one workout for a specific split
+	 */
+	hasCompletedWorkoutForSplit(userId: string, splitId: string): Promise<boolean>;
 }
