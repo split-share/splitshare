@@ -2,6 +2,7 @@ import { error, fail } from '@sveltejs/kit';
 import { container } from '$infrastructure/di/container';
 import { logAction } from '$lib/server/logger';
 import { mutationLimiter, rateLimit } from '$lib/server/rate-limit';
+import { createReviewSchema, updateReviewSchema } from '$lib/schemas/split';
 import type { PageServerLoad, Actions } from './$types';
 
 function getFormString(formData: FormData, key: string): string | null {
@@ -19,13 +20,21 @@ export const load: PageServerLoad = async (event) => {
 		error(404, 'Split not found');
 	}
 
-	const [likes, comments, hasUserLiked] = await Promise.all([
-		container.likeRepository.findBySplitId(splitId),
-		container.commentRepository.findBySplitId(splitId),
-		currentUserId
-			? container.likeRepository.hasUserLiked(currentUserId, splitId)
-			: Promise.resolve(false)
-	]);
+	const [likes, comments, reviews, hasUserLiked, userReview, isEligibleToReview] =
+		await Promise.all([
+			container.likeRepository.findBySplitId(splitId),
+			container.commentRepository.findBySplitId(splitId),
+			container.getReviews.execute(splitId),
+			currentUserId
+				? container.likeRepository.hasUserLiked(currentUserId, splitId)
+				: Promise.resolve(false),
+			currentUserId
+				? container.reviewRepository.findByUserAndSplit(currentUserId, splitId)
+				: Promise.resolve(undefined),
+			currentUserId
+				? container.checkReviewEligibility.execute(currentUserId, splitId)
+				: Promise.resolve(false)
+		]);
 
 	// Log split view
 	logAction(event, 'split.view', {
@@ -38,7 +47,11 @@ export const load: PageServerLoad = async (event) => {
 		split: splitData,
 		likes,
 		comments,
-		hasUserLiked
+		reviews: reviews.reviews,
+		reviewStats: reviews.stats,
+		hasUserLiked,
+		userReview,
+		isEligibleToReview
 	};
 };
 
@@ -233,6 +246,151 @@ export const actions: Actions = {
 				error: err instanceof Error ? err : String(err)
 			});
 			return fail(400, { error: err instanceof Error ? err.message : 'Failed to delete comment' });
+		}
+
+		return { success: true };
+	},
+
+	addReview: async (event) => {
+		if (!event.locals.user) {
+			return fail(401, { error: 'Unauthorized' });
+		}
+
+		// Rate limit mutations
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
+		}
+
+		const formData = await event.request.formData();
+		const splitId = event.params.id;
+
+		const validation = createReviewSchema.safeParse({
+			rating: Number(getFormString(formData, 'rating')),
+			content: getFormString(formData, 'content')
+		});
+
+		if (!validation.success) {
+			const errors = validation.error.flatten().fieldErrors;
+			const firstError = errors.rating?.[0] || errors.content?.[0] || 'Invalid input';
+			return fail(400, { error: firstError });
+		}
+
+		const { rating, content } = validation.data;
+
+		try {
+			await container.createReview.execute({
+				userId: event.locals.user.id,
+				splitId,
+				rating,
+				content
+			});
+
+			logAction(event, 'review.create', {
+				success: true,
+				resourceId: splitId,
+				resourceType: 'split',
+				metadata: { rating, contentLength: content.length }
+			});
+		} catch (err) {
+			logAction(event, 'review.create', {
+				success: false,
+				resourceId: splitId,
+				resourceType: 'split',
+				error: err instanceof Error ? err : String(err)
+			});
+			return fail(400, { error: err instanceof Error ? err.message : 'Failed to add review' });
+		}
+
+		return { success: true };
+	},
+
+	updateReview: async (event) => {
+		if (!event.locals.user) {
+			return fail(401, { error: 'Unauthorized' });
+		}
+
+		// Rate limit mutations
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
+		}
+
+		const formData = await event.request.formData();
+		const reviewId = getFormString(formData, 'reviewId');
+
+		if (!reviewId) {
+			return fail(400, { error: 'Review ID is required' });
+		}
+
+		const validation = updateReviewSchema.safeParse({
+			rating: Number(getFormString(formData, 'rating')),
+			content: getFormString(formData, 'content')
+		});
+
+		if (!validation.success) {
+			const errors = validation.error.flatten().fieldErrors;
+			const firstError = errors.rating?.[0] || errors.content?.[0] || 'Invalid input';
+			return fail(400, { error: firstError });
+		}
+
+		const { rating, content } = validation.data;
+
+		try {
+			await container.updateReview.execute(reviewId, event.locals.user.id, { rating, content });
+
+			logAction(event, 'review.update', {
+				success: true,
+				resourceId: reviewId,
+				resourceType: 'review'
+			});
+		} catch (err) {
+			logAction(event, 'review.update', {
+				success: false,
+				resourceId: reviewId,
+				resourceType: 'review',
+				error: err instanceof Error ? err : String(err)
+			});
+			return fail(400, { error: err instanceof Error ? err.message : 'Failed to update review' });
+		}
+
+		return { success: true };
+	},
+
+	deleteReview: async (event) => {
+		if (!event.locals.user) {
+			return fail(401, { error: 'Unauthorized' });
+		}
+
+		// Rate limit mutations
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
+		}
+
+		const formData = await event.request.formData();
+		const reviewId = getFormString(formData, 'reviewId');
+
+		if (!reviewId) {
+			return fail(400, { error: 'Review ID is required' });
+		}
+
+		try {
+			await container.deleteReview.execute(reviewId, event.locals.user.id);
+
+			logAction(event, 'review.delete', {
+				success: true,
+				resourceId: reviewId,
+				resourceType: 'review'
+			});
+		} catch (err) {
+			logAction(event, 'review.delete', {
+				success: false,
+				resourceId: reviewId,
+				resourceType: 'review',
+				error: err instanceof Error ? err : String(err)
+			});
+			return fail(400, { error: err instanceof Error ? err.message : 'Failed to delete review' });
 		}
 
 		return { success: true };
