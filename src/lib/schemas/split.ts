@@ -64,6 +64,16 @@ export const commentSchema = z.object({
 	content: z.string().min(1, 'Comment cannot be empty').max(1000, 'Comment is too long')
 });
 
+export const createReviewSchema = z.object({
+	rating: z.number().int().min(1, 'Rating must be at least 1').max(5, 'Rating must be at most 5'),
+	content: z
+		.string()
+		.min(10, 'Review must be at least 10 characters')
+		.max(2000, 'Review is too long')
+});
+
+export const updateReviewSchema = createReviewSchema;
+
 export const workoutLogSchema = z.object({
 	splitId: z.string().uuid(),
 	duration: z.number().int().min(1).max(600).optional(),
@@ -119,5 +129,7 @@ export type AddExerciseToDayInput = z.infer<typeof addExerciseToDaySchema>;
 export type CreateSplitDayInput = z.infer<typeof createSplitDaySchema>;
 export type CreateCompleteSplitInput = z.infer<typeof createCompleteSplitSchema>;
 export type CommentInput = z.infer<typeof commentSchema>;
+export type CreateReviewInput = z.infer<typeof createReviewSchema>;
+export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
 export type WorkoutLogInput = z.infer<typeof workoutLogSchema>;
 export type WorkoutSyncInput = z.infer<typeof workoutSyncSchema>;
