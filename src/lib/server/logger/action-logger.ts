@@ -20,6 +20,10 @@ export type ActionType =
 	| 'comment.create'
 	| 'comment.update'
 	| 'comment.delete'
+	// Review actions
+	| 'review.create'
+	| 'review.update'
+	| 'review.delete'
 	// Workout actions
 	| 'workout.start'
 	| 'workout.complete'

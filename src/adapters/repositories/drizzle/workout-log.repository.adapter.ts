@@ -291,6 +291,15 @@ export class DrizzleWorkoutLogRepositoryAdapter implements IWorkoutLogRepository
 		return result.length > 0;
 	}
 
+	async hasCompletedWorkoutForSplit(userId: string, splitId: string): Promise<boolean> {
+		const result = await this.db
+			.select({ id: workoutLogs.id })
+			.from(workoutLogs)
+			.where(and(eq(workoutLogs.userId, userId), eq(workoutLogs.splitId, splitId)))
+			.limit(1);
+		return result.length > 0;
+	}
+
 	async getUserStats(userId: string): Promise<WorkoutStatsDto> {
 		const [stats] = await this.db
 			.select({

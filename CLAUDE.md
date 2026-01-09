@@ -161,6 +161,63 @@ interface FormData { ... }
 const data: FormData = await request.formData();
 ```
 
+## JSDoc Documentation
+
+**ALWAYS add JSDoc comments to:**
+
+- All public classes, interfaces, and types
+- All public methods and functions
+- All use cases (class and execute method)
+- All repository methods
+- Complex or non-obvious logic
+
+**JSDoc Format:**
+
+Use the standard JSDoc format with type annotations:
+
+```typescript
+/**
+ * Brief description of what this does
+ * @param {Type} paramName - Description of the parameter
+ * @param {Type} anotherParam - Description of another parameter
+ * @returns {ReturnType} Description of return value
+ * @throws {ErrorType} When this error occurs
+ */
+async execute(paramName: Type, anotherParam: Type): Promise<ReturnType> {
+  // implementation
+}
+```
+
+**Examples:**
+
+```typescript
+// GOOD: Proper JSDoc
+/**
+ * Creates a new review for a split
+ * Validates split exists, checks for duplicate reviews, and verifies user eligibility
+ */
+export class CreateReviewUseCase {
+	/**
+	 * Creates a new review for a split
+	 * @param {CreateReviewDto} input - Review data (userId, splitId, rating, content)
+	 * @returns {Promise<Review>} The created review entity
+	 * @throws {NotFoundError} If split doesn't exist
+	 * @throws {AlreadyExistsError} If user has already reviewed this split
+	 * @throws {BusinessRuleError} If user hasn't completed a workout with this split
+	 */
+	async execute(input: CreateReviewDto): Promise<Review> {
+		// implementation
+	}
+}
+
+// BAD: No documentation
+export class CreateReviewUseCase {
+	async execute(input: CreateReviewDto): Promise<Review> {
+		// implementation
+	}
+}
+```
+
 ## Core Workflow: Research, Plan, Implement, Validate
 
 **Start every feature with:** "Let me research the codebase and create a plan before implementing."
