@@ -59,7 +59,8 @@ describe('GetMuscleHeatmapUseCase', () => {
 			exists: vi.fn(),
 			isOwnedByUser: vi.fn(),
 			getUserStats: vi.fn(),
-			findExerciseHistory: vi.fn()
+			findExerciseHistory: vi.fn(),
+			hasCompletedWorkoutForSplit: vi.fn()
 		};
 
 		useCase = new GetMuscleHeatmapUseCase(workoutLogRepository);
