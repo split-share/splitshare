@@ -6,7 +6,8 @@ import {
 	boolean,
 	integer,
 	numeric,
-	index
+	index,
+	unique
 } from 'drizzle-orm/pg-core';
 
 // Users table - better-auth compatible
@@ -226,6 +227,30 @@ export const comments = pgTable(
 	]
 );
 
+// Reviews table
+export const reviews = pgTable(
+	'reviews',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		splitId: uuid('split_id')
+			.notNull()
+			.references(() => splits.id, { onDelete: 'cascade' }),
+		rating: integer('rating').notNull(), // 1-5 stars
+		content: text('content').notNull(),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+		updatedAt: timestamp('updated_at').notNull().defaultNow()
+	},
+	(table) => [
+		index('reviews_user_id_idx').on(table.userId),
+		index('reviews_split_id_idx').on(table.splitId),
+		index('reviews_rating_idx').on(table.rating),
+		unique('reviews_user_split_unique').on(table.userId, table.splitId)
+	]
+);
+
 // Follows table
 export const follows = pgTable(
 	'follows',
@@ -417,6 +442,7 @@ export type DayExercise = typeof dayExercises.$inferSelect;
 export type SplitShare = typeof splitShares.$inferSelect;
 export type Like = typeof likes.$inferSelect;
 export type Comment = typeof comments.$inferSelect;
+export type Review = typeof reviews.$inferSelect;
 export type Follow = typeof follows.$inferSelect;
 export type WorkoutLog = typeof workoutLogs.$inferSelect;
 export type ExerciseLog = typeof exerciseLogs.$inferSelect;
