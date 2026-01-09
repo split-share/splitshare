@@ -12,8 +12,11 @@
 	import Badge from '$lib/components/ui/badge.svelte';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
-	import { Heart, MessageSquare, Trash2, Edit2, Share2, Play } from 'lucide-svelte';
+	import { Heart, MessageSquare, Trash2, Edit2, Share2, Play, Star } from 'lucide-svelte';
 	import ExerciseGif from '$lib/components/exercise-gif.svelte';
+	import ReviewForm from '$lib/components/split/review-form.svelte';
+	import ReviewList from '$lib/components/split/review-list.svelte';
+	import ReviewStats from '$lib/components/split/review-stats.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -108,7 +111,7 @@
 	</div>
 
 	<!-- Engagement Stats -->
-	<div class="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+	<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
 		<Card class="border-none shadow-none bg-card/50">
 			<CardContent class="p-3 sm:pt-6">
 				<div class="flex items-center gap-2 sm:gap-3">
@@ -127,6 +130,19 @@
 					<div>
 						<div class="text-xl sm:text-2xl font-bold">{data.comments.length}</div>
 						<div class="text-[10px] sm:text-xs text-muted-foreground">Comments</div>
+					</div>
+				</div>
+			</CardContent>
+		</Card>
+		<Card class="border-none shadow-none bg-card/50">
+			<CardContent class="p-3 sm:pt-6">
+				<div class="flex items-center gap-2 sm:gap-3">
+					<Star class="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 flex-shrink-0" />
+					<div>
+						<div class="text-xl sm:text-2xl font-bold">
+							{data.reviewStats.averageRating.toFixed(1)}
+						</div>
+						<div class="text-[10px] sm:text-xs text-muted-foreground">Rating</div>
 					</div>
 				</div>
 			</CardContent>
@@ -168,10 +184,11 @@
 		</div>
 	{/if}
 
-	<!-- Tabs: Workout & Comments -->
+	<!-- Tabs: Workout, Reviews & Comments -->
 	<Tabs.Root value="workout" class="w-full">
-		<Tabs.List class="grid w-full grid-cols-2">
+		<Tabs.List class="grid w-full grid-cols-3">
 			<Tabs.Trigger value="workout">Workout</Tabs.Trigger>
+			<Tabs.Trigger value="reviews">Reviews ({data.reviewStats.totalReviews})</Tabs.Trigger>
 			<Tabs.Trigger value="comments">Comments ({data.comments.length})</Tabs.Trigger>
 		</Tabs.List>
 
@@ -285,6 +302,34 @@
 						{/if}
 					</Card>
 				{/each}
+			</div>
+		</Tabs.Content>
+
+		<!-- Reviews Tab -->
+		<Tabs.Content value="reviews" class="mt-6">
+			<div class="space-y-6">
+				<!-- Review Stats -->
+				{#if data.reviewStats.totalReviews > 0}
+					<ReviewStats stats={data.reviewStats} />
+				{/if}
+
+				<!-- Review Form -->
+				{#if isAuthenticated && !data.userReview}
+					<ReviewForm isEligible={data.isEligibleToReview} />
+				{:else if isAuthenticated && data.userReview}
+					<ReviewForm existingReview={data.userReview} isEligible={true} />
+				{:else}
+					<Card>
+						<CardContent class="pt-6">
+							<p class="text-muted-foreground text-center">
+								<a href="/login" class="text-primary hover:underline">Sign in</a> to leave a review
+							</p>
+						</CardContent>
+					</Card>
+				{/if}
+
+				<!-- Reviews List -->
+				<ReviewList reviews={data.reviews} currentUserId={data.user?.id} />
 			</div>
 		</Tabs.Content>
 
