@@ -7,6 +7,7 @@ import { CheckReviewEligibilityUseCase } from './check-review-eligibility.usecas
 
 /**
  * Use case for creating a review for a split
+ * Validates split exists, checks for duplicate reviews, and verifies user eligibility
  */
 export class CreateReviewUseCase {
 	constructor(
@@ -15,6 +16,14 @@ export class CreateReviewUseCase {
 		private checkEligibility: CheckReviewEligibilityUseCase
 	) {}
 
+	/**
+	 * Creates a new review for a split
+	 * @param {CreateReviewDto} input - Review data (userId, splitId, rating, content)
+	 * @returns {Promise<Review>} The created review entity
+	 * @throws {NotFoundError} If split doesn't exist
+	 * @throws {AlreadyExistsError} If user has already reviewed this split
+	 * @throws {BusinessRuleError} If user hasn't completed a workout with this split
+	 */
 	async execute(input: CreateReviewDto): Promise<Review> {
 		// Verify split exists
 		const split = await this.splitRepository.findById(input.splitId);

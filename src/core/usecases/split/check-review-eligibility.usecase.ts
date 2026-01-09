@@ -8,12 +8,22 @@ import { BusinessRuleError } from '$core/domain/common/errors';
 export class CheckReviewEligibilityUseCase {
 	constructor(private workoutLogRepository: IWorkoutLogRepository) {}
 
+	/**
+	 * Checks if user has completed at least one workout with the split
+	 * @param {string} userId - ID of the user
+	 * @param {string} splitId - ID of the split
+	 * @returns {Promise<boolean>} True if user is eligible to review
+	 */
 	async execute(userId: string, splitId: string): Promise<boolean> {
 		return this.workoutLogRepository.hasCompletedWorkoutForSplit(userId, splitId);
 	}
 
 	/**
-	 * Throws error if user is not eligible
+	 * Asserts user eligibility, throws error if not eligible
+	 * @param {string} userId - ID of the user
+	 * @param {string} splitId - ID of the split
+	 * @returns {Promise<void>}
+	 * @throws {BusinessRuleError} If user hasn't completed a workout with this split
 	 */
 	async assertEligible(userId: string, splitId: string): Promise<void> {
 		const isEligible = await this.execute(userId, splitId);

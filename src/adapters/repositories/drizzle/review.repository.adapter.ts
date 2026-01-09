@@ -14,10 +14,16 @@ const { reviews, user } = schema;
 
 /**
  * Drizzle ORM implementation of IReviewRepository
+ * Handles all database operations for reviews using PostgreSQL
  */
 export class DrizzleReviewRepositoryAdapter implements IReviewRepository {
 	constructor(private db: PostgresJsDatabase<typeof schema>) {}
 
+	/**
+	 * Finds a review by ID
+	 * @param {string} id - Review ID
+	 * @returns {Promise<Review | undefined>} Review entity or undefined if not found
+	 */
 	async findById(id: string): Promise<Review | undefined> {
 		const result = await this.db.select().from(reviews).where(eq(reviews.id, id)).limit(1);
 
@@ -80,6 +86,11 @@ export class DrizzleReviewRepositoryAdapter implements IReviewRepository {
 		return result.map((row) => this.toReviewWithUserDto(row));
 	}
 
+	/**
+	 * Gets aggregate statistics for a split's reviews using SQL aggregations
+	 * @param {string} splitId - Split ID
+	 * @returns {Promise<ReviewStatsDto>} Average rating, total reviews, and rating distribution
+	 */
 	async getReviewStats(splitId: string): Promise<ReviewStatsDto> {
 		const [stats] = await this.db
 			.select({
@@ -155,6 +166,11 @@ export class DrizzleReviewRepositoryAdapter implements IReviewRepository {
 		return result.length > 0;
 	}
 
+	/**
+	 * Maps database row to Review entity
+	 * @param {typeof reviews.$inferSelect} row - Database row
+	 * @returns {Review} Review entity
+	 */
 	private toEntity(row: typeof reviews.$inferSelect): Review {
 		return new Review(
 			row.id,
@@ -167,6 +183,11 @@ export class DrizzleReviewRepositoryAdapter implements IReviewRepository {
 		);
 	}
 
+	/**
+	 * Maps database row with joined user data to ReviewWithUserDto
+	 * @param {Object} row - Database row with user fields
+	 * @returns {ReviewWithUserDto} Review DTO with user information
+	 */
 	private toReviewWithUserDto(row: {
 		id: string;
 		userId: string;
