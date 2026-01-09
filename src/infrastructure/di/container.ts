@@ -11,6 +11,7 @@ import { DrizzleWorkoutLogRepositoryAdapter } from '../../adapters/repositories/
 import { DrizzlePersonalRecordRepositoryAdapter } from '../../adapters/repositories/drizzle/personal-record.repository.adapter';
 import { DrizzleLikeRepositoryAdapter } from '../../adapters/repositories/drizzle/like.repository.adapter';
 import { DrizzleCommentRepositoryAdapter } from '../../adapters/repositories/drizzle/comment.repository.adapter';
+import { DrizzleReviewRepositoryAdapter } from '../../adapters/repositories/drizzle/review.repository.adapter';
 import { DrizzleWeightEntryRepositoryAdapter } from '../../adapters/repositories/drizzle/weight-entry.repository.adapter';
 import { DrizzleWorkoutSessionRepositoryAdapter } from '../../adapters/repositories/drizzle/workout-session.repository.adapter';
 import { DrizzleForumRepositoryAdapter } from '../../adapters/repositories/drizzle/forum.repository.adapter';
@@ -38,6 +39,11 @@ import { UnlikeSplitUseCase } from '../../core/usecases/split/unlike-split.useca
 import { AddCommentUseCase } from '../../core/usecases/split/add-comment.usecase';
 import { UpdateCommentUseCase } from '../../core/usecases/split/update-comment.usecase';
 import { DeleteCommentUseCase } from '../../core/usecases/split/delete-comment.usecase';
+import { CreateReviewUseCase } from '../../core/usecases/split/create-review.usecase';
+import { UpdateReviewUseCase } from '../../core/usecases/split/update-review.usecase';
+import { DeleteReviewUseCase } from '../../core/usecases/split/delete-review.usecase';
+import { GetReviewsUseCase } from '../../core/usecases/split/get-reviews.usecase';
+import { CheckReviewEligibilityUseCase } from '../../core/usecases/split/check-review-eligibility.usecase';
 
 import { CreateWeightEntryUseCase } from '../../core/usecases/weight/create-weight-entry.usecase';
 import { GetWeightHistoryUseCase } from '../../core/usecases/weight/get-weight-history.usecase';
@@ -80,12 +86,20 @@ class Container {
 	private _personalRecordRepository?: DrizzlePersonalRecordRepositoryAdapter;
 	private _likeRepository?: DrizzleLikeRepositoryAdapter;
 	private _commentRepository?: DrizzleCommentRepositoryAdapter;
+	private _reviewRepository?: DrizzleReviewRepositoryAdapter;
 	private _weightEntryRepository?: DrizzleWeightEntryRepositoryAdapter;
 	private _workoutSessionRepository?: DrizzleWorkoutSessionRepositoryAdapter;
 	private _forumRepository?: DrizzleForumRepositoryAdapter;
 
 	// Services (adapters)
 	private _authService?: BetterAuthAdapter;
+
+	// Review use cases (cached)
+	private _checkReviewEligibility?: CheckReviewEligibilityUseCase;
+	private _createReview?: CreateReviewUseCase;
+	private _updateReview?: UpdateReviewUseCase;
+	private _deleteReview?: DeleteReviewUseCase;
+	private _getReviews?: GetReviewsUseCase;
 
 	// Lazy initialization for repositories
 	get splitRepository(): DrizzleSplitRepositoryAdapter {
@@ -135,6 +149,13 @@ class Container {
 			this._commentRepository = new DrizzleCommentRepositoryAdapter(db);
 		}
 		return this._commentRepository;
+	}
+
+	get reviewRepository(): DrizzleReviewRepositoryAdapter {
+		if (!this._reviewRepository) {
+			this._reviewRepository = new DrizzleReviewRepositoryAdapter(db);
+		}
+		return this._reviewRepository;
 	}
 
 	get weightEntryRepository(): DrizzleWeightEntryRepositoryAdapter {
@@ -240,6 +261,46 @@ class Container {
 
 	get deleteComment(): DeleteCommentUseCase {
 		return new DeleteCommentUseCase(this.commentRepository);
+	}
+
+	// Review use cases
+	get checkReviewEligibility(): CheckReviewEligibilityUseCase {
+		if (!this._checkReviewEligibility) {
+			this._checkReviewEligibility = new CheckReviewEligibilityUseCase(this.workoutLogRepository);
+		}
+		return this._checkReviewEligibility;
+	}
+
+	get createReview(): CreateReviewUseCase {
+		if (!this._createReview) {
+			this._createReview = new CreateReviewUseCase(
+				this.reviewRepository,
+				this.splitRepository,
+				this.checkReviewEligibility
+			);
+		}
+		return this._createReview;
+	}
+
+	get updateReview(): UpdateReviewUseCase {
+		if (!this._updateReview) {
+			this._updateReview = new UpdateReviewUseCase(this.reviewRepository);
+		}
+		return this._updateReview;
+	}
+
+	get deleteReview(): DeleteReviewUseCase {
+		if (!this._deleteReview) {
+			this._deleteReview = new DeleteReviewUseCase(this.reviewRepository);
+		}
+		return this._deleteReview;
+	}
+
+	get getReviews(): GetReviewsUseCase {
+		if (!this._getReviews) {
+			this._getReviews = new GetReviewsUseCase(this.reviewRepository);
+		}
+		return this._getReviews;
 	}
 
 	get createWeightEntry(): CreateWeightEntryUseCase {
