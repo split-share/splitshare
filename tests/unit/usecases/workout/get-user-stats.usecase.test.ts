@@ -8,9 +8,9 @@ const createMockRepo = () => ({
 describe('GetUserStatsUseCase', () => {
 	it('returns stats', async () => {
 		const repo = createMockRepo();
-		const stats = { totalWorkouts: 5 } as any;
-		repo.getUserStats.mockResolvedValue(stats);
-		const useCase = new GetUserStatsUseCase(repo as any);
+		const stats = { totalWorkouts: 5 };
+		repo.getUserStats.mockResolvedValue(stats as never);
+		const useCase = new GetUserStatsUseCase(repo as never);
 		const result = await useCase.execute('u1');
 		expect(result).toBe(stats);
 	});

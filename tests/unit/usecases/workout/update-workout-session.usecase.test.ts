@@ -1,35 +1,53 @@
-import { describe, it, expect, vi } from 'vitest';
-import { UpdateWorkoutSessionUseCase } from '$core/usecases/workout/update-workout-session.usecase';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-const createMockRepo = () => ({
-	isOwnedByUser: vi.fn(),
-	update: vi.fn()
-});
+import { UpdateWorkoutSessionUseCase } from '$core/usecases/workout/update-workout-session.usecase';
+import { describe, it, expect, vi } from 'vitest';
+
+interface IWorkoutSessionRepository {
+	isOwnedByUser: (sessionId: string, userId: string) => Promise<boolean>;
+	update: (sessionId: string, data: any) => Promise<any>;
+}
 
 describe('UpdateWorkoutSessionUseCase', () => {
 	it('updates session when owned', async () => {
-		const repo = createMockRepo();
+		const repo: IWorkoutSessionRepository = {
+			isOwnedByUser: vi.fn(),
+			update: vi.fn()
+		};
 		const session = {
 			id: 'sess1',
 			userId: 'u1',
-			startAt: new Date(),
-			completedAt: null,
-			duration: 0,
-			exercises: []
+			splitId: 's1',
+			dayId: 'd1',
+			currentExerciseIndex: 0,
+			currentSetIndex: 0,
+			phase: 'exercise',
+			exerciseElapsedSeconds: 0,
+			restRemainingSeconds: null,
+			startedAt: new Date(),
+			pausedAt: null,
+			lastUpdatedAt: new Date(),
+			completedSets: [],
+			createdAt: new Date()
 		} as any;
-		repo.isOwnedByUser.mockResolvedValue(true);
-		repo.update.mockResolvedValue(session as any);
+		(repo.isOwnedByUser as any).mockResolvedValue(true);
+		(repo.update as any).mockResolvedValue(session);
 		const useCase = new UpdateWorkoutSessionUseCase(repo as any);
-		const result = await useCase.execute('sess1', 'u1', { duration: 10 } as any);
+		const updateDto = { currentExerciseIndex: 1 };
+		const result = await useCase.execute('sess1', 'u1', updateDto);
 		expect(result).toBe(session);
-		expect(repo.update).toHaveBeenCalledWith('sess1', { duration: 10 });
+		expect(repo.update).toHaveBeenCalledWith('sess1', updateDto);
 	});
 
 	it('throws when not owned', async () => {
-		const repo = createMockRepo();
-		repo.isOwnedByUser.mockResolvedValue(false);
+		const repo: IWorkoutSessionRepository = {
+			isOwnedByUser: vi.fn(),
+			update: vi.fn()
+		};
+		(repo.isOwnedByUser as any).mockResolvedValue(false);
 		const useCase = new UpdateWorkoutSessionUseCase(repo as any);
-		await expect(useCase.execute('sess1', 'u1', { duration: 10 } as any)).rejects.toThrow(
+		const updateDto = { currentExerciseIndex: 1 };
+		await expect(useCase.execute('sess1', 'u1', updateDto)).rejects.toThrow(
 			'Session not found or not owned by user'
 		);
 	});

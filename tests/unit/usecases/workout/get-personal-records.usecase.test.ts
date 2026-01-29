@@ -8,9 +8,9 @@ const createMockRepo = () => ({
 describe('GetPersonalRecordsUseCase', () => {
 	it('returns personal records', async () => {
 		const repo = createMockRepo();
-		const records = [{ exerciseId: 'e1', weight: 100 } as any];
-		repo.findByUserId.mockResolvedValue(records);
-		const useCase = new GetPersonalRecordsUseCase(repo as any);
+		const records = [{ exerciseId: 'e1', weight: 100 }];
+		repo.findByUserId.mockResolvedValue(records as never);
+		const useCase = new GetPersonalRecordsUseCase(repo as never);
 		const result = await useCase.execute('u1');
 		expect(result).toBe(records);
 	});

@@ -8,9 +8,9 @@ const createMockRepo = () => ({
 describe('GetActiveWorkoutSessionUseCase', () => {
 	it('returns session details', async () => {
 		const repo = createMockRepo();
-		const data = { session: { id: 'sess1', userId: 'u1' } as any, exercises: [] } as any;
-		repo.findActiveByUserIdWithDetails.mockResolvedValue(data);
-		const useCase = new GetActiveWorkoutSessionUseCase(repo as any);
+		const data = { session: { id: 'sess1', userId: 'u1' }, exercises: [] };
+		repo.findActiveByUserIdWithDetails.mockResolvedValue(data as never);
+		const useCase = new GetActiveWorkoutSessionUseCase(repo as never);
 		const result = await useCase.execute('u1');
 		expect(result).toBe(data);
 	});
