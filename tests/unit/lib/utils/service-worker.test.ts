@@ -126,17 +126,18 @@ describe('Service Worker Utilities', () => {
 
 			// Track updatefound listeners
 			let updateFoundHandler: (() => void) | null = null;
-			mockRegistration.addEventListener = vi.fn((event: string, handler: () => void) => {
+			const mockAddEventListener = vi.fn((event: string, handler: () => void) => {
 				if (event === 'updatefound') {
 					updateFoundHandler = handler;
 				}
 			});
+			mockRegistration.addEventListener = mockAddEventListener;
 
 			await registerServiceWorker();
 
 			// Simulate update found
-			if (updateFoundHandler) {
-				updateFoundHandler();
+			if (updateFoundHandler !== null) {
+				(updateFoundHandler as () => void)();
 			}
 
 			// Simulate state change to installed
