@@ -8,6 +8,8 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Menu, X, Settings, LogOut, User } from 'lucide-svelte';
 	import type { LayoutData } from './$types';
+	import { initializeOfflineSupport } from '$lib/utils/service-worker';
+	import { onMount } from 'svelte';
 
 	let { data, children }: { data: LayoutData; children: Snippet } = $props();
 
@@ -20,6 +22,14 @@
 	function closeMobileMenu() {
 		mobileMenuOpen = false;
 	}
+
+	// Initialize offline support on mount
+	onMount(() => {
+		if (typeof window !== 'undefined') {
+			const cleanup = initializeOfflineSupport();
+			return cleanup;
+		}
+	});
 </script>
 
 <ModeWatcher />

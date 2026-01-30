@@ -40,6 +40,6 @@ export default ts.config(
 		}
 	},
 	{
-		ignores: ['build/', '.svelte-kit/', 'dist/', 'android/', 'ios/']
+		ignores: ['build/', '.svelte-kit/', 'dist/', 'android/', 'ios/', '**/*.svelte.ts']
 	}
 );

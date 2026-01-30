@@ -3,6 +3,9 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/svelte';
 import { afterEach } from 'vitest';
 
+// Setup fake IndexedDB for offline tests
+import 'fake-indexeddb/auto';
+
 // Cleanup after each test
 afterEach(() => {
 	cleanup();
