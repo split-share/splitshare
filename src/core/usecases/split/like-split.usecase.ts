@@ -6,6 +6,7 @@ import { NotFoundError, AlreadyExistsError } from '$core/domain/common/errors';
 
 /**
  * Use case for liking a split
+ * Validates split existence and prevents duplicate likes
  */
 export class LikeSplitUseCase {
 	constructor(
@@ -13,6 +14,13 @@ export class LikeSplitUseCase {
 		private splitRepository: ISplitRepository
 	) {}
 
+	/**
+	 * Creates a like for a split
+	 * @param {CreateLikeDto} input - Like data (userId, splitId)
+	 * @returns {Promise<Like>} The created like entity
+	 * @throws {NotFoundError} If split doesn't exist
+	 * @throws {AlreadyExistsError} If user has already liked this split
+	 */
 	async execute(input: CreateLikeDto): Promise<Like> {
 		const split = await this.splitRepository.findById(input.splitId);
 		if (!split) {

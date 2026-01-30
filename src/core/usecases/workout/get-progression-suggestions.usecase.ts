@@ -12,6 +12,10 @@ import {
 	PROGRESSION_THRESHOLD
 } from '../../domain/workout/progression-suggestion.dto';
 
+/**
+ * Use case for generating weight progression suggestions for exercises
+ * Analyzes recent performance history to recommend weight increases
+ */
 export class GetProgressionSuggestionsUseCase {
 	constructor(
 		private workoutLogRepository: IWorkoutLogRepository,
@@ -19,6 +23,12 @@ export class GetProgressionSuggestionsUseCase {
 		private exerciseRepository: IExerciseRepository
 	) {}
 
+	/**
+	 * Generates progression suggestions for a list of exercises
+	 * @param {string} userId - ID of the user
+	 * @param {string[]} exerciseIds - IDs of exercises to analyze
+	 * @returns {Promise<Map<string, ProgressionSuggestionDto>>} Map of exercise IDs to progression suggestions
+	 */
 	async execute(
 		userId: string,
 		exerciseIds: string[]

@@ -3,11 +3,18 @@ import type { SplitFiltersDto, SplitWithDetailsDto } from '../../domain/split/sp
 import type { Pagination } from '../../domain/common/value-objects';
 
 /**
- * Use case: Search splits with filters
+ * Use case for searching splits with filters and pagination
  */
 export class SearchSplitsUseCase {
 	constructor(private splitRepository: ISplitRepository) {}
 
+	/**
+	 * Searches splits with optional filters and pagination
+	 * @param {SplitFiltersDto} filters - Filter criteria (difficulty, muscle groups, etc.)
+	 * @param {Pagination} pagination - Pagination options (page, limit)
+	 * @param {string} [currentUserId] - Optional ID of current user for access checks
+	 * @returns {Promise<SplitWithDetailsDto[]>} List of splits matching criteria
+	 */
 	async execute(
 		filters: SplitFiltersDto,
 		pagination: Pagination,

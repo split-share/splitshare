@@ -4,12 +4,26 @@ import type { CreateWorkoutSessionDto } from '../../domain/workout/workout-sessi
 import type { WorkoutSession } from '../../domain/workout/workout-session.entity';
 import { NotFoundError, ForbiddenError, BusinessRuleError } from '../../domain/common/errors';
 
+/**
+ * Use case for starting a new workout session
+ * Validates split access, checks for existing sessions, and creates session state
+ */
 export class StartWorkoutSessionUseCase {
 	constructor(
 		private workoutSessionRepository: IWorkoutSessionRepository,
 		private splitRepository: ISplitRepository
 	) {}
 
+	/**
+	 * Starts a new workout session for a user
+	 * @param {CreateWorkoutSessionDto} input - Session creation data (userId, splitId, dayId)
+	 * @returns {Promise<WorkoutSession>} The created workout session
+	 * @throws {BusinessRuleError} If user already has an active session
+	 * @throws {NotFoundError} If split doesn't exist
+	 * @throws {ForbiddenError} If user doesn't have access to the split
+	 * @throws {NotFoundError} If day doesn't exist in split
+	 * @throws {BusinessRuleError} If day is a rest day or has no exercises
+	 */
 	async execute(input: CreateWorkoutSessionDto): Promise<WorkoutSession> {
 		// Check for existing active session
 		const existingSession = await this.workoutSessionRepository.findActiveByUserId(input.userId);

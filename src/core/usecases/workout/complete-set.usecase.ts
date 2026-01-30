@@ -13,9 +13,20 @@ export interface CompleteSetInput {
 	notes: string | null;
 }
 
+/**
+ * Use case for completing a set during an active workout session
+ * Handles progression through exercises, sets, and rest periods including superset/triset logic
+ */
 export class CompleteSetUseCase {
 	constructor(private workoutSessionRepository: IWorkoutSessionRepository) {}
 
+	/**
+	 * Completes a set and advances the workout session state
+	 * @param {CompleteSetInput} input - Set completion data (sessionId, userId, weight, reps, notes)
+	 * @returns {Promise<WorkoutSessionWithDetailsDto>} Updated workout session with current state
+	 * @throws {Error} If session not found or not owned by user
+	 * @throws {Error} If invalid exercise index
+	 */
 	async execute(input: CompleteSetInput): Promise<WorkoutSessionWithDetailsDto> {
 		// Get session with details
 		const sessionData = await this.workoutSessionRepository.findActiveByUserIdWithDetails(

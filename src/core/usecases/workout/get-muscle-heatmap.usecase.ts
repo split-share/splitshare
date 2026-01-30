@@ -5,9 +5,19 @@ import type {
 } from '../../domain/workout/muscle-heatmap.dto';
 import { MUSCLE_GROUPS } from '$lib/constants';
 
+/**
+ * Use case for generating muscle heatmap data
+ * Aggregates workout volume by muscle group over a time period for visualization
+ */
 export class GetMuscleHeatmapUseCase {
 	constructor(private workoutLogRepository: IWorkoutLogRepository) {}
 
+	/**
+	 * Generates muscle heatmap data showing workout volume by muscle group and date
+	 * @param {string} userId - ID of the user
+	 * @param {number} days - Number of days to include in the heatmap (default: 7)
+	 * @returns {Promise<MuscleHeatmapDataDto>} Heatmap data with cells, muscle groups, dates, and max sets
+	 */
 	async execute(userId: string, days = 7): Promise<MuscleHeatmapDataDto> {
 		const endDate = new Date();
 		endDate.setHours(23, 59, 59, 999);
