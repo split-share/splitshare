@@ -9,6 +9,10 @@ export interface CompleteWorkoutInput {
 	notes?: string | null;
 }
 
+/**
+ * Use case for completing an active workout session
+ * Converts session data to a permanent workout log and updates personal records
+ */
 export class CompleteWorkoutSessionUseCase {
 	constructor(
 		private workoutSessionRepository: IWorkoutSessionRepository,
@@ -16,6 +20,12 @@ export class CompleteWorkoutSessionUseCase {
 		private personalRecordRepository: IPersonalRecordRepository
 	) {}
 
+	/**
+	 * Completes a workout session and creates a permanent workout log
+	 * @param {CompleteWorkoutInput} input - Session completion data (sessionId, userId, notes)
+	 * @returns {Promise<WorkoutLog>} The created workout log with all completed exercises
+	 * @throws {Error} If session not found or not owned by user
+	 */
 	async execute(input: CompleteWorkoutInput): Promise<WorkoutLog> {
 		// Get session with details
 		const sessionData = await this.workoutSessionRepository.findActiveByUserIdWithDetails(

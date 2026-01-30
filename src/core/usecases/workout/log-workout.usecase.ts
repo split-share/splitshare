@@ -4,12 +4,21 @@ import type { CreateWorkoutLogDto } from '../../domain/workout/workout.dto';
 import type { WorkoutLog } from '../../domain/workout/workout-log.entity';
 import { ExerciseLog } from '../../domain/workout/exercise-log.entity';
 
+/**
+ * Use case for logging a completed workout
+ * Creates workout log entry and updates personal records if applicable
+ */
 export class LogWorkoutUseCase {
 	constructor(
 		private workoutLogRepository: IWorkoutLogRepository,
 		private personalRecordRepository: IPersonalRecordRepository
 	) {}
 
+	/**
+	 * Logs a completed workout and updates personal records
+	 * @param {CreateWorkoutLogDto} input - Workout log data including exercises, sets, and weight
+	 * @returns {Promise<WorkoutLog>} The created workout log
+	 */
 	async execute(input: CreateWorkoutLogDto): Promise<WorkoutLog> {
 		for (const exercise of input.exercises) {
 			ExerciseLog.validateSets(exercise.sets);
