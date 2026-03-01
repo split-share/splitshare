@@ -20,9 +20,7 @@
 
 	let { open = $bindable(false), exerciseNames, onConfirm, onCancel }: Props = $props();
 
-	let selectedGroupType = $state<'superset' | 'triset'>(
-		exerciseNames.length === 2 ? 'superset' : 'triset'
-	);
+	let selectedGroupType = $state<'superset' | 'triset'>('superset');
 
 	// Update group type when exercise count changes
 	$effect(() => {

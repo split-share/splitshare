@@ -15,11 +15,16 @@
 		isEligible?: boolean;
 	} = $props();
 
-	let rating = $state(existingReview?.rating || 0);
-	let content = $state(existingReview?.content || '');
+	let rating = $state(0);
+	let content = $state('');
 
-	const action = existingReview ? '?/updateReview' : '?/addReview';
-	const buttonText = existingReview ? 'Update Review' : 'Submit Review';
+	$effect(() => {
+		rating = existingReview?.rating || 0;
+		content = existingReview?.content || '';
+	});
+
+	const action = $derived(existingReview ? '?/updateReview' : '?/addReview');
+	const buttonText = $derived(existingReview ? 'Update Review' : 'Submit Review');
 </script>
 
 <Card>

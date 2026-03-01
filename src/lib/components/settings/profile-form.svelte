@@ -12,7 +12,10 @@
 
 	let { initialName, onSubmit }: Props = $props();
 
-	let name = $state(initialName);
+	let name = $state('');
+	$effect(() => {
+		name = initialName;
+	});
 	let loading = $state(false);
 	let error = $state('');
 	let success = $state(false);
