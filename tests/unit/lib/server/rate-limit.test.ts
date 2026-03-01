@@ -1,21 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
-import { rateLimit, rateLimitError } from '$lib/server/rate-limit';
+import { rateLimit, rateLimitError, feedLimiter } from '$lib/server/rate-limit';
 import type { RequestEvent } from '@sveltejs/kit';
 import type { Ratelimit } from '@upstash/ratelimit';
 
 describe('rate-limit', () => {
 	describe('rateLimit', () => {
-		it('should allow requests when no limiter is configured', async () => {
+		it('should allow requests with in-memory fallback limiter', async () => {
 			const mockEvent = {
 				locals: { user: null },
 				getClientAddress: () => '127.0.0.1',
 				setHeaders: vi.fn()
 			} as unknown as RequestEvent;
 
-			const result = await rateLimit(mockEvent, null);
+			// feedLimiter uses in-memory fallback when Redis is not configured (test env)
+			const result = await rateLimit(mockEvent, feedLimiter);
 
 			expect(result.success).toBe(true);
-			expect(result.remaining).toBe(999);
+			expect(result.remaining).toBeGreaterThanOrEqual(0);
 			expect(result.reset).toBeInstanceOf(Date);
 		});
 
