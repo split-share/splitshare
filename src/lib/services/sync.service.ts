@@ -25,6 +25,11 @@ const SYNC_PRIORITY = {
 const MAX_RETRY_COUNT = 3;
 
 /**
+ * Base delay in ms for exponential backoff between retries
+ */
+const RETRY_BASE_DELAY_MS = 1000;
+
+/**
  * Sync lock to prevent concurrent sync operations
  */
 let isSyncLocked = false;
@@ -137,6 +142,11 @@ export async function syncPendingData(): Promise<void> {
 
 		for (const action of sortedActions) {
 			try {
+				// Apply exponential backoff for retried actions
+				if (action.retryCount > 0) {
+					const delay = RETRY_BASE_DELAY_MS * Math.pow(2, action.retryCount - 1);
+					await new Promise((resolve) => setTimeout(resolve, delay));
+				}
 				await syncAction(action);
 				successfulCount.value++;
 			} catch {
@@ -285,85 +295,72 @@ export async function syncWorkoutSession(session: LocalWorkoutSession): Promise<
  */
 export async function pullDataFromServer(): Promise<void> {
 	try {
-		// Fetch user's splits
-		const splitsResponse = await fetch('/api/splits', { credentials: 'include' });
+		const opts = { credentials: 'include' as const };
+		const now = new Date();
+
+		// Fetch all endpoints in parallel
+		const [
+			splitsResponse,
+			exercisesResponse,
+			splitDaysResponse,
+			dayExercisesResponse,
+			prsResponse,
+			weightResponse
+		] = await Promise.all([
+			fetch('/api/splits', opts),
+			fetch('/api/exercises', opts),
+			fetch('/api/split-days', opts),
+			fetch('/api/day-exercises', opts),
+			fetch('/api/personal-records', opts),
+			fetch('/api/weight', opts)
+		]);
+
+		// Process results (writes are sequential to avoid IndexedDB contention)
 		if (splitsResponse.ok) {
 			const splits = await splitsResponse.json();
-			// Get existing IDs to determine what to delete
 			const existingIds = new Set(await db.splits.toCollection().primaryKeys());
 			const newIds = new Set(splits.map((s: { id: string }) => s.id));
-
-			// Delete splits that no longer exist on server
 			const idsToDelete = [...existingIds].filter((id) => !newIds.has(id as string));
 			if (idsToDelete.length > 0) {
 				await db.splits.bulkDelete(idsToDelete as string[]);
 			}
-
 			await db.splits.bulkPut(
-				splits.map((s: Record<string, unknown>) => ({
-					...s,
-					lastSyncedAt: new Date()
-				}))
+				splits.map((s: Record<string, unknown>) => ({ ...s, lastSyncedAt: now }))
 			);
 		}
 
-		// Fetch exercises
-		const exercisesResponse = await fetch('/api/exercises', { credentials: 'include' });
 		if (exercisesResponse.ok) {
 			const exercises = await exercisesResponse.json();
 			await db.exercises.bulkPut(
-				exercises.map((e: Record<string, unknown>) => ({
-					...e,
-					lastSyncedAt: new Date()
-				}))
+				exercises.map((e: Record<string, unknown>) => ({ ...e, lastSyncedAt: now }))
 			);
 		}
 
-		// Fetch split days
-		const splitDaysResponse = await fetch('/api/split-days', { credentials: 'include' });
 		if (splitDaysResponse.ok) {
 			const splitDays = await splitDaysResponse.json();
 			await db.splitDays.bulkPut(
-				splitDays.map((sd: Record<string, unknown>) => ({
-					...sd,
-					lastSyncedAt: new Date()
-				}))
+				splitDays.map((sd: Record<string, unknown>) => ({ ...sd, lastSyncedAt: now }))
 			);
 		}
 
-		// Fetch day exercises
-		const dayExercisesResponse = await fetch('/api/day-exercises', { credentials: 'include' });
 		if (dayExercisesResponse.ok) {
 			const dayExercises = await dayExercisesResponse.json();
 			await db.dayExercises.bulkPut(
-				dayExercises.map((de: Record<string, unknown>) => ({
-					...de,
-					lastSyncedAt: new Date()
-				}))
+				dayExercises.map((de: Record<string, unknown>) => ({ ...de, lastSyncedAt: now }))
 			);
 		}
 
-		// Fetch personal records
-		const prsResponse = await fetch('/api/personal-records', { credentials: 'include' });
 		if (prsResponse.ok) {
 			const prs = await prsResponse.json();
 			await db.personalRecords.bulkPut(
-				prs.map((pr: Record<string, unknown>) => ({
-					...pr,
-					lastSyncedAt: new Date()
-				}))
+				prs.map((pr: Record<string, unknown>) => ({ ...pr, lastSyncedAt: now }))
 			);
 		}
 
-		// Fetch weight entries
-		const weightResponse = await fetch('/api/weight', { credentials: 'include' });
 		if (weightResponse.ok) {
 			const weights = await weightResponse.json();
 			await db.weightEntries.bulkPut(
-				weights.map((w: Record<string, unknown>) => ({
-					...w,
-					lastSyncedAt: new Date()
-				}))
+				weights.map((w: Record<string, unknown>) => ({ ...w, lastSyncedAt: now }))
 			);
 		}
 
