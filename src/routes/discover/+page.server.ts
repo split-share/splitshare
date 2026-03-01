@@ -12,13 +12,16 @@ export const load: PageServerLoad = async (event) => {
 	const url = new URL(event.request.url);
 	const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1);
 	const difficultyFilter = url.searchParams.get('difficulty');
+	const sortParam = url.searchParams.get('sort');
+	const sortBy = sortParam === 'recent' ? 'recent' : 'popular';
 
 	const filters = {
 		isPublic: true,
+		sortBy,
 		...(difficultyFilter && ['beginner', 'intermediate', 'advanced'].includes(difficultyFilter)
 			? { difficulty: difficultyFilter as 'beginner' | 'intermediate' | 'advanced' }
 			: {})
-	};
+	} as const;
 
 	const offset = (page - 1) * ITEMS_PER_PAGE;
 
@@ -39,6 +42,7 @@ export const load: PageServerLoad = async (event) => {
 		totalPages,
 		hasMore: page < totalPages,
 		user: event.locals.user || null,
-		appliedFilter: difficultyFilter
+		appliedFilter: difficultyFilter,
+		sortBy
 	};
 };

@@ -69,6 +69,7 @@ export interface SplitFiltersDto {
 	difficulty?: Difficulty;
 	tags?: string[];
 	search?: string;
+	sortBy?: 'popular' | 'recent';
 }
 
 export interface SplitWithDetailsDto {

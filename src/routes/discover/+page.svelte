@@ -8,11 +8,15 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let sortBy = $state<'popular' | 'recent'>('popular');
-
 	function setSortBy(sort: 'popular' | 'recent') {
-		sortBy = sort;
-		// TODO: Implement actual sorting in the backend
+		const url = new URL(window.location.href);
+		url.searchParams.set('page', '1');
+		if (sort === 'popular') {
+			url.searchParams.delete('sort');
+		} else {
+			url.searchParams.set('sort', sort);
+		}
+		goto(url.toString(), { invalidateAll: true });
 	}
 
 	function filterByDifficulty(difficulty: string | null) {
@@ -52,7 +56,7 @@
 			<span class="text-xs sm:text-sm font-medium text-muted-foreground">Sort:</span>
 			<div class="flex gap-1 sm:gap-2">
 				<Button
-					variant={sortBy === 'popular' ? 'default' : 'ghost'}
+					variant={data.sortBy === 'popular' ? 'default' : 'ghost'}
 					size="sm"
 					onclick={() => setSortBy('popular')}
 					class="gap-1 sm:gap-2 h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
@@ -61,7 +65,7 @@
 					Popular
 				</Button>
 				<Button
-					variant={sortBy === 'recent' ? 'default' : 'ghost'}
+					variant={data.sortBy === 'recent' ? 'default' : 'ghost'}
 					size="sm"
 					onclick={() => setSortBy('recent')}
 					class="gap-1 sm:gap-2 h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"

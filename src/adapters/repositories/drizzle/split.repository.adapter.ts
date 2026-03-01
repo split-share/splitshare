@@ -283,7 +283,11 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 			.leftJoin(comments, eq(splits.id, comments.splitId))
 			.where(whereClause)
 			.groupBy(splits.id, user.id, user.name, user.image)
-			.orderBy(desc(splits.createdAt))
+			.orderBy(
+				...(filters.sortBy === 'popular'
+					? [sql`count(distinct ${likes.id}) desc`, desc(splits.createdAt)]
+					: [desc(splits.createdAt)])
+			)
 			.limit(pagination.limit)
 			.offset(pagination.offset);
 
