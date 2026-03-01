@@ -13,6 +13,7 @@ describe('CreateSplitUseCase', () => {
 			findById: vi.fn(),
 			findByIdWithDetails: vi.fn(),
 			findByUserId: vi.fn(),
+			findByUserIdWithDays: vi.fn(),
 			findWithFilters: vi.fn(),
 			createWithDays: vi.fn(),
 			update: vi.fn(),

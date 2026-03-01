@@ -9,6 +9,7 @@ describe('GetPersonalRecordsUseCase', () => {
 			findByUserId: vi.fn(),
 			findById: vi.fn(),
 			findByUserIdAndExerciseId: vi.fn(),
+			findByUserIdAndExerciseIds: vi.fn(),
 			upsert: vi.fn(),
 			delete: vi.fn(),
 			isOwnedByUser: vi.fn()

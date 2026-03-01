@@ -42,6 +42,15 @@ export interface IWorkoutLogRepository {
 	): Promise<ExercisePerformanceDto[]>;
 
 	/**
+	 * Get recent exercise performance history for multiple exercises (batch)
+	 */
+	findExerciseHistoryBatch(
+		userId: string,
+		exerciseIds: string[],
+		limit?: number
+	): Promise<Map<string, ExercisePerformanceDto[]>>;
+
+	/**
 	 * Check if user has completed at least one workout for a specific split
 	 */
 	hasCompletedWorkoutForSplit(userId: string, splitId: string): Promise<boolean>;

@@ -1,4 +1,4 @@
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, inArray } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { personalRecords, exercises } from '$lib/server/db/schema';
 import type * as schema from '$lib/server/db/schema';
@@ -30,6 +30,20 @@ export class DrizzlePersonalRecordRepositoryAdapter implements IPersonalRecordRe
 			.limit(1);
 		if (!result[0]) return undefined;
 		return this.toEntity(result[0]);
+	}
+
+	async findByUserIdAndExerciseIds(
+		userId: string,
+		exerciseIds: string[]
+	): Promise<PersonalRecord[]> {
+		if (exerciseIds.length === 0) return [];
+		const results = await this.db
+			.select()
+			.from(personalRecords)
+			.where(
+				and(eq(personalRecords.userId, userId), inArray(personalRecords.exerciseId, exerciseIds))
+			);
+		return results.map((r) => this.toEntity(r));
 	}
 
 	async findByUserId(userId: string): Promise<PersonalRecordDto[]> {

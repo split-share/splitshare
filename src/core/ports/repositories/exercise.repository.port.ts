@@ -16,6 +16,11 @@ export interface IExerciseRepository {
 	findById(id: string): Promise<Exercise | undefined>;
 
 	/**
+	 * Finds exercises by IDs (batch)
+	 */
+	findByIds(ids: string[]): Promise<Exercise[]>;
+
+	/**
 	 * Finds all exercises for a user
 	 */
 	findByUserId(userId: string): Promise<Exercise[]>;

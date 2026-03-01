@@ -60,6 +60,7 @@ describe('GetMuscleHeatmapUseCase', () => {
 			isOwnedByUser: vi.fn(),
 			getUserStats: vi.fn(),
 			findExerciseHistory: vi.fn(),
+			findExerciseHistoryBatch: vi.fn(),
 			hasCompletedWorkoutForSplit: vi.fn()
 		};
 

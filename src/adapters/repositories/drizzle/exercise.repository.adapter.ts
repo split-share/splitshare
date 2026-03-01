@@ -1,4 +1,4 @@
-import { eq, and, like, or, desc } from 'drizzle-orm';
+import { eq, and, like, or, desc, inArray } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { exercises } from '$lib/server/db/schema';
 import type * as schema from '$lib/server/db/schema';
@@ -20,6 +20,12 @@ export class DrizzleExerciseRepositoryAdapter implements IExerciseRepository {
 		const result = await this.db.select().from(exercises).where(eq(exercises.id, id)).limit(1);
 		if (!result[0]) return undefined;
 		return this.toEntity(result[0]);
+	}
+
+	async findByIds(ids: string[]): Promise<Exercise[]> {
+		if (ids.length === 0) return [];
+		const results = await this.db.select().from(exercises).where(inArray(exercises.id, ids));
+		return results.map((r) => this.toEntity(r));
 	}
 
 	async findByUserId(userId: string): Promise<Exercise[]> {
