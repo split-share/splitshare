@@ -44,6 +44,11 @@ export interface ISplitRepository {
 	): Promise<SplitWithDetailsDto[]>;
 
 	/**
+	 * Counts splits matching filters
+	 */
+	countWithFilters(filters: SplitFiltersDto): Promise<number>;
+
+	/**
 	 * Creates a split with days and exercises
 	 */
 	createWithDays(data: CreateSplitDto): Promise<Split>;
