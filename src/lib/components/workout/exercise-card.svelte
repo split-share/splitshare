@@ -143,12 +143,14 @@
 					placeholder="50"
 					bind:value={weight}
 					step="0.5"
+					min="0"
+					max="2000"
 					class="h-11 sm:h-10"
 				/>
 			</div>
 			<div class="space-y-1.5 sm:space-y-2">
 				<Label for="reps" class="text-sm">Reps</Label>
-				<Input id="reps" type="number" placeholder="10" bind:value={reps} class="h-11 sm:h-10" />
+				<Input id="reps" type="number" placeholder="10" bind:value={reps} min="1" max="1000" class="h-11 sm:h-10" />
 			</div>
 		</div>
 
