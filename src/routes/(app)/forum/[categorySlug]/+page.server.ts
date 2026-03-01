@@ -3,7 +3,7 @@ import { container } from '$infrastructure/di/container';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
-	const category = await container.forumRepository.findCategoryBySlug(params.categorySlug);
+	const category = await container.getCategoryBySlug.execute(params.categorySlug);
 
 	if (!category) {
 		throw error(404, 'Category not found');

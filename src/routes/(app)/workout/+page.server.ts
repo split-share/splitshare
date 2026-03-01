@@ -44,7 +44,7 @@ export const load: PageServerLoad = async (event) => {
 	const activeSession = await container.getActiveWorkoutSession.execute(userId);
 
 	// Get splits with days in a batch query (avoids N+1)
-	const splitsWithDays = await container.splitRepository.findByUserIdWithDays(userId);
+	const splitsWithDays = await container.getUserSplitsWithDays.execute(userId);
 	const splits = splitsWithDays.map((s) => ({
 		id: s.id,
 		title: s.title,

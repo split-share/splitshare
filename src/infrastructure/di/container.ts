@@ -60,6 +60,16 @@ import { AbandonWorkoutSessionUseCase } from '../../core/usecases/workout/abando
 import { GetProgressionSuggestionsUseCase } from '../../core/usecases/workout/get-progression-suggestions.usecase';
 import { GetMuscleHeatmapUseCase } from '../../core/usecases/workout/get-muscle-heatmap.usecase';
 
+import { GetUserSplitsUseCase } from '../../core/usecases/split/get-user-splits.usecase';
+import { GetUserSplitsWithDaysUseCase } from '../../core/usecases/split/get-user-splits-with-days.usecase';
+import { CountSplitsUseCase } from '../../core/usecases/split/count-splits.usecase';
+import { GetSplitLikesUseCase } from '../../core/usecases/split/get-split-likes.usecase';
+import { GetSplitCommentsUseCase } from '../../core/usecases/split/get-split-comments.usecase';
+import { HasUserLikedSplitUseCase } from '../../core/usecases/split/has-user-liked-split.usecase';
+import { GetUserSplitReviewUseCase } from '../../core/usecases/split/get-user-split-review.usecase';
+
+import { GetUserExercisesUseCase } from '../../core/usecases/exercise/get-user-exercises.usecase';
+
 import { GetCategoriesUseCase } from '../../core/usecases/forum/get-categories.usecase';
 import { GetTopicsUseCase } from '../../core/usecases/forum/get-topics.usecase';
 import { GetTopicUseCase } from '../../core/usecases/forum/get-topic.usecase';
@@ -70,6 +80,8 @@ import { GetPostsUseCase } from '../../core/usecases/forum/get-posts.usecase';
 import { CreatePostUseCase } from '../../core/usecases/forum/create-post.usecase';
 import { UpdatePostUseCase } from '../../core/usecases/forum/update-post.usecase';
 import { DeletePostUseCase } from '../../core/usecases/forum/delete-post.usecase';
+import { GetCategoryBySlugUseCase } from '../../core/usecases/forum/get-category-by-slug.usecase';
+import { IsTopicLockedUseCase } from '../../core/usecases/forum/is-topic-locked.usecase';
 
 /**
  * Dependency Injection Container
@@ -211,6 +223,34 @@ class Container {
 		return new SearchSplitsUseCase(this.splitRepository);
 	}
 
+	get getUserSplits(): GetUserSplitsUseCase {
+		return new GetUserSplitsUseCase(this.splitRepository);
+	}
+
+	get getUserSplitsWithDays(): GetUserSplitsWithDaysUseCase {
+		return new GetUserSplitsWithDaysUseCase(this.splitRepository);
+	}
+
+	get countSplits(): CountSplitsUseCase {
+		return new CountSplitsUseCase(this.splitRepository);
+	}
+
+	get getSplitLikes(): GetSplitLikesUseCase {
+		return new GetSplitLikesUseCase(this.likeRepository);
+	}
+
+	get getSplitComments(): GetSplitCommentsUseCase {
+		return new GetSplitCommentsUseCase(this.commentRepository);
+	}
+
+	get hasUserLikedSplit(): HasUserLikedSplitUseCase {
+		return new HasUserLikedSplitUseCase(this.likeRepository);
+	}
+
+	get getUserSplitReview(): GetUserSplitReviewUseCase {
+		return new GetUserSplitReviewUseCase(this.reviewRepository);
+	}
+
 	get createExercise(): CreateExerciseUseCase {
 		return new CreateExerciseUseCase(this.exerciseRepository);
 	}
@@ -225,6 +265,10 @@ class Container {
 
 	get deleteExercise(): DeleteExerciseUseCase {
 		return new DeleteExerciseUseCase(this.exerciseRepository);
+	}
+
+	get getUserExercises(): GetUserExercisesUseCase {
+		return new GetUserExercisesUseCase(this.exerciseRepository);
 	}
 
 	get logWorkout(): LogWorkoutUseCase {
@@ -403,6 +447,14 @@ class Container {
 
 	get deletePost(): DeletePostUseCase {
 		return new DeletePostUseCase(this.forumRepository);
+	}
+
+	get getCategoryBySlug(): GetCategoryBySlugUseCase {
+		return new GetCategoryBySlugUseCase(this.forumRepository);
+	}
+
+	get isTopicLocked(): IsTopicLockedUseCase {
+		return new IsTopicLockedUseCase(this.forumRepository);
 	}
 }
 

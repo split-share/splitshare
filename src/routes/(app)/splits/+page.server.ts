@@ -6,7 +6,7 @@ export const load: PageServerLoad = async (event) => {
 		return { splits: [] };
 	}
 
-	const splits = await container.splitRepository.findByUserId(event.locals.user.id);
+	const splits = await container.getUserSplits.execute(event.locals.user.id);
 
 	return {
 		splits
