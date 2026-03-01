@@ -3,6 +3,7 @@
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
 	import ModeToggle from '$lib/components/mode-toggle.svelte';
+	import NavigationProgress from '$lib/components/navigation-progress.svelte';
 	import SeoHead from '$lib/components/seo-head.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
@@ -33,6 +34,7 @@
 </script>
 
 <ModeWatcher />
+<NavigationProgress />
 
 <SeoHead />
 
