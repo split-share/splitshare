@@ -34,12 +34,7 @@ export async function registerServiceWorker(): Promise<void> {
 		});
 
 		// Listen for messages from service worker
-		navigator.serviceWorker.addEventListener('message', (event) => {
-			if (event.data.type === 'SYNC_WORKOUT_DATA') {
-				// Trigger sync when service worker requests it
-				initializeSync();
-			}
-		});
+		navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
 
 		// Wait for service worker to be ready before marking offline ready
 		await navigator.serviceWorker.ready;
@@ -71,6 +66,15 @@ function handleOnline() {
 }
 
 /**
+ * Handle service worker messages
+ */
+function handleServiceWorkerMessage(event: MessageEvent) {
+	if (event.data.type === 'SYNC_WORKOUT_DATA') {
+		initializeSync();
+	}
+}
+
+/**
  * Initialize all offline capabilities
  */
 export function initializeOfflineSupport(): () => void {
@@ -98,5 +102,8 @@ export function initializeOfflineSupport(): () => void {
 	return () => {
 		cleanupConnectionMonitoring();
 		window.removeEventListener('online', handleOnline);
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+		}
 	};
 }
