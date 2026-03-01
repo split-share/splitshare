@@ -89,6 +89,11 @@ export const actions: Actions = {
 			throw error(401, 'Unauthorized');
 		}
 
+		const isLocked = await container.forumRepository.isTopicLocked(event.params.id);
+		if (isLocked) {
+			return fail(400, { error: 'This topic is locked' });
+		}
+
 		// Rate limit mutations
 		const rateLimitResult = await rateLimit(event, mutationLimiter);
 		if (!rateLimitResult.success) {
@@ -132,6 +137,11 @@ export const actions: Actions = {
 	deletePost: async (event) => {
 		if (!event.locals.user?.id) {
 			throw error(401, 'Unauthorized');
+		}
+
+		const isLocked = await container.forumRepository.isTopicLocked(event.params.id);
+		if (isLocked) {
+			return fail(400, { error: 'This topic is locked' });
 		}
 
 		// Rate limit mutations

@@ -181,7 +181,7 @@
 										{/if}
 									</div>
 
-									{#if data.user?.id === post.author.id}
+									{#if data.user?.id === post.author.id && !data.topic.isLocked}
 										<div class="flex gap-1 sm:gap-2 flex-shrink-0">
 											<Button
 												variant="ghost"
