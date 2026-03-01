@@ -15,13 +15,8 @@
 		isEligible?: boolean;
 	} = $props();
 
-	let rating = $state(0);
-	let content = $state('');
-
-	$effect(() => {
-		rating = existingReview?.rating || 0;
-		content = existingReview?.content || '';
-	});
+	let rating = $derived(existingReview?.rating || 0);
+	let content = $derived(existingReview?.content || '');
 
 	const action = $derived(existingReview ? '?/updateReview' : '?/addReview');
 	const buttonText = $derived(existingReview ? 'Update Review' : 'Submit Review');

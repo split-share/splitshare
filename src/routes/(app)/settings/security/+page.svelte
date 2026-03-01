@@ -21,10 +21,7 @@
 	type UserWithTwoFactor = typeof data.user & { twoFactorEnabled?: boolean };
 	let user = $derived(data.user as UserWithTwoFactor);
 
-	let twoFactorEnabled = $state(false);
-	$effect(() => {
-		twoFactorEnabled = user.twoFactorEnabled ?? false;
-	});
+	let twoFactorEnabled = $derived(user.twoFactorEnabled ?? false);
 
 	async function handleChangePassword(formData: ChangePasswordInput) {
 		const result = await authClient.changePassword({
