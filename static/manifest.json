@@ -60,19 +60,5 @@
 			"purpose": "maskable any"
 		}
 	],
-	"categories": ["health", "fitness", "lifestyle"],
-	"screenshots": [
-		{
-			"src": "/screenshots/mobile-screenshot.png",
-			"sizes": "750x1334",
-			"type": "image/png",
-			"form_factor": "narrow"
-		},
-		{
-			"src": "/screenshots/desktop-screenshot.png",
-			"sizes": "1280x800",
-			"type": "image/png",
-			"form_factor": "wide"
-		}
-	]
+	"categories": ["health", "fitness", "lifestyle"]
 }
