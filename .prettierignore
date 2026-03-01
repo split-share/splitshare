@@ -12,3 +12,4 @@ yarn.lock
 android
 ios
 test-results/
+.mcp.json
