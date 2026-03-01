@@ -28,6 +28,7 @@ describe('AddCommentUseCase', () => {
 			findByUserId: vi.fn(),
 			findByUserIdWithDays: vi.fn(),
 			findWithFilters: vi.fn(),
+			countWithFilters: vi.fn(),
 			createWithDays: vi.fn(),
 			update: vi.fn(),
 			delete: vi.fn(),

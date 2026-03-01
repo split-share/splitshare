@@ -399,6 +399,49 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 		});
 	}
 
+	/** @inheritdoc */
+	async countWithFilters(filters: SplitFiltersDto): Promise<number> {
+		const conditions = [];
+
+		if (filters.userId) {
+			conditions.push(eq(splits.userId, filters.userId));
+		}
+
+		if (filters.isPublic !== undefined) {
+			conditions.push(eq(splits.isPublic, filters.isPublic));
+		}
+
+		if (filters.isDefault !== undefined) {
+			conditions.push(eq(splits.isDefault, filters.isDefault));
+		}
+
+		if (filters.difficulty) {
+			conditions.push(eq(splits.difficulty, filters.difficulty));
+		}
+
+		if (filters.tags && filters.tags.length > 0) {
+			conditions.push(sql`${splits.tags} && ${filters.tags}`);
+		}
+
+		if (filters.search) {
+			conditions.push(
+				or(
+					like(splits.title, `%${filters.search}%`),
+					like(splits.description, `%${filters.search}%`)
+				)
+			);
+		}
+
+		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+		const [result] = await this.db
+			.select({ count: sql<number>`cast(count(*) as integer)` })
+			.from(splits)
+			.where(whereClause);
+
+		return result.count;
+	}
+
 	async createWithDays(input: CreateSplitDto): Promise<Split> {
 		return await this.db.transaction(async (tx) => {
 			const [split] = await tx

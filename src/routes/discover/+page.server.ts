@@ -10,7 +10,7 @@ export const load: PageServerLoad = async (event) => {
 	}
 
 	const url = new URL(event.request.url);
-	const page = parseInt(url.searchParams.get('page') || '1', 10);
+	const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10) || 1);
 	const difficultyFilter = url.searchParams.get('difficulty');
 
 	const filters = {
@@ -22,13 +22,16 @@ export const load: PageServerLoad = async (event) => {
 
 	const offset = (page - 1) * ITEMS_PER_PAGE;
 
-	const popularSplits = await container.splitRepository.findWithFilters(
-		filters,
-		{ limit: ITEMS_PER_PAGE, offset },
-		event.locals.user?.id
-	);
+	const [popularSplits, totalCount] = await Promise.all([
+		container.splitRepository.findWithFilters(
+			filters,
+			{ limit: ITEMS_PER_PAGE, offset },
+			event.locals.user?.id
+		),
+		container.splitRepository.countWithFilters(filters)
+	]);
 
-	const totalPages = Math.ceil(popularSplits.length / ITEMS_PER_PAGE);
+	const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
 	return {
 		popularSplits,
