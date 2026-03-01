@@ -14,7 +14,7 @@ export const load: PageServerLoad = async (event) => {
 	const splitId = event.params.id;
 	const currentUserId = event.locals.user?.id;
 
-	const splitData = await container.splitRepository.findByIdWithDetails(splitId, currentUserId);
+	const splitData = await container.getSplit.execute(splitId, currentUserId);
 
 	if (!splitData) {
 		error(404, 'Split not found');
@@ -27,14 +27,14 @@ export const load: PageServerLoad = async (event) => {
 
 	const [likes, comments, reviews, hasUserLiked, userReview, isEligibleToReview] =
 		await Promise.all([
-			container.likeRepository.findBySplitId(splitId),
-			container.commentRepository.findBySplitId(splitId),
+			container.getSplitLikes.execute(splitId),
+			container.getSplitComments.execute(splitId),
 			container.getReviews.execute(splitId),
 			currentUserId
-				? container.likeRepository.hasUserLiked(currentUserId, splitId)
+				? container.hasUserLikedSplit.execute(currentUserId, splitId)
 				: Promise.resolve(false),
 			currentUserId
-				? container.reviewRepository.findByUserAndSplit(currentUserId, splitId)
+				? container.getUserSplitReview.execute(currentUserId, splitId)
 				: Promise.resolve(undefined),
 			currentUserId
 				? container.checkReviewEligibility.execute(currentUserId, splitId)

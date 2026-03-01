@@ -89,7 +89,7 @@ export const actions: Actions = {
 			throw error(401, 'Unauthorized');
 		}
 
-		const isLocked = await container.forumRepository.isTopicLocked(event.params.id);
+		const isLocked = await container.isTopicLocked.execute(event.params.id);
 		if (isLocked) {
 			return fail(400, { error: 'This topic is locked' });
 		}
@@ -139,7 +139,7 @@ export const actions: Actions = {
 			throw error(401, 'Unauthorized');
 		}
 
-		const isLocked = await container.forumRepository.isTopicLocked(event.params.id);
+		const isLocked = await container.isTopicLocked.execute(event.params.id);
 		if (isLocked) {
 			return fail(400, { error: 'This topic is locked' });
 		}

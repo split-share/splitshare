@@ -6,7 +6,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 	const { splitId, dayId } = params;
 	const userId = locals.user?.id;
 
-	const split = await container.splitRepository.findByIdWithDetails(splitId);
+	const split = await container.getSplit.execute(splitId);
 
 	if (!split) {
 		return json({ error: 'Split not found' }, { status: 404 });

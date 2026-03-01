@@ -19,7 +19,7 @@ export const load: PageServerLoad = async (event) => {
 			: {})
 	};
 
-	const defaultSplits = await container.splitRepository.findWithFilters(
+	const defaultSplits = await container.searchSplits.execute(
 		filters,
 		{ limit: 100, offset: 0 },
 		event.locals.user?.id

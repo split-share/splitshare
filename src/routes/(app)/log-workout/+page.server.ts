@@ -12,18 +12,13 @@ export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user) throw error(401, 'Unauthorized');
 	const userId = event.locals.user.id;
 
-	const splitEntities = await container.splitRepository.findByUserId(userId);
+	const splitsWithDays = await container.getUserSplitsWithDays.execute(userId);
 
-	const splits = await Promise.all(
-		splitEntities.map(async (s) => {
-			const details = await container.splitRepository.findByIdWithDetails(s.id);
-			return {
-				id: s.id,
-				title: s.title,
-				days: details?.days.map((d) => ({ id: d.id, name: d.name, dayNumber: d.dayNumber })) || []
-			};
-		})
-	);
+	const splits = splitsWithDays.map((s) => ({
+		id: s.id,
+		title: s.title,
+		days: s.days.map((d) => ({ id: d.id, name: d.name, dayNumber: d.dayNumber }))
+	}));
 
 	return {
 		splits

@@ -26,12 +26,12 @@ export const load: PageServerLoad = async (event) => {
 	const offset = (page - 1) * ITEMS_PER_PAGE;
 
 	const [popularSplits, totalCount] = await Promise.all([
-		container.splitRepository.findWithFilters(
+		container.searchSplits.execute(
 			filters,
 			{ limit: ITEMS_PER_PAGE, offset },
 			event.locals.user?.id
 		),
-		container.splitRepository.countWithFilters(filters)
+		container.countSplits.execute(filters)
 	]);
 
 	const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);

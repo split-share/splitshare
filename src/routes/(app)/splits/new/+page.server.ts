@@ -18,7 +18,7 @@ export const load: PageServerLoad = async (event) => {
 
 	if (!event.locals.user) throw error(401, 'Unauthorized');
 
-	const availableExercises = await container.exerciseRepository.findByUserId(event.locals.user.id);
+	const availableExercises = await container.getUserExercises.execute(event.locals.user.id);
 
 	return {
 		exercises: availableExercises.map((exercise) => ({
