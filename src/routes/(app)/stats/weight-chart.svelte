@@ -23,6 +23,12 @@
 		}))
 	);
 
+	const yMin = $derived(() => {
+		if (chartData.length === 0) return 0;
+		const minWeight = Math.min(...chartData.map((d) => d.weight));
+		return Math.floor(minWeight - 5);
+	});
+
 	// Generate unique date ticks (max ~7 ticks for readability)
 	const xTicks = $derived(() => {
 		if (chartData.length === 0) return [];
@@ -40,7 +46,7 @@
 			data={chartData}
 			x="date"
 			xScale={scaleUtc().nice(timeDay)}
-			yDomain={[40, null]}
+			yDomain={[yMin(), null]}
 			axis="x"
 			series={[
 				{
