@@ -84,18 +84,12 @@
 
 			{#if isOwner}
 				<div class="flex gap-2 w-full sm:w-auto">
-					<Button
-						variant="outline"
-						href="/splits/{split.split.id}/edit"
-						class="flex-1 sm:flex-none"
-					>
-						<Edit2 class="h-4 w-4 mr-2" />
-						Edit
-					</Button>
-					<Button variant="destructive" class="flex-1 sm:flex-none">
-						<Trash2 class="h-4 w-4 mr-2" />
-						Delete
-					</Button>
+					<form method="POST" action="?/delete" use:enhance>
+						<Button type="submit" variant="destructive" class="flex-1 sm:flex-none">
+							<Trash2 class="h-4 w-4 mr-2" />
+							Delete
+						</Button>
+					</form>
 				</div>
 			{/if}
 		</div>
@@ -484,8 +478,5 @@
 	<!-- Action Buttons -->
 	<div class="mt-8 flex justify-center gap-4">
 		<Button href="/discover" variant="outline">Back to Discover</Button>
-		{#if split.split.isPublic}
-			<Button variant="outline">Clone Split</Button>
-		{/if}
 	</div>
 </div>

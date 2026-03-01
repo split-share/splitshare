@@ -1,4 +1,4 @@
-import { error, fail } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { container } from '$infrastructure/di/container';
 import { logAction } from '$lib/server/logger';
 import { mutationLimiter, rateLimit } from '$lib/server/rate-limit';
@@ -399,5 +399,38 @@ export const actions: Actions = {
 		}
 
 		return { success: true };
+	},
+
+	delete: async (event) => {
+		if (!event.locals.user) {
+			return fail(401, { error: 'Unauthorized' });
+		}
+
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
+		}
+
+		const splitId = event.params.id;
+
+		try {
+			await container.deleteSplit.execute(splitId, event.locals.user.id);
+
+			logAction(event, 'split.delete', {
+				success: true,
+				resourceId: splitId,
+				resourceType: 'split'
+			});
+		} catch (err) {
+			logAction(event, 'split.delete', {
+				success: false,
+				resourceId: splitId,
+				resourceType: 'split',
+				error: err instanceof Error ? err : String(err)
+			});
+			return fail(400, { error: err instanceof Error ? err.message : 'Failed to delete split' });
+		}
+
+		redirect(303, '/splits');
 	}
 };
