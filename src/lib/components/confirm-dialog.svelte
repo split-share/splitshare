@@ -35,7 +35,9 @@
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel>{cancelLabel}</AlertDialog.Cancel>
 			<AlertDialog.Action
-				class={variant === 'destructive' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
+				class={variant === 'destructive'
+					? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+					: ''}
 				onclick={onConfirm}
 			>
 				{confirmLabel}

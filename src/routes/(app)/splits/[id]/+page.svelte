@@ -431,7 +431,9 @@
 															description="This will permanently delete your comment."
 															confirmLabel="Delete"
 															onConfirm={() => {
-																const form = document.getElementById(`delete-comment-${comment.id}`) as HTMLFormElement;
+																const form = document.getElementById(
+																	`delete-comment-${comment.id}`
+																) as HTMLFormElement;
 																form?.requestSubmit();
 															}}
 														>
@@ -441,7 +443,13 @@
 																</Button>
 															{/snippet}
 														</ConfirmDialog>
-														<form id="delete-comment-{comment.id}" method="POST" action="?/deleteComment" use:enhance class="hidden">
+														<form
+															id="delete-comment-{comment.id}"
+															method="POST"
+															action="?/deleteComment"
+															use:enhance
+															class="hidden"
+														>
 															<input type="hidden" name="commentId" value={comment.id} />
 														</form>
 													</div>

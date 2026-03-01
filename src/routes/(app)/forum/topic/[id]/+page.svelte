@@ -104,7 +104,13 @@
 						</Button>
 					{/snippet}
 				</ConfirmDialog>
-				<form id="delete-topic-form" method="POST" action="?/deleteTopic" use:enhance class="hidden"></form>
+				<form
+					id="delete-topic-form"
+					method="POST"
+					action="?/deleteTopic"
+					use:enhance
+					class="hidden"
+				></form>
 			{/if}
 		</div>
 	</div>
@@ -190,21 +196,25 @@
 												description="This will permanently delete your post."
 												confirmLabel="Delete"
 												onConfirm={() => {
-													const form = document.getElementById(`delete-post-${post.id}`) as HTMLFormElement;
+													const form = document.getElementById(
+														`delete-post-${post.id}`
+													) as HTMLFormElement;
 													form?.requestSubmit();
 												}}
 											>
 												{#snippet trigger()}
-													<Button
-														variant="ghost"
-														size="icon"
-														class="h-8 w-8 sm:h-9 sm:w-9"
-													>
+													<Button variant="ghost" size="icon" class="h-8 w-8 sm:h-9 sm:w-9">
 														<Trash2 class="h-4 w-4" />
 													</Button>
 												{/snippet}
 											</ConfirmDialog>
-											<form id="delete-post-{post.id}" method="POST" action="?/deletePost" use:enhance class="hidden">
+											<form
+												id="delete-post-{post.id}"
+												method="POST"
+												action="?/deletePost"
+												use:enhance
+												class="hidden"
+											>
 												<input type="hidden" name="postId" value={post.id} />
 											</form>
 										</div>
