@@ -20,6 +20,11 @@ export const load: PageServerLoad = async (event) => {
 		error(404, 'Split not found');
 	}
 
+	const isOwner = currentUserId && splitData.split.userId === currentUserId;
+	if (!splitData.split.isPublic && !isOwner) {
+		error(404, 'Split not found');
+	}
+
 	const [likes, comments, reviews, hasUserLiked, userReview, isEligibleToReview] =
 		await Promise.all([
 			container.likeRepository.findBySplitId(splitId),
