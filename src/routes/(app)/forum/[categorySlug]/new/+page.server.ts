@@ -2,6 +2,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { container } from '$infrastructure/di/container';
 import { createTopicSchema } from '$lib/schemas/forum';
 import { NotFoundError } from '$core/domain/common/errors';
+import { mutationLimiter, rateLimit } from '$lib/server/rate-limit';
 import type { Actions, PageServerLoad } from './$types';
 
 function getFormString(formData: FormData, key: string): string | null {
@@ -26,12 +27,17 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, params, locals }) => {
-		if (!locals.user?.id) {
+	default: async (event) => {
+		if (!event.locals.user?.id) {
 			throw error(401, 'Unauthorized');
 		}
 
-		const formData = await request.formData();
+		const rateLimitResult = await rateLimit(event, mutationLimiter);
+		if (!rateLimitResult.success) {
+			return fail(429, { error: 'Too many requests. Please try again later.' });
+		}
+
+		const formData = await event.request.formData();
 		const title = getFormString(formData, 'title');
 		const content = getFormString(formData, 'content');
 
@@ -45,8 +51,8 @@ export const actions: Actions = {
 
 		try {
 			const topic = await container.createTopic.execute({
-				categoryId: params.categorySlug,
-				userId: locals.user.id,
+				categoryId: event.params.categorySlug,
+				userId: event.locals.user.id,
 				title: validation.data.title,
 				content: validation.data.content
 			});
