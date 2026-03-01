@@ -2,7 +2,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { container } from '$infrastructure/di/container';
 import { logAction } from '$lib/server/logger';
 import { mutationLimiter, rateLimit } from '$lib/server/rate-limit';
-import { createReviewSchema, updateReviewSchema } from '$lib/schemas/split';
+import { commentSchema, createReviewSchema, updateReviewSchema } from '$lib/schemas/split';
 import type { PageServerLoad, Actions } from './$types';
 
 function getFormString(formData: FormData, key: string): string | null {
@@ -147,22 +147,23 @@ export const actions: Actions = {
 		const content = getFormString(formData, 'content');
 		const splitId = event.params.id;
 
-		if (!content || !content.trim()) {
-			return fail(400, { error: 'Comment content is required' });
+		const validation = commentSchema.safeParse({ content });
+		if (!validation.success) {
+			return fail(400, { error: validation.error.issues[0].message });
 		}
 
 		try {
 			await container.addComment.execute({
 				userId: event.locals.user.id,
 				splitId,
-				content
+				content: validation.data.content
 			});
 
 			logAction(event, 'comment.create', {
 				success: true,
 				resourceId: splitId,
 				resourceType: 'split',
-				metadata: { contentLength: content.length }
+				metadata: { contentLength: validation.data.content.length }
 			});
 		} catch (err) {
 			logAction(event, 'comment.create', {
@@ -192,12 +193,19 @@ export const actions: Actions = {
 		const commentId = getFormString(formData, 'commentId');
 		const content = getFormString(formData, 'content');
 
-		if (!commentId || !content || !content.trim()) {
-			return fail(400, { error: 'Comment ID and content are required' });
+		if (!commentId) {
+			return fail(400, { error: 'Comment ID is required' });
+		}
+
+		const validation = commentSchema.safeParse({ content });
+		if (!validation.success) {
+			return fail(400, { error: validation.error.issues[0].message });
 		}
 
 		try {
-			await container.updateComment.execute(commentId, event.locals.user.id, { content });
+			await container.updateComment.execute(commentId, event.locals.user.id, {
+				content: validation.data.content
+			});
 
 			logAction(event, 'comment.update', {
 				success: true,
