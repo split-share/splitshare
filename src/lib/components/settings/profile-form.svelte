@@ -12,7 +12,7 @@
 
 	let { initialName, onSubmit }: Props = $props();
 
-	let name = $state(initialName);
+	let name = $derived(initialName);
 	let loading = $state(false);
 	let error = $state('');
 	let success = $state(false);
