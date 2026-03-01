@@ -1,4 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { rateLimit, uploadLimiter, rateLimitError } from '$lib/server/rate-limit';
 import { createExerciseSchema } from '$lib/schemas/exercise';
 import { container } from '$infrastructure/di/container';
@@ -49,8 +49,12 @@ export const actions: Actions = {
 
 		const validatedData = validation.data;
 
+		if (!event.locals.user) {
+			throw error(401, 'Unauthorized');
+		}
+
 		const exercise = await container.createExercise.execute({
-			userId: event.locals.user!.id,
+			userId: event.locals.user.id,
 			name: validatedData.name,
 			description: validatedData.description,
 			difficulty: validatedData.difficulty,

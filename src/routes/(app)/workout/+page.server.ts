@@ -1,4 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
 import { container } from '$infrastructure/di/container';
 import { logAction, logger } from '$lib/server/logger';
@@ -28,8 +28,16 @@ function getFormString(formData: FormData, key: string): string | null {
 	return typeof value === 'string' ? value : null;
 }
 
+/** Returns authenticated user ID or throws 401 */
+function requireUserId(event: { locals: { user: { id: string } | null } }): string {
+	if (!event.locals.user) {
+		throw error(401, 'Unauthorized');
+	}
+	return event.locals.user.id;
+}
+
 export const load: PageServerLoad = async (event) => {
-	const userId = event.locals.user!.id;
+	const userId = requireUserId(event);
 	const url = event.url;
 
 	// Check for active session first
@@ -81,7 +89,7 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const splitId = getFormString(formData, 'splitId');
 		const dayId = getFormString(formData, 'dayId');
-		const userId = event.locals.user!.id;
+		const userId = requireUserId(event);
 
 		if (!splitId || !dayId) {
 			return fail(400, { error: 'Please select a split and day' });
@@ -115,7 +123,7 @@ export const actions: Actions = {
 
 	completeSet: async (event) => {
 		const formData = await event.request.formData();
-		const userId = event.locals.user!.id;
+		const userId = requireUserId(event);
 
 		const validation = completeSetSchema.safeParse({
 			sessionId: getFormString(formData, 'sessionId'),
@@ -163,7 +171,7 @@ export const actions: Actions = {
 	skipRest: async (event) => {
 		const formData = await event.request.formData();
 		const sessionId = getFormString(formData, 'sessionId');
-		const userId = event.locals.user!.id;
+		const userId = requireUserId(event);
 
 		if (!sessionId) {
 			return fail(400, { error: 'Session ID is required' });
@@ -186,7 +194,7 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const sessionId = getFormString(formData, 'sessionId');
 		const exerciseElapsedSeconds = getFormString(formData, 'exerciseElapsedSeconds');
-		const userId = event.locals.user!.id;
+		const userId = requireUserId(event);
 
 		if (!sessionId) {
 			return fail(400, { error: 'Session ID is required' });
@@ -207,7 +215,7 @@ export const actions: Actions = {
 	resume: async (event) => {
 		const formData = await event.request.formData();
 		const sessionId = getFormString(formData, 'sessionId');
-		const userId = event.locals.user!.id;
+		const userId = requireUserId(event);
 
 		if (!sessionId) {
 			return fail(400, { error: 'Session ID is required' });
@@ -228,7 +236,7 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const sessionId = getFormString(formData, 'sessionId');
 		const notes = getFormString(formData, 'notes');
-		const userId = event.locals.user!.id;
+		const userId = requireUserId(event);
 
 		if (!sessionId) {
 			return fail(400, { error: 'Session ID is required' });
@@ -262,7 +270,7 @@ export const actions: Actions = {
 	abandon: async (event) => {
 		const formData = await event.request.formData();
 		const sessionId = getFormString(formData, 'sessionId');
-		const userId = event.locals.user!.id;
+		const userId = requireUserId(event);
 
 		if (!sessionId) {
 			return fail(400, { error: 'Session ID is required' });
@@ -294,7 +302,7 @@ export const actions: Actions = {
 		const sessionId = getFormString(formData, 'sessionId');
 		const exerciseElapsedSeconds = getFormString(formData, 'exerciseElapsedSeconds');
 		const restRemainingSeconds = getFormString(formData, 'restRemainingSeconds');
-		const userId = event.locals.user!.id;
+		const userId = requireUserId(event);
 
 		if (!sessionId) {
 			return { success: false };

@@ -1,10 +1,11 @@
-import { fail } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import { container } from '$infrastructure/di/container';
 import { createWeightEntrySchema } from '$lib/schemas/weight';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-	const userId = event.locals.user!.id;
+	if (!event.locals.user) throw error(401, 'Unauthorized');
+	const userId = event.locals.user.id;
 
 	const [
 		weightStats,
@@ -45,6 +46,7 @@ function getFormString(formData: FormData, key: string): string | null {
 
 export const actions: Actions = {
 	add: async (event) => {
+		if (!event.locals.user) throw error(401, 'Unauthorized');
 		const formData = await event.request.formData();
 		const weightStr = getFormString(formData, 'weight');
 		const weight = weightStr ? parseFloat(weightStr) : NaN;
@@ -68,7 +70,7 @@ export const actions: Actions = {
 
 		try {
 			await container.createWeightEntry.execute({
-				userId: event.locals.user!.id,
+				userId: event.locals.user.id,
 				weight: validation.data.weight,
 				recordedAt: validation.data.recordedAt,
 				notes: validation.data.notes
@@ -83,6 +85,7 @@ export const actions: Actions = {
 	},
 
 	delete: async (event) => {
+		if (!event.locals.user) throw error(401, 'Unauthorized');
 		const formData = await event.request.formData();
 		const id = getFormString(formData, 'id');
 
@@ -91,7 +94,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			await container.deleteWeightEntry.execute(id, event.locals.user!.id);
+			await container.deleteWeightEntry.execute(id, event.locals.user.id);
 			return { success: true };
 		} catch (err) {
 			return fail(500, {
