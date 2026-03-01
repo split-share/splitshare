@@ -34,8 +34,11 @@
 	let isSubmitting = $state(false);
 	let workoutNotes = $state('');
 	let showCompleteModal = $state(false);
+	let fetchError = $state<string | null>(null);
 	// eslint-disable-next-line svelte/prefer-writable-derived -- Updated by timer callback
 	let timerSeconds = $state(0);
+
+	const FETCH_TIMEOUT_MS = 10_000;
 
 	// Sync state with data when it changes
 	$effect(() => {
@@ -91,18 +94,42 @@
 		};
 	});
 
+	async function fetchWithTimeout(url: string, init: globalThis.RequestInit): Promise<Response> {
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+		try {
+			const response = await fetch(url, { ...init, signal: controller.signal });
+			clearTimeout(timeoutId);
+			return response;
+		} catch (err) {
+			clearTimeout(timeoutId);
+			throw err;
+		}
+	}
+
 	// Sync timer values periodically
 	$effect(() => {
 		if (!session || isPaused) return;
 
 		const syncInterval = setInterval(async () => {
-			const formData = new FormData();
-			formData.append('sessionId', session.id);
-			formData.append('exerciseElapsedSeconds', String(timerSeconds));
-			fetch('?/sync', {
-				method: 'POST',
-				body: formData
-			});
+			try {
+				const formData = new FormData();
+				formData.append('sessionId', session.id);
+				formData.append('exerciseElapsedSeconds', String(timerSeconds));
+				const response = await fetchWithTimeout('?/sync', {
+					method: 'POST',
+					body: formData
+				});
+				if (!response.ok) {
+					console.error('Workout sync failed:', response.status);
+				}
+			} catch (err) {
+				if (err instanceof DOMException && err.name === 'AbortError') {
+					console.error('Workout sync timed out');
+				} else {
+					console.error('Workout sync error:', err);
+				}
+			}
 		}, 10000);
 
 		return () => clearInterval(syncInterval);
@@ -120,54 +147,90 @@
 		timerSeconds = seconds;
 	}
 
+	function getFetchErrorMessage(err: unknown): string {
+		if (err instanceof DOMException && err.name === 'AbortError') {
+			return 'Request timed out. Please try again.';
+		}
+		return 'Network error. Please check your connection.';
+	}
+
 	async function handleRestComplete() {
-		const formData = new FormData();
-		formData.append('sessionId', session!.id);
-		await fetch('?/skipRest', {
-			method: 'POST',
-			body: formData
-		});
-		hapticImpact('medium');
-		await invalidateAll();
+		try {
+			fetchError = null;
+			const formData = new FormData();
+			formData.append('sessionId', session!.id);
+			const response = await fetchWithTimeout('?/skipRest', {
+				method: 'POST',
+				body: formData
+			});
+			if (!response.ok) {
+				fetchError = 'Failed to complete rest period. Please try again.';
+				return;
+			}
+			hapticImpact('medium');
+			await invalidateAll();
+		} catch (err) {
+			fetchError = getFetchErrorMessage(err);
+		}
 	}
 
 	async function handleSkipRest() {
-		const formData = new FormData();
-		formData.append('sessionId', session!.id);
-		await fetch('?/skipRest', {
-			method: 'POST',
-			body: formData
-		});
-		await invalidateAll();
+		try {
+			fetchError = null;
+			const formData = new FormData();
+			formData.append('sessionId', session!.id);
+			const response = await fetchWithTimeout('?/skipRest', {
+				method: 'POST',
+				body: formData
+			});
+			if (!response.ok) {
+				fetchError = 'Failed to skip rest. Please try again.';
+				return;
+			}
+			await invalidateAll();
+		} catch (err) {
+			fetchError = getFetchErrorMessage(err);
+		}
 	}
 
 	async function handleCompleteSet(weight: number | null, reps: number, notes: string | null) {
 		isSubmitting = true;
-		const formData = new FormData();
-		formData.append('sessionId', session!.id);
-		if (weight !== null) formData.append('weight', String(weight));
-		formData.append('reps', String(reps));
-		if (notes) formData.append('notes', notes);
+		fetchError = null;
+		try {
+			const formData = new FormData();
+			formData.append('sessionId', session!.id);
+			if (weight !== null) formData.append('weight', String(weight));
+			formData.append('reps', String(reps));
+			if (notes) formData.append('notes', notes);
 
-		await fetch('?/completeSet', {
-			method: 'POST',
-			body: formData
-		});
+			const response = await fetchWithTimeout('?/completeSet', {
+				method: 'POST',
+				body: formData
+			});
 
-		hapticImpact('light');
-		timerSeconds = 0;
-		isSubmitting = false;
-		await invalidateAll();
+			if (!response.ok) {
+				fetchError = 'Failed to save set. Please try again.';
+				return;
+			}
+
+			hapticImpact('light');
+			timerSeconds = 0;
+			await invalidateAll();
+		} catch (err) {
+			fetchError = getFetchErrorMessage(err);
+		} finally {
+			isSubmitting = false;
+		}
 	}
 </script>
 
 <div class="container mx-auto px-4 py-4 sm:py-8 max-w-2xl">
-	{#if form?.error}
+	{#if form?.error || fetchError}
 		<div
 			class="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg flex items-center gap-3"
 		>
 			<AlertCircle class="h-5 w-5 text-destructive" />
-			<p class="text-destructive">{form.error}</p>
+			<p class="text-destructive">{form?.error || fetchError}</p>
 		</div>
 	{/if}
 
