@@ -88,6 +88,11 @@ const securityHeadersHandle: Handle = async ({ event, resolve }) => {
 		'camera=(), microphone=(), geolocation=(), payment=()'
 	);
 
+	// HSTS - enforce HTTPS on subsequent visits
+	if (process.env.NODE_ENV === 'production') {
+		response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+	}
+
 	// Content Security Policy (adjust as needed for your app)
 	if (process.env.NODE_ENV === 'production') {
 		response.headers.set(
