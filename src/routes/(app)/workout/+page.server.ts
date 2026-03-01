@@ -6,8 +6,16 @@ import type { PageServerLoad, Actions } from './$types';
 
 const completeSetSchema = z.object({
 	sessionId: z.string().min(1),
-	weight: z.coerce.number().min(0, 'Weight cannot be negative').max(2000, 'Weight exceeds maximum').nullable(),
-	reps: z.coerce.number().int('Reps must be a whole number').min(1, 'Reps must be at least 1').max(1000, 'Reps exceeds maximum'),
+	weight: z.coerce
+		.number()
+		.min(0, 'Weight cannot be negative')
+		.max(2000, 'Weight exceeds maximum')
+		.nullable(),
+	reps: z.coerce
+		.number()
+		.int('Reps must be a whole number')
+		.min(1, 'Reps must be at least 1')
+		.max(1000, 'Reps exceeds maximum'),
 	notes: z.string().max(500, 'Notes too long').nullable()
 });
 
