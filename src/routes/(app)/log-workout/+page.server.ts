@@ -1,4 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { container } from '$infrastructure/di/container';
 import { logWorkoutSchema } from '$lib/schemas/split';
 import type { PageServerLoad, Actions } from './$types';
@@ -9,7 +9,8 @@ function getFormString(formData: FormData, key: string): string | null {
 }
 
 export const load: PageServerLoad = async (event) => {
-	const userId = event.locals.user!.id;
+	if (!event.locals.user) throw error(401, 'Unauthorized');
+	const userId = event.locals.user.id;
 
 	const splitEntities = await container.splitRepository.findByUserId(userId);
 
@@ -56,8 +57,12 @@ export const actions: Actions = {
 
 		const { splitId, dayId, duration, notes, exercises } = validation.data;
 
+		if (!event.locals.user) {
+			throw error(401, 'Unauthorized');
+		}
+
 		await container.logWorkout.execute({
-			userId: event.locals.user!.id,
+			userId: event.locals.user.id,
 			splitId,
 			dayId,
 			duration: duration ?? null,

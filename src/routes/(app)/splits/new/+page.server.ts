@@ -1,4 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { rateLimit, uploadLimiter, rateLimitError } from '$lib/server/rate-limit';
 import { createCompleteSplitSchema } from '$lib/schemas/split';
 import { container } from '$infrastructure/di/container';
@@ -16,7 +16,9 @@ export const load: PageServerLoad = async (event) => {
 		throw rateLimitError(rateLimitResult.reset);
 	}
 
-	const availableExercises = await container.exerciseRepository.findByUserId(event.locals.user!.id);
+	if (!event.locals.user) throw error(401, 'Unauthorized');
+
+	const availableExercises = await container.exerciseRepository.findByUserId(event.locals.user.id);
 
 	return {
 		exercises: availableExercises.map((exercise) => ({
@@ -67,8 +69,10 @@ export const actions: Actions = {
 		const validatedData = validation.data;
 
 		try {
+			if (!event.locals.user) throw error(401, 'Unauthorized');
+
 			const split = await container.createSplit.execute({
-				userId: event.locals.user!.id,
+				userId: event.locals.user.id,
 				title: validatedData.title,
 				description: validatedData.description,
 				difficulty: validatedData.difficulty,
