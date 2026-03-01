@@ -18,6 +18,7 @@
 	import ExerciseCard from '$lib/components/workout/exercise-card.svelte';
 	import RestOverlay from '$lib/components/workout/rest-overlay.svelte';
 	import GroupProgress from '$lib/components/workout/group-progress.svelte';
+	import ConfirmDialog from '$lib/components/confirm-dialog.svelte';
 	import { Play, Pause, X, Check, Dumbbell, AlertCircle } from 'lucide-svelte';
 	import { hapticImpact, hapticNotification } from '$lib/utils/mobile';
 	import type { PageData, ActionData } from './$types';
@@ -32,6 +33,7 @@
 	// eslint-disable-next-line svelte/prefer-writable-derived -- Toggled by user actions
 	let isPaused = $state(false);
 	let isSubmitting = $state(false);
+	let abandonForm = $state<HTMLFormElement>();
 	let workoutNotes = $state('');
 	let showCompleteModal = $state(false);
 	let fetchError = $state<string | null>(null);
@@ -365,11 +367,20 @@
 					<h1 class="text-xl sm:text-2xl font-bold truncate">{data.activeSession?.split.title}</h1>
 					<p class="text-sm sm:text-base text-muted-foreground">{data.activeSession?.day.name}</p>
 				</div>
-				<form method="POST" action="?/abandon" use:enhance>
+				<ConfirmDialog
+					title="Abandon workout?"
+					description="This will discard your current session and all completed sets. This cannot be undone."
+					confirmLabel="Abandon"
+					onConfirm={() => abandonForm?.requestSubmit()}
+				>
+					{#snippet trigger()}
+						<Button variant="ghost" size="icon" class="h-10 w-10 flex-shrink-0">
+							<X class="h-5 w-5" />
+						</Button>
+					{/snippet}
+				</ConfirmDialog>
+				<form bind:this={abandonForm} method="POST" action="?/abandon" use:enhance class="hidden">
 					<input type="hidden" name="sessionId" value={session?.id} />
-					<Button type="submit" variant="ghost" size="icon" class="h-10 w-10 flex-shrink-0">
-						<X class="h-5 w-5" />
-					</Button>
 				</form>
 			</div>
 
