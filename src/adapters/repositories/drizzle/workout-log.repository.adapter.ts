@@ -393,20 +393,30 @@ export class DrizzleWorkoutLogRepositoryAdapter implements IWorkoutLogRepository
 
 		if (workouts.length === 0) return 0;
 
-		let streak = 0;
-		const currentDate = new Date();
-		currentDate.setHours(0, 0, 0, 0);
+		const now = new Date();
+		const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+		const MS_PER_DAY = 86_400_000;
 
+		// Deduplicate by UTC date (multiple workouts per day count once)
+		const uniqueDays = new Set<number>();
 		for (const workout of workouts) {
-			const workoutDate = new Date(workout.completedAt);
-			workoutDate.setHours(0, 0, 0, 0);
+			const d = new Date(workout.completedAt);
+			const dayUTC = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+			uniqueDays.add(Math.round((todayUTC - dayUTC) / MS_PER_DAY));
+		}
 
-			const daysDiff = Math.floor(
-				(currentDate.getTime() - workoutDate.getTime()) / (1000 * 60 * 60 * 24)
-			);
+		const sortedDays = [...uniqueDays].sort((a, b) => a - b);
 
-			if (daysDiff === streak || (streak === 0 && daysDiff <= 1)) {
-				streak = Math.max(streak, daysDiff + 1);
+		// Most recent workout must be today (0) or yesterday (1) to count as a streak
+		if (sortedDays[0] > 1) return 0;
+
+		let streak = 0;
+		let expected = sortedDays[0];
+
+		for (const day of sortedDays) {
+			if (day === expected) {
+				streak++;
+				expected++;
 			} else {
 				break;
 			}
