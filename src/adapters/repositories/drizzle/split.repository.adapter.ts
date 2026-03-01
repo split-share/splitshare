@@ -16,7 +16,8 @@ import type {
 	UpdateSplitDto,
 	SplitFiltersDto,
 	SplitWithDetailsDto,
-	SplitDto
+	SplitDto,
+	SplitWithDaysDto
 } from '../../../core/domain/split/split.dto';
 import type { Pagination } from '../../../core/domain/common/value-objects';
 import { Split } from '../../../core/domain/split/split.entity';
@@ -172,6 +173,52 @@ export class DrizzleSplitRepositoryAdapter implements ISplitRepository {
 			.orderBy(desc(splits.createdAt));
 
 		return results.map((r) => this.toDto(r));
+	}
+
+	async findByUserIdWithDays(userId: string): Promise<SplitWithDaysDto[]> {
+		const userSplits = await this.db
+			.select({ id: splits.id, title: splits.title })
+			.from(splits)
+			.where(eq(splits.userId, userId))
+			.orderBy(desc(splits.createdAt));
+
+		if (userSplits.length === 0) return [];
+
+		const splitIds = userSplits.map((s) => s.id);
+		const days = await this.db
+			.select({
+				id: splitDays.id,
+				splitId: splitDays.splitId,
+				name: splitDays.name,
+				dayNumber: splitDays.dayNumber,
+				isRestDay: splitDays.isRestDay,
+				exerciseCount: sql<number>`cast(count(${dayExercises.id}) as integer)`
+			})
+			.from(splitDays)
+			.leftJoin(dayExercises, eq(splitDays.id, dayExercises.dayId))
+			.where(inArray(splitDays.splitId, splitIds))
+			.groupBy(splitDays.id)
+			.orderBy(splitDays.dayNumber);
+
+		const daysBySplitId = new Map<string, SplitWithDaysDto['days']>();
+		for (const day of days) {
+			if (!daysBySplitId.has(day.splitId)) {
+				daysBySplitId.set(day.splitId, []);
+			}
+			daysBySplitId.get(day.splitId)!.push({
+				id: day.id,
+				name: day.name,
+				dayNumber: day.dayNumber,
+				isRestDay: day.isRestDay,
+				exerciseCount: day.exerciseCount
+			});
+		}
+
+		return userSplits.map((s) => ({
+			id: s.id,
+			title: s.title,
+			days: daysBySplitId.get(s.id) || []
+		}));
 	}
 
 	async findWithFilters(

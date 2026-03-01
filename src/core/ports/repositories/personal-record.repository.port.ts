@@ -9,6 +9,11 @@ export interface IPersonalRecordRepository {
 		exerciseId: string
 	): Promise<PersonalRecord | undefined>;
 
+	/**
+	 * Finds personal records for multiple exercises (batch)
+	 */
+	findByUserIdAndExerciseIds(userId: string, exerciseIds: string[]): Promise<PersonalRecord[]>;
+
 	findByUserId(userId: string): Promise<PersonalRecordDto[]>;
 
 	upsert(

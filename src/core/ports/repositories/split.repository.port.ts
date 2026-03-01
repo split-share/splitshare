@@ -4,7 +4,8 @@ import type {
 	UpdateSplitDto,
 	SplitFiltersDto,
 	SplitWithDetailsDto,
-	SplitDto
+	SplitDto,
+	SplitWithDaysDto
 } from '../../domain/split/split.dto';
 import type { Pagination } from '../../domain/common/value-objects';
 
@@ -27,6 +28,11 @@ export interface ISplitRepository {
 	 * Finds all splits for a user (returns plain objects for serialization)
 	 */
 	findByUserId(userId: string): Promise<SplitDto[]>;
+
+	/**
+	 * Finds all splits for a user with their days and exercise counts (batch query)
+	 */
+	findByUserIdWithDays(userId: string): Promise<SplitWithDaysDto[]>;
 
 	/**
 	 * Finds splits with filters and pagination

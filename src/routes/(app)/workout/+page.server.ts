@@ -19,26 +19,20 @@ export const load: PageServerLoad = async (event) => {
 	// Check for active session first
 	const activeSession = await container.getActiveWorkoutSession.execute(userId);
 
-	// Get splits for selection
-	const splitEntities = await container.splitRepository.findByUserId(userId);
-	const splits = await Promise.all(
-		splitEntities.map(async (s) => {
-			const details = await container.splitRepository.findByIdWithDetails(s.id);
-			return {
-				id: s.id,
-				title: s.title,
-				days:
-					details?.days
-						.filter((d) => !d.isRestDay && d.exercises.length > 0)
-						.map((d) => ({
-							id: d.id,
-							name: d.name,
-							dayNumber: d.dayNumber,
-							exerciseCount: d.exercises.length
-						})) || []
-			};
-		})
-	);
+	// Get splits with days in a batch query (avoids N+1)
+	const splitsWithDays = await container.splitRepository.findByUserIdWithDays(userId);
+	const splits = splitsWithDays.map((s) => ({
+		id: s.id,
+		title: s.title,
+		days: s.days
+			.filter((d) => !d.isRestDay && d.exerciseCount > 0)
+			.map((d) => ({
+				id: d.id,
+				name: d.name,
+				dayNumber: d.dayNumber,
+				exerciseCount: d.exerciseCount
+			}))
+	}));
 
 	// Check for URL params (from play button redirect)
 	const splitIdParam = url.searchParams.get('splitId');

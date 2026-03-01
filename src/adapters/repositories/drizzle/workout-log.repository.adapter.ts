@@ -348,6 +348,42 @@ export class DrizzleWorkoutLogRepositoryAdapter implements IWorkoutLogRepository
 		}));
 	}
 
+	async findExerciseHistoryBatch(
+		userId: string,
+		exerciseIds: string[],
+		limit = 5
+	): Promise<Map<string, ExercisePerformanceDto[]>> {
+		if (exerciseIds.length === 0) return new Map();
+
+		const results = await this.db
+			.select({
+				exerciseId: exerciseLogs.exerciseId,
+				date: workoutLogs.completedAt,
+				weight: exerciseLogs.weight,
+				sets: exerciseLogs.sets,
+				reps: exerciseLogs.reps
+			})
+			.from(exerciseLogs)
+			.innerJoin(workoutLogs, eq(exerciseLogs.workoutLogId, workoutLogs.id))
+			.where(and(eq(workoutLogs.userId, userId), inArray(exerciseLogs.exerciseId, exerciseIds)))
+			.orderBy(desc(workoutLogs.completedAt));
+
+		const grouped = new Map<string, ExercisePerformanceDto[]>();
+		for (const r of results) {
+			const exerciseId = r.exerciseId;
+			if (!exerciseId) continue;
+			if (!grouped.has(exerciseId)) {
+				grouped.set(exerciseId, []);
+			}
+			const list = grouped.get(exerciseId)!;
+			if (list.length < limit) {
+				list.push({ date: r.date, weight: r.weight, sets: r.sets, reps: r.reps });
+			}
+		}
+
+		return grouped;
+	}
+
 	private async calculateStreak(userId: string): Promise<number> {
 		const workouts = await this.db
 			.select({ completedAt: workoutLogs.completedAt })

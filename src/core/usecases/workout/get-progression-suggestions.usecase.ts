@@ -25,6 +25,7 @@ export class GetProgressionSuggestionsUseCase {
 
 	/**
 	 * Generates progression suggestions for a list of exercises
+	 * Batch-loads all data upfront to avoid N+1 queries
 	 * @param {string} userId - ID of the user
 	 * @param {string[]} exerciseIds - IDs of exercises to analyze
 	 * @returns {Promise<Map<string, ProgressionSuggestionDto>>} Map of exercise IDs to progression suggestions
@@ -33,30 +34,41 @@ export class GetProgressionSuggestionsUseCase {
 		userId: string,
 		exerciseIds: string[]
 	): Promise<Map<string, ProgressionSuggestionDto>> {
+		if (exerciseIds.length === 0) return new Map();
+
+		// Batch-load all data in 3 parallel queries instead of 3*N sequential ones
+		const [exercisesList, personalRecordsList, performanceMap] = await Promise.all([
+			this.exerciseRepository.findByIds(exerciseIds),
+			this.personalRecordRepository.findByUserIdAndExerciseIds(userId, exerciseIds),
+			this.workoutLogRepository.findExerciseHistoryBatch(userId, exerciseIds, 5)
+		]);
+
+		const exerciseMap = new Map(exercisesList.map((e) => [e.id, e]));
+		const prMap = new Map(personalRecordsList.map((pr) => [pr.exerciseId, pr]));
+
 		const suggestions = new Map<string, ProgressionSuggestionDto>();
 
-		await Promise.all(
-			exerciseIds.map(async (exerciseId) => {
-				const suggestion = await this.getSuggestionForExercise(userId, exerciseId);
-				if (suggestion) {
-					suggestions.set(exerciseId, suggestion);
-				}
-			})
-		);
+		for (const exerciseId of exerciseIds) {
+			const suggestion = this.buildSuggestion(
+				exerciseId,
+				exerciseMap.get(exerciseId),
+				prMap.get(exerciseId),
+				performanceMap.get(exerciseId) || []
+			);
+			if (suggestion) {
+				suggestions.set(exerciseId, suggestion);
+			}
+		}
 
 		return suggestions;
 	}
 
-	private async getSuggestionForExercise(
-		userId: string,
-		exerciseId: string
-	): Promise<ProgressionSuggestionDto | null> {
-		const [exercise, personalRecord, recentPerformances] = await Promise.all([
-			this.exerciseRepository.findById(exerciseId),
-			this.personalRecordRepository.findByUserIdAndExerciseId(userId, exerciseId),
-			this.workoutLogRepository.findExerciseHistory(userId, exerciseId, 5)
-		]);
-
+	private buildSuggestion(
+		exerciseId: string,
+		exercise: { name: string; muscleGroup: string } | undefined,
+		personalRecord: { weight: number; reps: number; achievedAt: Date } | undefined,
+		recentPerformances: ExercisePerformanceDto[]
+	): ProgressionSuggestionDto | null {
 		if (!exercise) {
 			return null;
 		}
@@ -65,19 +77,21 @@ export class GetProgressionSuggestionsUseCase {
 		const isCompound = COMPOUND_MUSCLE_GROUPS.some((g) => muscleGroup.includes(g.toLowerCase()));
 		const increment = isCompound ? COMPOUND_INCREMENT : ISOLATION_INCREMENT;
 
+		const prData = personalRecord
+			? {
+					weight: personalRecord.weight,
+					reps: personalRecord.reps,
+					date: personalRecord.achievedAt
+				}
+			: null;
+
 		// No history case
 		if (recentPerformances.length === 0) {
 			return {
 				exerciseId,
 				exerciseName: exercise.name,
 				muscleGroup: exercise.muscleGroup,
-				currentPR: personalRecord
-					? {
-							weight: personalRecord.weight,
-							reps: personalRecord.reps,
-							date: personalRecord.achievedAt
-						}
-					: null,
+				currentPR: prData,
 				lastPerformance: null,
 				recentPerformances: [],
 				suggestedWeight: null,
@@ -95,15 +109,12 @@ export class GetProgressionSuggestionsUseCase {
 		let reason: ProgressionSuggestionDto['reason'] = 'maintain';
 
 		if (consecutiveSuccesses >= PROGRESSION_THRESHOLD && lastPerformance.weight !== null) {
-			// Ready to progress
 			suggestedWeight = lastPerformance.weight + increment;
 			reason = 'ready_to_progress';
 		} else if (recentPerformances.length === 1) {
-			// Only one session, maintain
 			suggestedWeight = lastPerformance.weight;
 			reason = 'maintain';
 		} else if (consecutiveSuccesses < PROGRESSION_THRESHOLD) {
-			// Not consistent enough yet
 			suggestedWeight = lastPerformance.weight;
 			reason = 'inconsistent';
 		}
@@ -112,13 +123,7 @@ export class GetProgressionSuggestionsUseCase {
 			exerciseId,
 			exerciseName: exercise.name,
 			muscleGroup: exercise.muscleGroup,
-			currentPR: personalRecord
-				? {
-						weight: personalRecord.weight,
-						reps: personalRecord.reps,
-						date: personalRecord.achievedAt
-					}
-				: null,
+			currentPR: prData,
 			lastPerformance: {
 				weight: lastPerformance.weight,
 				reps: lastPerformance.reps,

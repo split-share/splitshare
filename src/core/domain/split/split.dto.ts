@@ -93,6 +93,18 @@ export interface SplitWithDetailsDto {
 	isLiked: boolean;
 }
 
+export interface SplitWithDaysDto {
+	id: string;
+	title: string;
+	days: {
+		id: string;
+		name: string;
+		dayNumber: number;
+		isRestDay: boolean;
+		exerciseCount: number;
+	}[];
+}
+
 export interface SplitDayWithExercisesDto {
 	id: string;
 	splitId: string;

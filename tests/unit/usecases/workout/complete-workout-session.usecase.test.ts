@@ -35,6 +35,7 @@ describe('CompleteWorkoutSessionUseCase', () => {
 			isOwnedByUser: vi.fn(),
 			getUserStats: vi.fn(),
 			findExerciseHistory: vi.fn(),
+			findExerciseHistoryBatch: vi.fn(),
 			hasCompletedWorkoutForSplit: vi.fn()
 		}) as unknown as Mocked<IWorkoutLogRepository>;
 
@@ -42,6 +43,7 @@ describe('CompleteWorkoutSessionUseCase', () => {
 		({
 			findById: vi.fn(),
 			findByUserIdAndExerciseId: vi.fn(),
+			findByUserIdAndExerciseIds: vi.fn(),
 			findByUserId: vi.fn(),
 			upsert: vi.fn(),
 			delete: vi.fn(),

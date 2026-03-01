@@ -17,6 +17,7 @@ describe('GetWorkoutHistoryUseCase', () => {
 			isOwnedByUser: vi.fn(),
 			getUserStats: vi.fn(),
 			findExerciseHistory: vi.fn(),
+			findExerciseHistoryBatch: vi.fn(),
 			hasCompletedWorkoutForSplit: vi.fn()
 		}) as unknown as Mocked<IWorkoutLogRepository>;
 
