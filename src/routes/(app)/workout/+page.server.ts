@@ -1,7 +1,23 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { z } from 'zod';
 import { container } from '$infrastructure/di/container';
 import { logAction, logger } from '$lib/server/logger';
 import type { PageServerLoad, Actions } from './$types';
+
+const completeSetSchema = z.object({
+	sessionId: z.string().min(1),
+	weight: z.coerce
+		.number()
+		.min(0, 'Weight cannot be negative')
+		.max(2000, 'Weight exceeds maximum')
+		.nullable(),
+	reps: z.coerce
+		.number()
+		.int('Reps must be a whole number')
+		.min(1, 'Reps must be at least 1')
+		.max(1000, 'Reps exceeds maximum'),
+	notes: z.string().max(500, 'Notes too long').nullable()
+});
 
 function getErrorMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
@@ -99,30 +115,37 @@ export const actions: Actions = {
 
 	completeSet: async (event) => {
 		const formData = await event.request.formData();
-		const sessionId = getFormString(formData, 'sessionId');
-		const weight = getFormString(formData, 'weight');
-		const reps = getFormString(formData, 'reps');
-		const notes = getFormString(formData, 'notes');
 		const userId = event.locals.user!.id;
 
-		if (!sessionId || !reps) {
-			return fail(400, { error: 'Missing required fields' });
+		const validation = completeSetSchema.safeParse({
+			sessionId: getFormString(formData, 'sessionId'),
+			weight: getFormString(formData, 'weight') || null,
+			reps: getFormString(formData, 'reps'),
+			notes: getFormString(formData, 'notes') || null
+		});
+
+		if (!validation.success) {
+			const errors = validation.error.flatten().fieldErrors;
+			const firstError = Object.values(errors).flat()[0] || 'Invalid input';
+			return fail(400, { error: firstError });
 		}
+
+		const { sessionId, weight, reps, notes } = validation.data;
 
 		try {
 			await container.completeSet.execute({
 				sessionId,
 				userId,
-				weight: weight ? parseFloat(weight) : null,
-				reps: parseInt(reps),
-				notes: notes || null
+				weight,
+				reps,
+				notes
 			});
 
 			logAction(event, 'workout.set_complete', {
 				success: true,
 				resourceId: sessionId,
 				resourceType: 'workout_session',
-				metadata: { weight: weight ? parseFloat(weight) : null, reps: parseInt(reps) }
+				metadata: { weight, reps }
 			});
 		} catch (error) {
 			logAction(event, 'workout.set_complete', {
