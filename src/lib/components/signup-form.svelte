@@ -5,6 +5,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { signUp } from '$lib/auth-client';
 	import { goto, invalidateAll } from '$app/navigation';
+	import { passwordSchema } from '$lib/schemas/auth';
 	import type { ComponentProps } from 'svelte';
 
 	let { ...restProps }: ComponentProps<typeof Card.Root> = $props();
@@ -24,13 +25,14 @@
 		e.preventDefault();
 		error = '';
 
-		if (password !== confirmPassword) {
-			error = 'Passwords do not match';
+		const passwordResult = passwordSchema.safeParse(password);
+		if (!passwordResult.success) {
+			error = passwordResult.error.issues[0].message;
 			return;
 		}
 
-		if (password.length < 8) {
-			error = 'Password must be at least 8 characters long';
+		if (password !== confirmPassword) {
+			error = 'Passwords do not match';
 			return;
 		}
 
@@ -106,7 +108,9 @@
 						required
 						autocomplete="new-password"
 					/>
-					<Field.Description>Must be at least 8 characters long.</Field.Description>
+					<Field.Description>
+						Min 8 characters with uppercase, lowercase, and a number.
+					</Field.Description>
 				</Field.Field>
 				<Field.Field>
 					<Field.Label for="confirm-password">Confirm Password</Field.Label>
