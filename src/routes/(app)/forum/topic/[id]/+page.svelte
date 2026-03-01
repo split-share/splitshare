@@ -292,6 +292,7 @@
 
 					<div class="space-y-4">
 						<input type="hidden" name="content" value={newPostContent} />
+						<label for="forum-reply" class="sr-only">Reply content</label>
 						<RichTextEditor
 							bind:value={newPostContent}
 							minHeight="400px"

@@ -17,6 +17,7 @@
 
 	let rating = $derived(existingReview?.rating || 0);
 	let content = $derived(existingReview?.content || '');
+	let isSubmitting = $state(false);
 
 	const action = $derived(existingReview ? '?/updateReview' : '?/addReview');
 	const buttonText = $derived(existingReview ? 'Update Review' : 'Submit Review');
@@ -36,8 +37,10 @@
 				method="POST"
 				{action}
 				use:enhance={() => {
+					isSubmitting = true;
 					return async ({ update }) => {
 						await update();
+						isSubmitting = false;
 						if (!existingReview) {
 							rating = 0;
 							content = '';
@@ -72,8 +75,8 @@
 					</div>
 
 					<div class="flex justify-end gap-2">
-						<Button type="submit" disabled={rating === 0 || content.length < 10}>
-							{buttonText}
+						<Button type="submit" disabled={rating === 0 || content.length < 10 || isSubmitting}>
+							{isSubmitting ? 'Submitting...' : buttonText}
 						</Button>
 					</div>
 				</div>

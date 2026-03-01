@@ -346,7 +346,9 @@
 								}}
 							>
 								<div class="space-y-4">
+									<label for="new-comment" class="sr-only">Write a comment</label>
 									<Textarea
+										id="new-comment"
 										name="content"
 										bind:value={newComment}
 										placeholder="Write a comment..."

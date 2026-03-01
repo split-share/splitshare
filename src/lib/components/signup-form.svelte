@@ -81,6 +81,7 @@
 						bind:value={name}
 						required
 						autocomplete="name"
+						aria-invalid={!!error}
 					/>
 				</Field.Field>
 				<Field.Field>
@@ -92,6 +93,7 @@
 						bind:value={email}
 						required
 						autocomplete="email"
+						aria-invalid={!!error}
 					/>
 					<Field.Description>
 						We'll use this to contact you. We will not share your email with anyone else.
@@ -105,6 +107,7 @@
 						bind:value={password}
 						required
 						autocomplete="new-password"
+						aria-invalid={!!error}
 					/>
 					<Field.Description>Must be at least 8 characters long.</Field.Description>
 				</Field.Field>
@@ -116,6 +119,7 @@
 						bind:value={confirmPassword}
 						required
 						autocomplete="new-password"
+						aria-invalid={!!error}
 					/>
 					<Field.Description>Please confirm your password.</Field.Description>
 				</Field.Field>

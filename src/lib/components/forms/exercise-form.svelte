@@ -100,8 +100,9 @@
 		</FieldRoot>
 
 		<FieldRoot>
-			<FieldLabel>Muscle Group *</FieldLabel>
+			<FieldLabel for="muscle-group">Muscle Group *</FieldLabel>
 			<select
+				id="muscle-group"
 				bind:value={muscleGroup}
 				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 			>
@@ -112,8 +113,9 @@
 		</FieldRoot>
 
 		<FieldRoot>
-			<FieldLabel>Equipment Type *</FieldLabel>
+			<FieldLabel for="equipment-type">Equipment Type *</FieldLabel>
 			<select
+				id="equipment-type"
 				bind:value={equipmentType}
 				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 			>

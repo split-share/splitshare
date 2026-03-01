@@ -68,6 +68,7 @@
 						bind:value={email}
 						required
 						autocomplete="email"
+						aria-invalid={!!error}
 					/>
 				</Field>
 				<Field>
@@ -80,6 +81,7 @@
 						bind:value={password}
 						required
 						autocomplete="current-password"
+						aria-invalid={!!error}
 					/>
 				</Field>
 				<Field>
