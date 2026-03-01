@@ -69,20 +69,19 @@
 		exercises = exercises.filter((_, i) => i !== index);
 	}
 
+	let payloadJson = $derived(
+		JSON.stringify({
+			splitId: selectedSplitId,
+			dayId: selectedDayId,
+			duration,
+			notes,
+			exercises
+		})
+	);
+
 	function handleSubmit() {
 		return async ({ update }: { update: () => Promise<void> }) => {
 			loading = true;
-			const payload = JSON.stringify({
-				splitId: selectedSplitId,
-				dayId: selectedDayId,
-				duration,
-				notes,
-				exercises
-			});
-
-			const formData = new FormData();
-			formData.append('payload', payload);
-
 			await update();
 			loading = false;
 		};
@@ -96,7 +95,7 @@
 	</div>
 
 	<form method="POST" action="?/log" use:enhance={handleSubmit}>
-		<input type="hidden" name="payload" />
+		<input type="hidden" name="payload" value={payloadJson} />
 
 		<Card>
 			<CardHeader>
