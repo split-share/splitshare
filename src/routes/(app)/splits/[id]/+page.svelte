@@ -13,6 +13,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Heart, MessageSquare, Trash2, Edit2, Share2, Play, Star } from 'lucide-svelte';
+	import ConfirmDialog from '$lib/components/confirm-dialog.svelte';
 	import ExerciseGif from '$lib/components/exercise-gif.svelte';
 	import ReviewForm from '$lib/components/split/review-form.svelte';
 	import ReviewList from '$lib/components/split/review-list.svelte';
@@ -425,11 +426,23 @@
 														>
 															<Edit2 class="h-4 w-4" />
 														</Button>
-														<form method="POST" action="?/deleteComment" use:enhance>
+														<ConfirmDialog
+															title="Delete comment?"
+															description="This will permanently delete your comment."
+															confirmLabel="Delete"
+															onConfirm={() => {
+																const form = document.getElementById(`delete-comment-${comment.id}`) as HTMLFormElement;
+																form?.requestSubmit();
+															}}
+														>
+															{#snippet trigger()}
+																<Button variant="ghost" size="sm">
+																	<Trash2 class="h-4 w-4" />
+																</Button>
+															{/snippet}
+														</ConfirmDialog>
+														<form id="delete-comment-{comment.id}" method="POST" action="?/deleteComment" use:enhance class="hidden">
 															<input type="hidden" name="commentId" value={comment.id} />
-															<Button type="submit" variant="ghost" size="sm">
-																<Trash2 class="h-4 w-4" />
-															</Button>
 														</form>
 													</div>
 												{/if}

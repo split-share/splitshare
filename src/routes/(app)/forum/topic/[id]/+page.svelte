@@ -10,6 +10,7 @@
 	} from '$lib/components/ui/card';
 	import { RichTextEditor } from '$lib/components/ui/rich-text-editor';
 	import { ArrowLeft, Eye, MessageSquare, Edit2, Trash2, Pin, Lock } from 'lucide-svelte';
+	import ConfirmDialog from '$lib/components/confirm-dialog.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -87,12 +88,23 @@
 			</div>
 
 			{#if isAuthor}
-				<form method="POST" action="?/deleteTopic" use:enhance class="w-full sm:w-auto">
-					<Button type="submit" variant="destructive" size="sm" class="w-full sm:w-auto">
-						<Trash2 class="h-4 w-4 mr-2" />
-						Delete
-					</Button>
-				</form>
+				<ConfirmDialog
+					title="Delete topic?"
+					description="This will permanently delete the topic and all its posts. This cannot be undone."
+					confirmLabel="Delete"
+					onConfirm={() => {
+						const form = document.getElementById('delete-topic-form') as HTMLFormElement;
+						form?.requestSubmit();
+					}}
+				>
+					{#snippet trigger()}
+						<Button variant="destructive" size="sm" class="w-full sm:w-auto">
+							<Trash2 class="h-4 w-4 mr-2" />
+							Delete
+						</Button>
+					{/snippet}
+				</ConfirmDialog>
+				<form id="delete-topic-form" method="POST" action="?/deleteTopic" use:enhance class="hidden"></form>
 			{/if}
 		</div>
 	</div>
@@ -173,16 +185,27 @@
 											>
 												<Edit2 class="h-4 w-4" />
 											</Button>
-											<form method="POST" action="?/deletePost" use:enhance>
+											<ConfirmDialog
+												title="Delete post?"
+												description="This will permanently delete your post."
+												confirmLabel="Delete"
+												onConfirm={() => {
+													const form = document.getElementById(`delete-post-${post.id}`) as HTMLFormElement;
+													form?.requestSubmit();
+												}}
+											>
+												{#snippet trigger()}
+													<Button
+														variant="ghost"
+														size="icon"
+														class="h-8 w-8 sm:h-9 sm:w-9"
+													>
+														<Trash2 class="h-4 w-4" />
+													</Button>
+												{/snippet}
+											</ConfirmDialog>
+											<form id="delete-post-{post.id}" method="POST" action="?/deletePost" use:enhance class="hidden">
 												<input type="hidden" name="postId" value={post.id} />
-												<Button
-													type="submit"
-													variant="ghost"
-													size="icon"
-													class="h-8 w-8 sm:h-9 sm:w-9"
-												>
-													<Trash2 class="h-4 w-4" />
-												</Button>
 											</form>
 										</div>
 									{/if}
