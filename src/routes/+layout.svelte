@@ -40,7 +40,6 @@
 	<link rel="icon" type="image/png" href="/splitshare.png" />
 	<link rel="apple-touch-icon" href="/splitshare.png" />
 	<meta name="theme-color" content="#0EA5E9" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
 </svelte:head>
 
 <div class="relative min-h-screen h-dvh flex flex-col">
