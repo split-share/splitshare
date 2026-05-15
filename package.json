@@ -90,7 +90,7 @@
 		"@sentry/sveltekit": "^10.25.0",
 		"@upstash/ratelimit": "^2.0.7",
 		"@upstash/redis": "^1.35.6",
-		"better-auth": "^1.4.9",
+		"better-auth": "^1.6.2",
 		"bits-ui": "^2.14.4",
 		"clsx": "^2.1.1",
 		"dexie": "^4.3.0",
